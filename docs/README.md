@@ -14,6 +14,7 @@ Start with the [prototype plan and task index](specifications/prototype/README.m
 - [Data contracts and assessment reuse](specifications/prototype/data-contracts.md)
 - [Implemented model and storage APIs](specifications/prototype/model-storage.md): T01 handoff, limits, permissions, and portability
 - [Network collector implementation](specifications/prototype/network-collector.md): T02 API, synthetic fixtures, scope, limits, and recorded Ubuntu comparison
+- [Guidance and Markdown report API](specifications/prototype/guidance-report.md): T05 content, rendering, escaping, examples, and pending owner trial
 - [Collection scope and evidence](specifications/prototype/collection.md)
 - [Decision register](specifications/prototype/decisions.md)
 
