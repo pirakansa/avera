@@ -1,6 +1,6 @@
 # T04 — Matching, change detection, and assessment reuse
 
-Status: not started. Prerequisite: T01 and T00 matching fixtures. Read [data contracts](../data-contracts.md).
+Status: implemented; see the [API handoff](../assessment-reuse.md). Prerequisite: T01 and T00 matching fixtures. Read [data contracts](../data-contracts.md).
 
 ## Outcome
 

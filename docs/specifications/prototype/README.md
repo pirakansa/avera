@@ -58,6 +58,8 @@ T00 → T01 → T02 → T04 → T05 → T06 → T07 → P1 trial through T08 →
 
 The [T02 network collector API and synthetic fixtures](network-collector.md) are available for [T04 — assessment reuse](tasks/T04-assessment-reuse.md), using the [T01 APIs](model-storage.md) and baseline `t00-2026-10-24.1`. T02 is complete: official Linux v6.8 source verification and the disposable Ubuntu comparison passed; the handoff records the tested userland/kernel combination and its limitations. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
 
+T04 now provides the [pure assessment reuse API](assessment-reuse.md), deterministic review counts, editable current entries, and separately retained unmatched context. Its tests execute every T00 matching scenario; T05/T06 can consume the documented result directly.
+
 ### Optional overlap
 
 After the T00 baseline, T02/T03 can research their sources and build collector fixtures while T01 implements the shared model. After T01, T02, T03, and T04 have separate ownership boundaries. T05 may develop against agreed review fixtures while T04 is implemented. T06 integrates completed components; it must not duplicate their logic to bypass dependencies.
