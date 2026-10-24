@@ -1,8 +1,8 @@
 # T01 — Domain model, validation, and artifact storage
 
-Status: ready to start; implementation not started. The prepared T00 baseline `t00-2026-10-24.1` satisfies this task's design prerequisite. Read [data contracts](../data-contracts.md) and [architecture](../architecture.md).
+Status: implemented against T00 baseline `t00-2026-10-24.1`. See the [API and verification handoff](../model-storage.md) for supported behavior, limits, tests, and portability. Read [data contracts](../data-contracts.md) and [architecture](../architecture.md).
 
-## Start here
+## Implementation baseline
 
 The owner has requested progression to T01 after simplifying P0. Implement the experimental baseline; do not wait for answers to the P0 questionnaire, a live Ubuntu target, or approval of JSON editing and internal state labels. Those usability choices remain open for prototype trials.
 
@@ -48,4 +48,4 @@ Do not put host reads, Cobra commands, matching policy, or Markdown rendering in
 
 ## Handoff
 
-Provide Go APIs and fixture paths to T02–T06. Record exact normalization semantics, I/O limits, and known portability constraints. Shared-type changes after this handoff require coordinated fixture and consumer updates.
+The [T01 handoff](../model-storage.md) provides Go APIs and fixture paths to T02–T06, exact normalization semantics, I/O limits, and known portability constraints. Shared-type changes after this handoff require coordinated fixture and consumer updates.

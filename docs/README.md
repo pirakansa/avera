@@ -1,6 +1,6 @@
 # Documentation
 
-AVERA currently has a Hello World CLI. The prototype documents below describe planned work, not available commands or implemented capabilities.
+AVERA currently has a Hello World CLI plus implemented internal model, validation, and storage APIs. Collection/review/report commands remain planned.
 
 ## Product direction
 
@@ -12,6 +12,7 @@ Start with the [prototype plan and task index](specifications/prototype/README.m
 
 - [Architecture and execution](specifications/prototype/architecture.md)
 - [Data contracts and assessment reuse](specifications/prototype/data-contracts.md)
+- [Implemented model and storage APIs](specifications/prototype/model-storage.md): T01 handoff, limits, permissions, and portability
 - [Collection scope and evidence](specifications/prototype/collection.md)
 - [Decision register](specifications/prototype/decisions.md)
 

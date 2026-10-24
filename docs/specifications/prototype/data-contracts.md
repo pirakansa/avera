@@ -1,6 +1,6 @@
 # Data contracts and assessment reuse
 
-Status: experimental T00 baseline `t00-2026-10-24.1`, prepared by an agent and available for T01 implementation. Optional owner P0 feedback is pending and does not block that work. The baseline section below freezes serialization details for implementation handoff. Semantic changes require a contract revision and updated examples/tests.
+Status: experimental T00 baseline `t00-2026-10-24.1`, prepared by an agent and available for T01 implementation. Optional owner P0 feedback is pending and does not block that work. T01 implements this baseline; see the [model/storage API handoff](model-storage.md) for concrete limits and storage behavior. The baseline section below freezes serialization details for implementation handoff. Semantic changes require a contract revision and updated examples/tests.
 
 ## Separate roles, not necessarily permanent file formats
 

@@ -24,11 +24,11 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is in the design stage. The `avera` CLI currently prints `Hello, world!`; security inventory features are not implemented yet.
+AVERA is an early prototype. The shared model, strict artifact validation, and safe storage APIs are implemented; see the [T01 API handoff](docs/specifications/prototype/model-storage.md). The `avera` CLI currently prints `Hello, world!`; collection and review commands are not implemented yet.
 
 Linux is the initial target. Windows and macOS support are future directions; their scope and schedule are undecided.
 
-The first milestone is to define the data model and sample report before implementing collection. AVERA is intended to complement source code analysis and other security assessment activities. Its reports do not establish overall product safety or regulatory compliance.
+The next milestone is implementing collection against the shared data model. AVERA is intended to complement source code analysis and other security assessment activities. Its reports do not establish overall product safety or regulatory compliance.
 
 ## Development quick start
 

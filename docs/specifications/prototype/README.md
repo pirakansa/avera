@@ -1,6 +1,6 @@
 # Prototype implementation plan
 
-Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md). T01 is ready to start; optional P0 feedback remains pending and does not block implementation. No executable implementation tasks in this plan are complete. The existing CLI only prints `Hello, world!`.
+Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md). T01 implements the shared domain model, strict validation, normalization, and artifact storage; see the [API handoff](model-storage.md). Optional P0 feedback remains pending and does not block subsequent implementation. The existing CLI only prints `Hello, world!`.
 
 ## Objective and authority
 
@@ -56,7 +56,7 @@ P0 is an optional lightweight rehearsal. The prepared T00 contract/fixtures allo
 
 T00 → T01 → T02 → T04 → T05 → T06 → T07 → P1 trial through T08 → T03 and affected integrations → P2 trial through T08.
 
-Current next task: [T01 — domain model and storage](tasks/T01-model-storage.md), using baseline `t00-2026-10-24.1`. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
+Current next task: [T02 — network collector](tasks/T02-network-collector.md), using the [T01 APIs](model-storage.md) and baseline `t00-2026-10-24.1`. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
 
 ### Optional overlap
 
@@ -73,7 +73,7 @@ No task requires parallel execution. If work overlaps, appoint one integration o
 5. The handoff lists changed files, commands run, observed results, deferred work, and any shared-contract changes.
 6. No release, publication, or real third-party report submission occurs as part of task completion.
 
-Existing baseline: the CLI builds, there are no unit test files, and the last vulnerability scan found no reachable vulnerabilities but did report findings in dependency packages/modules. Record new results accurately; do not silently classify this baseline as a newly introduced defect or as a completely clean dependency scan.
+Implemented baseline: the CLI builds, T01 has package-local model/storage tests, and the vulnerability scan finds no reachable vulnerabilities but reports findings in dependency packages/modules. Record new results accurately; do not silently classify this baseline as a newly introduced defect or as a completely clean dependency scan.
 
 ## Copyable agent assignment
 
