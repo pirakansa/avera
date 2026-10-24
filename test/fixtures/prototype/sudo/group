@@ -1,0 +1,3 @@
+root:x:0:
+operators:x:100:bob
+sudo:x:200:alice

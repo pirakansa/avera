@@ -1,6 +1,6 @@
 # T03 — Collect bounded local sudo configuration
 
-Status: not started. Prerequisites: T00 baseline; T01 interfaces before integration. P1 can be tried before this task finishes. Read [collection scope](../collection.md).
+Status: complete (2026-10-24). Collector, fictional-fixture tests and T05 snapshots implemented; Ubuntu 24.04/sudo 1.9.15p5 primary references and disposable syntax comparison verified; final check, test and build passed. See the [implementation handoff](../sudo-collector.md) for grammar, evidence limits, shared-contract snapshots, and the successful optional local and Ubuntu syntax comparisons. Prerequisites: T00 baseline; T01 interfaces before integration. P1 can be tried before this task finishes. Read [collection scope](../collection.md).
 
 ## Outcome
 

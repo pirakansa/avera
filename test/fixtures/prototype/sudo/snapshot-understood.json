@@ -1,0 +1,421 @@
+{
+  "collected_at": "2026-10-24T00:00:00Z",
+  "contract_revision": "t00-2026-10-24.1",
+  "coverage": [
+    {
+      "attempted_sources": [
+        "/etc/group",
+        "/etc/passwd",
+        "/etc/sudoers",
+        "/etc/sudoers.d",
+        "/etc/sudoers.d/01_first",
+        "/etc/sudoers.d/10_second",
+        "/etc/sudoers.local"
+      ],
+      "collector": "sudo",
+      "collector_version": "local-sudo-v1",
+      "diagnostic_codes": [],
+      "limitations": [
+        "Configured rules only; effective permissions, policy backend selection, external identities and file ownership/mode eligibility are not resolved.",
+        "Non-atomic local reads; no sudo commands or NSS lookups. Unsupported context limits all rule interpretations."
+      ],
+      "scope": "local configured sudoers and local passwd/group only",
+      "status": "complete"
+    }
+  ],
+  "environment": {
+    "architecture": "amd64",
+    "effective_uid": 0,
+    "execution_scope": "fictional-policy-root",
+    "kernel_release": "fixture",
+    "os_id": "fictional",
+    "os_version": "fixture"
+  },
+  "evidence": [
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-1",
+      "location": "/etc/sudoers",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "source inventoried"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-10",
+      "location": "/etc/sudoers.d/10_second",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "source inventoried"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-11",
+      "location": "/etc/sudoers.d/10_second:1",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "bob ALL=(root) /usr/bin/true"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-12",
+      "location": "/etc/passwd",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "local identity source inventoried; authentication fields omitted"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-13",
+      "location": "/etc/group",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "local identity source inventoried; authentication fields omitted"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-2",
+      "location": "/etc/sudoers:2",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-3",
+      "location": "/etc/sudoers:3",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "@include sudoers.local"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-4",
+      "location": "/etc/sudoers.local",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "source inventoried"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-5",
+      "location": "/etc/sudoers.local:1",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "%operators ALL=(root:root) /usr/bin/id"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-6",
+      "location": "/etc/sudoers:4",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "@includedir /etc/sudoers.d"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-7",
+      "location": "/etc/sudoers.d",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "include directory inventoried in lexical order"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-8",
+      "location": "/etc/sudoers.d/01_first",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "source inventoried"
+      }
+    },
+    {
+      "collected_at": "2026-10-24T00:00:00Z",
+      "evidence_id": "sudo-9",
+      "location": "/etc/sudoers.d/01_first:1",
+      "method": "bounded local configured-policy inventory; not effective permissions",
+      "source_kind": "local_file",
+      "values": {
+        "excerpt": "alice ALL=(root) /usr/bin/id"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "collector": "sudo",
+      "evidence_ids": [
+        "sudo-5"
+      ],
+      "fact_fingerprint": "sha256:7e563c49def171731e8165f1c780e11770998ef621044a1479f57cadd7c209bd",
+      "facts": {
+        "commands": [
+          {
+            "arguments": "",
+            "path": "/usr/bin/id",
+            "tags": []
+          }
+        ],
+        "host": "ALL",
+        "interpretation_complete": true,
+        "local_context_complete": true,
+        "local_members": [
+          {
+            "membership": "primary",
+            "name": "alice",
+            "uid": 1001
+          },
+          {
+            "membership": "supplementary",
+            "name": "bob",
+            "uid": 1002
+          }
+        ],
+        "policy_context": [
+          "/etc/sudoers:sha256:f61a5c0acdec5cae13818f30fb75dbe7188a1d33f8614a388b671b7ab1cacefa",
+          "alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true",
+          "@include sudoers.local",
+          "/etc/sudoers.local:sha256:2549c68db1bf8e6f05f49de9b448b870c633e520bbb24fe4988afe6f6244736f",
+          "%operators ALL=(root:root) /usr/bin/id",
+          "@includedir /etc/sudoers.d",
+          "directory:/etc/sudoers.d",
+          "/etc/sudoers.d/01_first:sha256:9b4123bed359ff9ad4a565a8f487b5df62e5f791809c16868033f0c4b732fcf0",
+          "alice ALL=(root) /usr/bin/id",
+          "/etc/sudoers.d/10_second:sha256:18587196c7cde9923c7bcadba361d1fa48b95309a7febae4865f09f7f9a8e7a1",
+          "bob ALL=(root) /usr/bin/true",
+          "/etc/passwd:sha256:79d3bf4a673162698d94d2d8aa627c3803de1054bda25a55773d25d9e3c06148",
+          "/etc/group:sha256:413783a92539ed64a51f02de44c8981c8a4b603c5c3c585bcdda8889142950ae"
+        ],
+        "principal": {
+          "name": "operators",
+          "type": "group"
+        },
+        "run_as_groups": [
+          "root"
+        ],
+        "run_as_users": [
+          "root"
+        ]
+      },
+      "finding_id": "sha256:706de347d1ccd06da5453f8103fb79e504d36f49b12d6c0ec3b017b2cc986316",
+      "identity": {
+        "line": 1,
+        "ordinal": 0,
+        "source_path": "/etc/sudoers.local"
+      },
+      "kind": "sudo.rule"
+    },
+    {
+      "collector": "sudo",
+      "evidence_ids": [
+        "sudo-9"
+      ],
+      "fact_fingerprint": "sha256:05f5fe009352985ca02a21b0e79787c4af3e08e564181e738cd1a1651338610c",
+      "facts": {
+        "commands": [
+          {
+            "arguments": "",
+            "path": "/usr/bin/id",
+            "tags": []
+          }
+        ],
+        "host": "ALL",
+        "interpretation_complete": true,
+        "local_context_complete": true,
+        "local_members": [
+          {
+            "membership": "primary",
+            "name": "alice",
+            "uid": 1001
+          }
+        ],
+        "policy_context": [
+          "/etc/sudoers:sha256:f61a5c0acdec5cae13818f30fb75dbe7188a1d33f8614a388b671b7ab1cacefa",
+          "alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true",
+          "@include sudoers.local",
+          "/etc/sudoers.local:sha256:2549c68db1bf8e6f05f49de9b448b870c633e520bbb24fe4988afe6f6244736f",
+          "%operators ALL=(root:root) /usr/bin/id",
+          "@includedir /etc/sudoers.d",
+          "directory:/etc/sudoers.d",
+          "/etc/sudoers.d/01_first:sha256:9b4123bed359ff9ad4a565a8f487b5df62e5f791809c16868033f0c4b732fcf0",
+          "alice ALL=(root) /usr/bin/id",
+          "/etc/sudoers.d/10_second:sha256:18587196c7cde9923c7bcadba361d1fa48b95309a7febae4865f09f7f9a8e7a1",
+          "bob ALL=(root) /usr/bin/true",
+          "/etc/passwd:sha256:79d3bf4a673162698d94d2d8aa627c3803de1054bda25a55773d25d9e3c06148",
+          "/etc/group:sha256:413783a92539ed64a51f02de44c8981c8a4b603c5c3c585bcdda8889142950ae"
+        ],
+        "principal": {
+          "name": "alice",
+          "type": "user"
+        },
+        "run_as_groups": [],
+        "run_as_users": [
+          "root"
+        ]
+      },
+      "finding_id": "sha256:74722c6791c0d5f2badf15210ab70916b0bd9dd3fa11668125bce50054f19d16",
+      "identity": {
+        "line": 1,
+        "ordinal": 0,
+        "source_path": "/etc/sudoers.d/01_first"
+      },
+      "kind": "sudo.rule"
+    },
+    {
+      "collector": "sudo",
+      "evidence_ids": [
+        "sudo-11"
+      ],
+      "fact_fingerprint": "sha256:ceffcc89a2582fbc90cf8928939c04e93d807d7ed316cd535fab7ad15d72d4fd",
+      "facts": {
+        "commands": [
+          {
+            "arguments": "",
+            "path": "/usr/bin/true",
+            "tags": []
+          }
+        ],
+        "host": "ALL",
+        "interpretation_complete": true,
+        "local_context_complete": true,
+        "local_members": [
+          {
+            "membership": "primary",
+            "name": "bob",
+            "uid": 1002
+          }
+        ],
+        "policy_context": [
+          "/etc/sudoers:sha256:f61a5c0acdec5cae13818f30fb75dbe7188a1d33f8614a388b671b7ab1cacefa",
+          "alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true",
+          "@include sudoers.local",
+          "/etc/sudoers.local:sha256:2549c68db1bf8e6f05f49de9b448b870c633e520bbb24fe4988afe6f6244736f",
+          "%operators ALL=(root:root) /usr/bin/id",
+          "@includedir /etc/sudoers.d",
+          "directory:/etc/sudoers.d",
+          "/etc/sudoers.d/01_first:sha256:9b4123bed359ff9ad4a565a8f487b5df62e5f791809c16868033f0c4b732fcf0",
+          "alice ALL=(root) /usr/bin/id",
+          "/etc/sudoers.d/10_second:sha256:18587196c7cde9923c7bcadba361d1fa48b95309a7febae4865f09f7f9a8e7a1",
+          "bob ALL=(root) /usr/bin/true",
+          "/etc/passwd:sha256:79d3bf4a673162698d94d2d8aa627c3803de1054bda25a55773d25d9e3c06148",
+          "/etc/group:sha256:413783a92539ed64a51f02de44c8981c8a4b603c5c3c585bcdda8889142950ae"
+        ],
+        "principal": {
+          "name": "bob",
+          "type": "user"
+        },
+        "run_as_groups": [],
+        "run_as_users": [
+          "root"
+        ]
+      },
+      "finding_id": "sha256:7fb40df4e38b9ea41c67f78191d59c64378f3034e074a458b813ac9c7b8a002b",
+      "identity": {
+        "line": 1,
+        "ordinal": 0,
+        "source_path": "/etc/sudoers.d/10_second"
+      },
+      "kind": "sudo.rule"
+    },
+    {
+      "collector": "sudo",
+      "evidence_ids": [
+        "sudo-2"
+      ],
+      "fact_fingerprint": "sha256:702c90ba5db9775ca7712179248b6c7e95bf1252203d4fee16cb92dcddfe517a",
+      "facts": {
+        "commands": [
+          {
+            "arguments": "",
+            "path": "/usr/bin/id",
+            "tags": [
+              "NOPASSWD"
+            ]
+          },
+          {
+            "arguments": "",
+            "path": "/usr/bin/whoami",
+            "tags": [
+              "NOPASSWD"
+            ]
+          },
+          {
+            "arguments": "",
+            "path": "/usr/bin/true",
+            "tags": [
+              "PASSWD"
+            ]
+          }
+        ],
+        "host": "ALL",
+        "interpretation_complete": true,
+        "local_context_complete": true,
+        "local_members": [
+          {
+            "membership": "primary",
+            "name": "alice",
+            "uid": 1001
+          }
+        ],
+        "policy_context": [
+          "/etc/sudoers:sha256:f61a5c0acdec5cae13818f30fb75dbe7188a1d33f8614a388b671b7ab1cacefa",
+          "alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true",
+          "@include sudoers.local",
+          "/etc/sudoers.local:sha256:2549c68db1bf8e6f05f49de9b448b870c633e520bbb24fe4988afe6f6244736f",
+          "%operators ALL=(root:root) /usr/bin/id",
+          "@includedir /etc/sudoers.d",
+          "directory:/etc/sudoers.d",
+          "/etc/sudoers.d/01_first:sha256:9b4123bed359ff9ad4a565a8f487b5df62e5f791809c16868033f0c4b732fcf0",
+          "alice ALL=(root) /usr/bin/id",
+          "/etc/sudoers.d/10_second:sha256:18587196c7cde9923c7bcadba361d1fa48b95309a7febae4865f09f7f9a8e7a1",
+          "bob ALL=(root) /usr/bin/true",
+          "/etc/passwd:sha256:79d3bf4a673162698d94d2d8aa627c3803de1054bda25a55773d25d9e3c06148",
+          "/etc/group:sha256:413783a92539ed64a51f02de44c8981c8a4b603c5c3c585bcdda8889142950ae"
+        ],
+        "principal": {
+          "name": "alice",
+          "type": "user"
+        },
+        "run_as_groups": [],
+        "run_as_users": [
+          "root"
+        ]
+      },
+      "finding_id": "sha256:9c085a269f0c442bc5ed86dca05ee277504b68a307a93b70007314952acdcec5",
+      "identity": {
+        "line": 2,
+        "ordinal": 0,
+        "source_path": "/etc/sudoers"
+      },
+      "kind": "sudo.rule"
+    }
+  ],
+  "finished_at": "2026-10-24T00:00:00Z",
+  "kind": "snapshot",
+  "schema_version": "0.1",
+  "snapshot_id": "fictional-sudo-understood",
+  "target_id": "fictional-host",
+  "tool_version": "local-sudo-v1"
+}

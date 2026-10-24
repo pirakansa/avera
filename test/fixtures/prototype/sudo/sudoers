@@ -1,0 +1,4 @@
+# Fictional policy: configured rules, not effective permissions.
+alice ALL=(root) NOPASSWD: /usr/bin/id, /usr/bin/whoami, PASSWD: /usr/bin/true
+@include sudoers.local
+@includedir /etc/sudoers.d

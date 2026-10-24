@@ -1,0 +1,1 @@
+%operators ALL=(root:root) /usr/bin/id

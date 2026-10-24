@@ -1,0 +1,3 @@
+Defaults authenticate
+User_Alias ADMINS = alice
+alice ALL=(root) ALL, !/usr/bin/false
