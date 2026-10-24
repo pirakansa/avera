@@ -6,6 +6,8 @@ AVERA helps teams make the security of their products explainable through observ
 
 Its guiding principle is simple: **make security explainable, rather than promise security.**
 
+See [Product direction](docs/specifications/product-direction.md) for the intended users, scope, execution constraints, and open design decisions.
+
 AVERA is being designed for managers, developers, and operators who need to understand what deserves review in a running system, why it matters, and how the team has addressed or accepted it.
 
 ## Planned workflow
