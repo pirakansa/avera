@@ -1,6 +1,6 @@
 # T06 — CLI and application workflow
 
-Status: not started. Prerequisites for P1 integration: T01, T02, T04, T05. Add T03 after the first trial. Read [architecture](../architecture.md).
+Status: implementation and validation complete; owner P1 pending. Owner P1 will cover T05 and T06 together after completion. Prerequisites for P1 integration: T01, T02, T04, T05. Add T03 after the first trial. Read [architecture](../architecture.md).
 
 ## Outcome
 
@@ -39,3 +39,19 @@ Make the agreed fictional workflow executable: collect as root, supply prior con
 ## Handoff
 
 Provide implemented command examples, exit/output behavior, fixture-based end-to-end evidence, and any changes to proposed flags. Update draft examples and decision entries to match the implemented prototype while preserving their experimental status.
+
+## Implemented handoff — 2026-10-24
+
+Implemented `internal/app` orchestration, thin Cobra command wiring, root-only network registration, private atomic artifact/report publication, cancellation and the 0/1/2 exit contract. No proposed flags changed. Cobra v1.10.2 was added for CLI dispatch using `go get`, followed by `go mod tidy`. See the [CLI reference](../cli-workflow.md) and [combined T05/T06 trial procedure](../../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal).
+
+Validation:
+
+- Before changes: `vorbere run test` and `vorbere run build` passed with network disabled. Full initial check was blocked by the pending CLI dependency during implementation, then passed after it was installed.
+- `vorbere run setup`, `vorbere run check`, `vorbere run test` (race detector), and `vorbere run build`: passed after implementation.
+- The T00 fixture validator passed: 29 JSON files, 13 scenarios, hashes/history/counts and local links. `git diff --check` passed.
+- App and command tests use injected collectors and temporary directories. They verify root/non-root behavior, prior and advance context, comparison reproduction, partial/all-failed collection, cancellation, collisions, invalid inputs and offline processing. Unknown-command handling initially returned success; the CLI test exposed it and the root handler was corrected.
+- Actual binary rehearsal as UID 1000 passed: first review, six fictional report scenarios, edited human assessment, overwrite refusal, unsupported command/flag errors, and non-root collection refusal without output creation.
+- Live integration exposed network evidence timestamps using subsecond precision although the artifact contract requires UTC seconds. The collector now emits contract precision; a fractional-clock regression test passes.
+- Vulnerability scan: 0 reachable vulnerabilities; 1 finding in imported packages and 13 in required modules not apparently called by current code remain visible. No unrelated dependency upgrades were bundled.
+
+The owner will try T05 guidance/reporting and T06 workflow together. No completed owner trial or live root collection is claimed. T07 delivery verification and P2 sudo registration remain follow-up work; the P1 binary intentionally registers network only and marks sudo uncollected. No contract revision or serialized field changes were needed.

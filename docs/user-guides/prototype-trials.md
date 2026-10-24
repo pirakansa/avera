@@ -1,6 +1,6 @@
 # Prototype trial cycles
 
-Status: planned trial procedure. The commands described in the [architecture proposal](../specifications/prototype/architecture.md) are not implemented yet. This guide becomes an executable walkthrough increment by increment; do not present proposed examples as available functionality.
+Status: T06 commands and the fictional rehearsal have passed implementation validation. The owner plans to try T05 guidance/reporting together with the T06 workflow after implementation. P1 feedback remains pending. See the [CLI reference](../specifications/prototype/cli-workflow.md) for the implemented contract.
 
 ## Purpose
 
@@ -38,6 +38,93 @@ Preparation: a known disposable Ubuntu target, the T07-verified local binary, a 
 Do not introduce production changes merely to create a changed-item scenario. Scripted fixtures are a valid way to test comparison semantics; record them as simulated rather than live evidence.
 
 After P1, decide whether to keep separate files/commands for the next cycle. Consider a simpler editing surface only if the trial demonstrates that JSON or artifact movement is a problem. Do not assume a GUI or HTML is necessary before observing the difficulty.
+
+## Executable T05 + T06 rehearsal
+
+Run from the repository root after `vorbere run setup` and `vorbere run build`. The following rehearsal uses only fictional files and needs no root, host collection, external commands inside AVERA, or network. It can be performed before a T07 distributed build is available.
+
+```sh
+trial_dir=$(mktemp -d /tmp/avera-trial.XXXXXX)
+fixtures=./test/fixtures/prototype/contracts
+
+./bin/avera review --snapshot "$fixtures/snapshot-first.json" \
+  --output "$trial_dir/first"
+./bin/avera report --snapshot "$fixtures/snapshot-first.json" \
+  --output "$trial_dir/first.md"
+
+./bin/avera report --snapshot "$fixtures/snapshot-first.json" \
+  --assessments "$fixtures/assessments-advance.json" \
+  --output "$trial_dir/advance.md"
+
+./bin/avera report --snapshot "$fixtures/snapshot-repeat.json" \
+  --previous "$fixtures/snapshot-first.json" \
+  --assessments "$fixtures/assessments-reviewed.json" \
+  --output "$trial_dir/unchanged.md"
+
+./bin/avera report --snapshot "$fixtures/snapshot-changed.json" \
+  --previous "$fixtures/snapshot-first.json" \
+  --assessments "$fixtures/assessments-reviewed.json" \
+  --output "$trial_dir/changed.md"
+
+./bin/avera report --snapshot "$fixtures/snapshot-changed.json" \
+  --previous "$fixtures/snapshot-first.json" \
+  --assessments "$fixtures/assessments-reconfirmed.json" \
+  --output "$trial_dir/reconfirmed.md"
+
+./bin/avera report --snapshot "$fixtures/snapshot-partial.json" \
+  --previous "$fixtures/snapshot-first.json" \
+  --assessments "$fixtures/assessments-reviewed.json" \
+  --output "$trial_dir/partial.md"
+printf 'Open the Markdown reports under %s\n' "$trial_dir"
+```
+
+Read the reports in this order:
+
+1. `first.md`: from the summary, follow a current item to its questions and underlying evidence. Find what to explain about purpose, audience, safeguards and rationale. Check that a public port is not automatically called unsafe and that static-content/firewall explanations are prompts rather than verified safeguards. Comparison is unavailable without prior observations.
+2. `advance.md`: distinguish prepared human expectations from observed facts and current applicability. An incomplete or mismatched expectation must remain a review question.
+3. `unchanged.md` and `changed.md`: find the old explanation and current decision. Changed facts must not carry old acceptance into the current count. Missing/unsupported sudo context in these fictional examples illustrates limitations; it does not imply live sudo integration.
+4. `reconfirmed.md`: see how an explicit replacement human judgment differs from silently updating an old basis.
+5. `partial.md`: find collection diagnostics before drawing conclusions from missing observations. Offline rendering succeeds with exit 0; a live partial collection uses exit 2.
+
+To try editing, copy `first/assessments.json` to a new file in the trial directory. Use an editor to fill the relevant entry's `purpose`, `exposure`, `safeguards`, `rationale`, `evidence_refs`, `decision`, `actor` and `assessed_at` (UTC `YYYY-MM-DDTHH:MM:SSZ`). Decision is `unreviewed`, `action_required`, or `accepted`. Keep the selector, origin and basis intact when judging those same facts. Regenerate a report with that file:
+
+```sh
+cp "$trial_dir/first/assessments.json" "$trial_dir/edited-assessments.json"
+# Edit edited-assessments.json before running the next command.
+./bin/avera report --snapshot "$fixtures/snapshot-first.json" \
+  --assessments "$trial_dir/edited-assessments.json" \
+  --output "$trial_dir/edited.md"
+```
+
+Missing explanation fields are prompts about completeness, not proof of a vulnerability. Keep the original assessment history. After a meaningful change, make an explicit replacement entry with the new snapshot/fingerprint only after human reconfirmation; the fictional reconfirmed input demonstrates this. Do not retain two conflicting active judgments for the same finding unless intentionally testing conflict handling.
+
+For a live P1 trial, first select a disposable Linux/amd64 Ubuntu target and record the actual release, kernel and binary identifier. Use the T07-verified binary for target delivery. Run collection explicitly as root on that target, using a private directory owned by root (the shell below is a root shell):
+
+```sh
+live_dir=$(mktemp -d /tmp/avera-live.XXXXXX)
+./bin/avera collect --target-id trial-target-01 --output "$live_dir/run-001"
+# If exit is 2, inspect coverage and diagnostics; usable results are still saved.
+./bin/avera review --snapshot "$live_dir/run-001/snapshot.json" \
+  --output "$live_dir/review-001"
+# Edit review-001/assessments.json, preserving selectors/basis.
+./bin/avera report --snapshot "$live_dir/run-001/snapshot.json" \
+  --assessments "$live_dir/review-001/assessments.json" \
+  --output "$live_dir/report-001.md"
+./bin/avera collect --target-id trial-target-01 \
+  --previous "$live_dir/run-001/snapshot.json" \
+  --assessments "$live_dir/review-001/assessments.json" \
+  --output "$live_dir/run-002"
+./bin/avera report --snapshot "$live_dir/run-002/snapshot.json" \
+  --previous "$live_dir/run-001/snapshot.json" \
+  --assessments "$live_dir/review-001/assessments.json" \
+  --output "$live_dir/report-002.md"
+```
+
+Review/report can instead run as an ordinary user after explicitly transferring the selected artifacts to a private directory owned by that user. Root-created directories/files are private; changing users alone does not grant read access. Do not relax permissions globally to move artifacts. AVERA never invokes sudo, transfers files, or contacts evidence URLs.
+
+Live network scope gets a fresh conservative namespace identity each run because `/proc` namespace inode numbers cannot prove incarnation. Therefore live repeat runs can require new review even when ports look unchanged. Use the fictional unchanged scenario to inspect exact-match reuse, and record live identity churn as P1 feedback. Live collection deliberately leaves sudo uncollected.
+
+Record actual observations and owner comments using the feedback template below. T05/T06 implementation and fixture tests are not a completed owner P1 trial.
 
 ## P2 — Add the sudo example
 

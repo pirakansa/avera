@@ -95,7 +95,7 @@ func (c Collector) Collect(ctx context.Context, target string) (inventory.Collec
 			r.Coverage.DiagnosticCodes = append(r.Coverage.DiagnosticCodes, code)
 		}
 	}
-	timestamp := c.Now().UTC().Format(time.RFC3339Nano)
+	timestamp := c.Now().UTC().Format(time.RFC3339)
 	sockets := []socket{}
 	usable := 0
 	for _, table := range []struct{ name, transport, family string }{{"tcp", "tcp", "ipv4"}, {"tcp6", "tcp", "ipv6"}, {"udp", "udp", "ipv4"}, {"udp6", "udp", "ipv6"}} {

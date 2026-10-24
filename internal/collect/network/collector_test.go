@@ -331,3 +331,20 @@ func TestTransientAndChangedOwnerSnapshots(t *testing.T) {
 func snapshot(r inventory.CollectorResult, name string) *inventory.Snapshot {
 	return &inventory.Snapshot{Envelope: inventory.Envelope{SchemaVersion: inventory.SchemaVersion, ContractRevision: inventory.ContractRevision, Kind: "snapshot", TargetID: "fictional-web-01"}, SnapshotID: "network-" + name, CollectedAt: "2026-10-01T09:00:00Z", FinishedAt: "2026-10-01T09:00:00Z", ToolVersion: Version, Environment: inventory.Environment{OSID: "ubuntu", OSVersion: "fictional", Architecture: "amd64", KernelRelease: "fictional", ExecutionScope: "fictional current network namespace"}, Coverage: []inventory.Coverage{r.Coverage, {Collector: inventory.Sudo, CollectorVersion: "not-implemented", Scope: "local", Status: inventory.NotCollected, AttemptedSources: []string{}, DiagnosticCodes: []string{}, Limitations: []string{}}}, Findings: r.Findings, Evidence: r.Evidence}
 }
+
+func TestEvidenceTimestampUsesContractPrecision(t *testing.T) {
+	result, err := (Collector{Source: fixture(t), ScopeID: "fictional-scope", Now: func() time.Time {
+		return time.Date(2026, 10, 24, 12, 0, 0, 123456789, time.FixedZone("test", 3600))
+	}}).Collect(context.Background(), "fictional-web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Evidence) == 0 {
+		t.Fatal("missing evidence")
+	}
+	for _, evidence := range result.Evidence {
+		if evidence.CollectedAt != "2026-10-24T11:00:00Z" {
+			t.Fatalf("non-contract timestamp %q", evidence.CollectedAt)
+		}
+	}
+}

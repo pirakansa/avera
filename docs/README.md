@@ -1,6 +1,6 @@
 # Documentation
 
-AVERA currently has a Hello World CLI plus implemented internal model, validation, storage, and synthetic-tested network collector APIs. Collection/review/report commands remain planned.
+AVERA provides experimental `collect`, `review`, and `report` commands, with network collection, assessment reuse, and bundled guidance. Owner P1 feedback and T07 build delivery verification remain separate follow-ups.
 
 ## Product direction
 
@@ -10,6 +10,7 @@ AVERA currently has a Hello World CLI plus implemented internal model, validatio
 
 Start with the [prototype plan and task index](specifications/prototype/README.md). It provides the order of work and links to independently assignable agent tasks.
 
+- [Implemented CLI workflow](specifications/prototype/cli-workflow.md): flags, outputs, exit codes, safety boundaries and test evidence
 - [Architecture and execution](specifications/prototype/architecture.md)
 - [Data contracts and assessment reuse](specifications/prototype/data-contracts.md)
 - [Implemented model and storage APIs](specifications/prototype/model-storage.md): T01 handoff, limits, permissions, and portability

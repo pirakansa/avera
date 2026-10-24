@@ -2,7 +2,7 @@
 
 The internal Go APIs implement schema `0.1`, contract revision `t00-2026-10-24.1`, and the [T00 baseline](data-contracts.md#t00-baseline-t00-2026-10-241). No migration is performed. Unsupported versions, unknown or missing fields, null outside `previous_snapshot_id`, duplicate keys/IDs/set members, invalid Unicode, non-integer numbers, invalid enums/timestamps, incorrect hashes, and dangling references are errors. Human text and reference provenance are preserved; references are never fetched.
 
-Collectors, matching, report rendering, and CLI integration remain subsequent tasks. The existing CLI still prints `Hello, world!`.
+T01 owns the APIs below. Subsequent tasks have integrated network collection, assessment reuse, guidance/report rendering, and the CLI; see the [T06 CLI reference](cli-workflow.md) for current command behavior.
 
 ## Go API handoff
 

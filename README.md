@@ -24,11 +24,7 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is an early prototype. The shared model, strict artifact validation, and safe storage APIs are implemented; see the [T01 API handoff](docs/specifications/prototype/model-storage.md). The [network collector API](docs/specifications/prototype/network-collector.md) has synthetic tests, verified Linux v6.8 source assumptions, and a passing disposable Ubuntu comparison with its tested kernel recorded. The `avera` CLI currently prints `Hello, world!`; collection and review commands are not implemented yet.
-
-Linux is the initial target. Windows and macOS support are future directions; their scope and schedule are undecided.
-
-The next milestone is implementing collection against the shared data model. AVERA is intended to complement source code analysis and other security assessment activities. Its reports do not establish overall product safety or regulatory compliance.
+AVERA is an early Linux prototype with network collection, saved-file review, assessment reuse, and Markdown reports with embedded guidance. The CLI exposes `collect`, `review`, and `report`; P1 live collection enables network only. Sudo collection integration and owner usability feedback remain pending. See the [CLI reference](docs/specifications/prototype/cli-workflow.md) and [trial guide](docs/user-guides/prototype-trials.md).
 
 ## Development quick start
 
@@ -37,9 +33,13 @@ With Go 1.25.14 or later and [Vorbere](https://github.com/pirakansa/Vorbere) ins
 ```sh
 vorbere run setup
 vorbere run build
-./bin/avera
+./bin/avera report \
+  --snapshot test/fixtures/prototype/contracts/snapshot-repeat.json \
+  --previous test/fixtures/prototype/contracts/snapshot-first.json \
+  --assessments test/fixtures/prototype/contracts/assessments-reviewed.json \
+  --output /tmp/avera-fictional-report.md
 ```
 
-Expected output: `Hello, world!`.
+Open `/tmp/avera-fictional-report.md` to inspect fictional findings, guidance, and evidence. Choose a new output path if it already exists. This rehearsal needs no root or live collection.
 
 Run `vorbere run ci` for formatting checks, static analysis, vulnerability scanning, tests, and a build. Analysis tools are pinned in `go.mod`; setup and vulnerability scanning require network access.

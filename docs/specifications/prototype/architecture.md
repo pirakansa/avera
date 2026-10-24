@@ -1,6 +1,6 @@
 # Prototype architecture and execution
 
-Status: proposed prototype defaults. See [the decision register](decisions.md). This is a design, not a description of implemented commands.
+Status: experimental architecture. T06 implements the commands below; see the [implemented CLI reference](cli-workflow.md). Other defaults remain proposals unless backed by recorded implementation evidence. See [the decision register](decisions.md).
 
 ## Runtime boundary
 
@@ -36,7 +36,7 @@ The integration owner adds and pins Cobra when CLI work begins, following reposi
 
 ## Proposed command walkthrough
 
-All names and flags below are **proposed**. They are not currently usable. The T00 [fictional artifacts](../../../test/fixtures/prototype/contracts/README.md) and [report](examples/fictional-report.md) define the expected data relationships. `fictional-web-01` is an invented logical target, not a host to contact.
+The commands and flags below are implemented for the T06 prototype and remain experimental pending P1 feedback. The T00 [fictional artifacts](../../../test/fixtures/prototype/contracts/README.md) and [report](examples/fictional-report.md) define the expected data relationships. `fictional-web-01` is an invented logical target, not a host to contact.
 
 ```sh
 # First collection; run this command as root on the target.
@@ -64,7 +64,7 @@ avera collect --target-id fictional-web-01 \
   --assessments ./prepared-assessments.json --output ./run-003
 ```
 
-For an offline fixture rehearsal, the planned report command maps directly to the unchanged scenario (still **not executable** today):
+For an offline fixture rehearsal, the implemented report command maps directly to the unchanged scenario:
 
 ```sh
 avera report --snapshot ./test/fixtures/prototype/contracts/snapshot-repeat.json \
@@ -85,7 +85,7 @@ Offline review/report on Linux should not require root. Windows/macOS execution 
 
 ## Error and output contract
 
-Initial exit meanings frozen for experimental contract `t00-2026-10-24.1` (commands remain unimplemented):
+Initial exit meanings frozen for experimental contract `t00-2026-10-24.1` (implemented by T06):
 
 | Code | Meaning | Artifact handling |
 |---|---|---|

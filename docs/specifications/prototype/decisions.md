@@ -80,3 +80,9 @@ Keep observations from trials separate from assumptions. An agent may record tec
 - The three feedback questions concern what to check/write, retaining prior explanations and spotting re-review work, and what the recipient can understand.
 - Unanswered P0 questions, final editing/presentation choices, and live-target details do not block T01. JSON and the internal state model remain experimental implementation defaults.
 - This is a workflow decision, not a completed usability trial or adoption of E01–E10 as final product requirements. Contract revision `t00-2026-10-24.1`, serialized fields, normalization vectors, and scenario outcomes remain unchanged.
+
+## T06 technical evidence — 2026-10-24
+
+E01, E04, E08 and E09 are implemented for a prototype trial, not adopted as final product decisions. Cobra maps the proposed flags to shared application use cases; no proposed flags changed. Collection registers network only at P1 and marks sudo uncollected. Future sudo integration adds a registration and integration evidence. Saved-file processing recomputes T04 review and T05 Markdown without live dependencies. Output artifacts retain unmatched assessment context.
+
+Fixture and injected-source tests exercise comparison, advance context, failure handling, privilege boundaries and safe publication. See the [CLI reference](cli-workflow.md) and [combined T05/T06 trial](../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). Owner feedback is pending and will be gathered in the combined P1 trial after T06. No trial completion or release readiness is claimed.

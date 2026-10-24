@@ -124,6 +124,11 @@ func Write(ctx context.Context, path string, a inventory.Artifact) (err error) {
 	if e != nil {
 		return e
 	}
+	return WriteBytes(ctx, path, data)
+}
+
+// WriteBytes publishes rendered output with the same private no-clobber protocol.
+func WriteBytes(ctx context.Context, path string, data []byte) (err error) {
 	dir, base, e := openParent(path)
 	if e != nil {
 		return e
@@ -232,4 +237,28 @@ func WriteRun(ctx context.Context, path string, artifacts map[string]inventory.A
 	}
 	published = true
 	return unix.Fsync(dir)
+}
+
+// CheckDestination validates the parent and rejects existing names before collection.
+// Publication independently enforces no replacement to handle concurrent creators.
+func CheckDestination(path string) error {
+	dir, base, err := openParent(path)
+	if err != nil {
+		return err
+	}
+	defer unix.Close(dir)
+	var st unix.Stat_t
+	err = unix.Fstatat(dir, base, &st, unix.AT_SYMLINK_NOFOLLOW)
+	if err == nil {
+		return fmt.Errorf("destination exists; choose a new output path")
+	}
+	if !errors.Is(err, unix.ENOENT) {
+		return err
+	}
+	// Verify that staging is possible before any privileged source reads.
+	temp, stage, err := createStage(dir)
+	if err != nil {
+		return err
+	}
+	return errors.Join(unix.Close(stage), unix.Unlinkat(dir, temp, unix.AT_REMOVEDIR))
 }

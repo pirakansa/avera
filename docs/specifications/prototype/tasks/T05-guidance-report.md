@@ -1,6 +1,6 @@
 # T05 — Guidance and the three-level report
 
-Status: implementation complete; owner P1 walkthrough pending. See the [API handoff](../guidance-report.md). Prerequisites: T01 model and the T04 result contract. Development can begin against T00/T04 fixtures. Read [product direction](../../product-direction.md).
+Status: implementation complete; owner P1 walkthrough pending and scheduled together with T06 after its completion. See the [combined trial procedure](../../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). See the [API handoff](../guidance-report.md). Prerequisites: T01 model and the T04 result contract. Development can begin against T00/T04 fixtures. Read [product direction](../../product-direction.md).
 
 ## Outcome
 

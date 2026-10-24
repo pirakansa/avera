@@ -287,3 +287,54 @@ func TestBoundedReadAndFIFO(t *testing.T) {
 		t.Fatal("FIFO accepted")
 	}
 }
+
+func TestRenderedOutputPublication(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "report.md")
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := WriteBytes(ctx, path, []byte("incomplete")); err == nil {
+		t.Fatal("cancelled write succeeded")
+	}
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("cancelled output exists: %v", err)
+	}
+	if err := CheckDestination(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteBytes(context.Background(), path, []byte("complete")); err != nil {
+		t.Fatal(err)
+	}
+	if err := CheckDestination(path); err == nil {
+		t.Fatal("existing destination accepted")
+	}
+	if err := WriteBytes(context.Background(), path, []byte("replace")); err == nil {
+		t.Fatal("output replaced")
+	}
+	b, err := os.ReadFile(path)
+	if err != nil || string(b) != "complete" {
+		t.Fatalf("output changed: %q %v", b, err)
+	}
+	st, err := os.Stat(path)
+	if err != nil || st.Mode().Perm() != FileMode {
+		t.Fatalf("permissions: %v", err)
+	}
+}
+
+func TestDestinationPreflightRequiresWritableParent(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root bypasses directory write permission")
+	}
+	dir := t.TempDir()
+	if err := os.Chmod(dir, 0500); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chmod(dir, 0700); err != nil {
+			t.Error(err)
+		}
+	})
+	if err := CheckDestination(filepath.Join(dir, "run")); err == nil {
+		t.Fatal("unwritable parent accepted")
+	}
+}

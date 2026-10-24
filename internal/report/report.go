@@ -86,6 +86,8 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 	w.field("Observed environment and execution scope", environment)
 	if r.PreviousSnapshotID != nil {
 		w.field("Previous run", *r.PreviousSnapshotID)
+	} else {
+		w.field("Comparison", "Unavailable; no previous snapshot supplied")
 	}
 	s := r.Summary
 	fmt.Fprintf(&w.Builder, "\n[Current items](#current-items): %d; accepted: %d; action required: %d; unreviewed: %d.\n\nNeeds re-review: %d; conflicts: %d (applicability subsets).\n\n[Historical items](#historical-items): %d; [unmatched assessments](#unmatched-assessments): %d.\n\n", s.Current, s.Accepted, s.ActionRequired, s.Unreviewed, s.NeedsReview, s.Conflict, s.Historical, s.UnmatchedAssessments)
