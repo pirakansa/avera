@@ -8,6 +8,8 @@ Its guiding principle is simple: **make security explainable, rather than promis
 
 See [Product direction](docs/specifications/product-direction.md) for the intended users, scope, execution constraints, and open design decisions.
 
+The [prototype plan](docs/specifications/prototype/README.md) breaks the proposed implementation into agent tasks and user trial cycles. See the [documentation index](docs/README.md) for specifications and guides.
+
 AVERA is being designed for managers, developers, and operators who need to understand what deserves review in a running system, why it matters, and how the team has addressed or accepted it.
 
 ## Planned workflow

@@ -101,3 +101,5 @@ The following remain open:
 - Which capabilities belong in the first usable release.
 
 For each prototype increment, make the behavior under trial concrete enough to implement and verify; the complete product specification need not be settled first. This document supersedes the original handoff memo and records the clarified direction. Only explicitly agreed decisions are requirements; candidate features are not commitments. If this document is later removed, preserve its agreed decisions in the specifications that replace it.
+
+See the [prototype implementation plan](prototype/README.md) for proposed technical defaults, agent task boundaries, dependencies, and trial cycles. That plan does not make its experimental choices final product requirements.
