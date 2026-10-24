@@ -2,6 +2,8 @@
 
 **Invented data only.** Agent-prepared T00 revision `t00-2026-10-24.1`; not owner-reviewed, not a live security assessment. The primary view is the unchanged repeat, with the other scenarios shown separately. Ubuntu 24.04/amd64 and all actors, dates, services, policy, and controls below are fictional.
 
+For the owner walkthrough, start with the [three task-oriented questions](p0-preparation.md#what-the-owner-is-being-asked-to-try) and the HTTP example below. The complete scenario table, internal labels, hash IDs, and JSON links are technical reference material, not an owner approval checklist. Their correctness is an implementation-agent responsibility.
+
 ## Level 1 — Summary for a recipient
 
 Target `fictional-web-01`; observation `fictional-s2`, 2026-10-02 09:00:00 UTC, compared with `fictional-s1`, 2026-10-01 09:00:00 UTC. Tool label: `fictional-not-implemented`. Sources: current-namespace `/proc` network inventory and local sudo policy/account files. No external reachability, firewall, executable integrity, CVEs, or all-host privilege assessment was performed.

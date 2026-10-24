@@ -1,6 +1,6 @@
 # Fictional T00 contract fixtures
 
-**All data are invented. No host was inspected.** Prepared by an agent for contract `t00-2026-10-24.1`; owner P0 review is pending. Ubuntu 24.04/amd64 here describes the invented scenario, not a validated trial environment. These JSON files are explicit design examples, not outputs from an implemented collector or matcher.
+**All data are invented. No host was inspected.** Prepared by an agent for contract `t00-2026-10-24.1`; ready for T01 implementation while optional owner P0 feedback remains pending. Ubuntu 24.04/amd64 here describes the invented scenario, not a validated trial environment. These JSON files are explicit design examples, not outputs from an implemented collector or matcher.
 
 The [contract](../../../../docs/specifications/prototype/data-contracts.md#t00-baseline-t00-2026-10-241) defines all fields and algorithms. The [three-level report](../../../../docs/specifications/prototype/examples/fictional-report.md) uses the same facts and human explanations. No reference URL is fetched.
 
@@ -41,3 +41,5 @@ python3 test/fixtures/prototype/contracts/validate.py
 The standard-library validator checks JSON parsing with duplicate-key rejection, local Markdown links, traceability, canonical hash vectors, PID-only stability and meaningful changes, independent scenario outcomes, coverage distinctions, counts, and preserved human history. It reads only these fixtures and relevant repository documentation. It is not a substitute for T01's future strict runtime validation or T02/T03 source-format tests. No Go implementation or external service is required.
 
 T01: reproduce normalization vectors and implement strict types/I/O. T02/T03: preserve the observation/evidence/coverage boundary, prove source fidelity, and confirm real namespace comparability. T04: turn manifest rows into matching tests. T05: use the common review counts and report prompts. T06: preserve explicit inputs and never rebase a decision automatically. This repository handoff notifies the future task owners without contacting anyone externally.
+
+T01 does not need P0 answers, approval of JSON editing, or a live target to start. Validate these fixtures and implement the experimental baseline within [T01's scope](../../../../docs/specifications/prototype/tasks/T01-model-storage.md); the owner will evaluate editing and presentation through prototype use. This handoff clarification changes no JSON fixture, hash vector, or contract semantics.

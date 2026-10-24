@@ -1,6 +1,6 @@
 # Prototype implementation plan
 
-Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md); owner P0 feedback remains pending. No executable implementation tasks in this plan are complete. The existing CLI only prints `Hello, world!`.
+Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md). T01 is ready to start; optional P0 feedback remains pending and does not block implementation. No executable implementation tasks in this plan are complete. The existing CLI only prints `Hello, world!`.
 
 ## Objective and authority
 
@@ -25,18 +25,18 @@ Read [architecture](architecture.md), [contracts](data-contracts.md), [collectio
 
 SBOM, CVE matching for the inspected machine, remediation, a resident agent, remote scanning, and a hosted application are outside this plan.
 
-## Increments and trial gates
+## Increments and trial checkpoints
 
 | Increment | Deliverable | Tasks | What the owner tries | Decision after the trial |
 |---|---|---|---|---|
-| P0: concrete example | Fictional input, observations, review output, and report example | T00 | Read a port example, an advance assessment, and an incomplete collection | Whether the distinctions and questions make sense |
+| P0: optional concrete example | Fictional input, observations, review output, and report example | T00 | Identify what to check/write, what needs another look, and what the recipient can understand | Usability feedback when available; no prerequisite for T01 |
 | P1: one complete workflow | Port collector + reuse + editable review artifact + Markdown report | T01, T02, T04, T05, T06, T07 (port slice) | First collection, edit, report, repeat collection using prior context | Editing friction, useful guidance, surprising reuse, report readability |
 | P2: second example | Bounded sudo configuration collector integrated into the same workflow | T03, T04–T07 (sudo extension) | Explain a privilege rule, an unsupported rule, and a changed rule | Whether the common model works beyond ports; required parser coverage |
 | P3: revise and repeat | Only changes selected from P1/P2 feedback | T08 and affected owners | Repeat the same scenarios after a targeted change | Keep, change, or defer each experiment; decide the next prototype increment |
 
 Do not wait for a complete sudo policy engine before testing P1. Do not finish every candidate feature before showing the owner something usable. Report the limits of each increment explicitly.
 
-P0 is a lightweight rehearsal, not a demand to finalize the whole product specification. Feedback can reopen a proposed contract, with a version change and explicit fixture updates where needed.
+P0 is an optional lightweight rehearsal. The prepared T00 contract/fixtures allow T01 to proceed without P0 answers, final UI choices, or a live target. Internal status names, exact matching predicates, hash details, and JSON mechanics remain implementation responsibilities; the owner evaluates the work the tool helps them do. Editing and presentation choices can be tried in P1. Feedback can reopen a proposed contract, with a version change and explicit fixture updates where needed.
 
 ## Assignable tasks
 
@@ -55,6 +55,8 @@ P0 is a lightweight rehearsal, not a demand to finalize the whole product specif
 ### Suggested sequence for one agent at a time
 
 T00 → T01 → T02 → T04 → T05 → T06 → T07 → P1 trial through T08 → T03 and affected integrations → P2 trial through T08.
+
+Current next task: [T01 — domain model and storage](tasks/T01-model-storage.md), using baseline `t00-2026-10-24.1`. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
 
 ### Optional overlap
 

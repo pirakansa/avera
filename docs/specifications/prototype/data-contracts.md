@@ -1,6 +1,6 @@
 # Data contracts and assessment reuse
 
-Status: experimental T00 baseline `t00-2026-10-24.1`, prepared by an agent; owner P0 review pending. The baseline section below freezes serialization details for implementation handoff. Changes require a contract revision and updated examples/tests.
+Status: experimental T00 baseline `t00-2026-10-24.1`, prepared by an agent and available for T01 implementation. Optional owner P0 feedback is pending and does not block that work. The baseline section below freezes serialization details for implementation handoff. Semantic changes require a contract revision and updated examples/tests.
 
 ## Separate roles, not necessarily permanent file formats
 
@@ -129,7 +129,7 @@ T00 provides complete, machine-parseable examples for first run, advance assessm
 
 ## T00 baseline: `t00-2026-10-24.1`
 
-Prepared by an agent on 2026-10-24 for implementation handoff; **owner review pending**. This freezes one experimental serialization/normalization revision for T01–T06, not the product choices E01–E10. The definitions below resolve the earlier proposed details where they overlap. All artifacts in the [fixture directory](../../../test/fixtures/prototype/contracts/README.md) are fictional; none were collected from a host. The [illustrative report](examples/fictional-report.md) uses those exact artifacts.
+Prepared by an agent on 2026-10-24 for implementation handoff; **ready for T01, with optional owner usability feedback pending**. This freezes one experimental serialization/normalization revision for T01–T06, not the final product choices E01–E10. The definitions below resolve the earlier proposed details where they overlap. All artifacts in the [fixture directory](../../../test/fixtures/prototype/contracts/README.md) are fictional; none were collected from a host. The [illustrative report](examples/fictional-report.md) uses those exact artifacts.
 
 ### Envelopes and common validation
 
@@ -225,4 +225,4 @@ Summary fields: `current`, `historical`, `accepted`, `action_required`, `unrevie
 
 The [scenario manifest](../../../test/fixtures/prototype/contracts/scenarios.json) names explicit inputs and expected reviews for first run, advance without prior snapshot, sufficient sudo advance, insufficient expectation, unchanged PID-only repeat, changed owner/group context, human reconfirmation, partial sources, total failure, complete empty coverage, unmatched annotations, conflicting annotations, and stored basis without prior snapshot. T01 owns strict validation and the hash vectors; T02/T03 own source fidelity and coverage; T04 owns scenario matching; T05 owns common counts, prompts, and report traceability; T06 owns CLI input preservation and output atomicity. This checked-in handoff is the notification to those future task owners; no external messages were sent.
 
-Still pending: owner P0 feedback, available disposable Ubuntu release/architecture, whether JSON editing is practical, and whether the conservative sudo/context churn is acceptable. Proposed first build remains Linux/amd64, not a tested environment. The [P0 preparation](examples/p0-preparation.md) explicitly separates agent inspection from owner trial results. No live collection, parser, or commands were implemented by T00.
+Still pending for later trials: owner usability feedback, available disposable Ubuntu release/architecture before live testing, whether JSON editing is practical, and whether the conservative sudo/context churn is acceptable. These questions do not block T01's fixture-based model and storage work. Proposed first build remains Linux/amd64, not a tested environment. The [P0 preparation](examples/p0-preparation.md) separates optional owner feedback from technical implementation responsibilities. No live collection, parser, or commands were implemented by T00.

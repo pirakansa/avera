@@ -1,6 +1,17 @@
 # T01 — Domain model, validation, and artifact storage
 
-Status: not started. Prerequisite: T00 baseline. Read [data contracts](../data-contracts.md) and [architecture](../architecture.md).
+Status: ready to start; implementation not started. The prepared T00 baseline `t00-2026-10-24.1` satisfies this task's design prerequisite. Read [data contracts](../data-contracts.md) and [architecture](../architecture.md).
+
+## Start here
+
+The owner has requested progression to T01 after simplifying P0. Implement the experimental baseline; do not wait for answers to the P0 questionnaire, a live Ubuntu target, or approval of JSON editing and internal state labels. Those usability choices remain open for prototype trials.
+
+1. Read the [fixture handoff](../../../../test/fixtures/prototype/contracts/README.md) and the contract's baseline section, which resolves the earlier proposals where they overlap.
+2. Run `python3 test/fixtures/prototype/contracts/validate.py` to check the supplied examples before building on them.
+3. Implement domain types and strict validation, then normalization/fingerprint vectors, then artifact storage, with package-local tests for each boundary.
+4. Use matching scenarios as data examples; T04 owns the matching engine. T01 must not expand into collection, CLI, report rendering, or a user editor.
+
+If implementation exposes an actual contract contradiction, resolve and document the smallest consistent correction with affected fixtures and a revision change when required. Pending usability feedback alone is not a blocker. Do not ask the owner to settle internals already specified by this baseline.
 
 ## Outcome
 

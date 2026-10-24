@@ -10,17 +10,17 @@ Keep each cycle small: choose a question, prepare a scenario, let the owner use 
 
 ## P0 — Read a concrete fictional example
 
-Inputs: T00's fictional target, one public HTTP service, one undecided local endpoint, an example privilege rule, and an incomplete source.
+Start with the HTTP example in the [short P0 walkthrough](../specifications/prototype/examples/p0-preparation.md). The full fictional report and scenario tables are available for technical follow-up; the owner need not work through every case.
 
-Owner tasks:
+Ask three task-oriented questions:
 
-1. Explain what the tool observed and what it does not know.
-2. Locate the evidence for one item.
-3. Describe why the endpoint exists and what further information is needed.
-4. Identify what a manager would learn from the summary.
-5. Identify which statements came from the person rather than the tool.
+1. If you received this result, would you know what to check and what explanation to write?
+2. Can you find your previous explanation and tell what needs another look this time?
+3. If you gave this report to your manager or requester, what would it explain, and what would still be unclear?
 
-Record confusing labels, unnecessary questions, missing context, and misleading summaries. Adjust the sample and contract only where this trial provides a reason. P0 should not become a lengthy document approval process.
+Record confusing wording, missing help, irrelevant questions, and unclear next actions. Use evidence links when they help the owner answer, rather than making artifact navigation an examination. Do not ask the owner to validate hash algorithms, learn internal states, or approve JSON editing before trying it. Record “needs an executable trial” as a valid outcome.
+
+P0 is optional and does not block T01. The technical handoff consists of the prepared contract and fixtures. Use those experimental defaults to build the prototype; gather workflow/editing feedback in P1 if it cannot be usefully obtained from a paper example. Request Ubuntu release/architecture separately when preparing live validation, not as part of this comprehension check.
 
 ## P1 — Try the complete port workflow
 
@@ -86,7 +86,7 @@ Validation to repeat:
 
 ## Readiness for another increment
 
-Proceed when the owner has had a useful opportunity to try the current slice, important correctness problems are understood, and the next change has a clear purpose. Time estimates and fixed release dates are unnecessary at this stage.
+For executable trial cycles, offer the owner a useful opportunity to try the current slice and use actual feedback to choose revisions. T01's initial fixture-based implementation can start as soon as the T00 baseline is available; it does not require a completed P0 walkthrough. Time estimates and fixed release dates are unnecessary at this stage.
 
 If a live target or owner feedback is unavailable, continue independent fixture/unit work and mark the trial pending. Do not fabricate approval or imply the prototype was tested by its intended user.
 
