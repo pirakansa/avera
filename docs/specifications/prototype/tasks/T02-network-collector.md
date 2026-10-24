@@ -1,6 +1,6 @@
 # T02 — Collect the network example
 
-Status: not started. Prerequisites: T00 baseline; T01 interfaces before integration. Read [collection scope](../collection.md).
+Status: complete (2026-10-24). Collector API, synthetic tests, and T04 fixtures implemented; official Linux v6.8 source verification and the enabled disposable Ubuntu comparison passed. See the [implementation handoff](../network-collector.md) for scope, bounds, full execution log, and tested userland/kernel limitations. Prerequisites: T00 baseline; T01 interfaces before integration. Read [collection scope](../collection.md).
 
 ## Outcome
 

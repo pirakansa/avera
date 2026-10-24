@@ -1,0 +1,510 @@
+{
+  "collected_at": "2026-10-01T09:00:00Z",
+  "contract_revision": "t00-2026-10-24.1",
+  "coverage": [
+    {
+      "attempted_sources": [
+        "/proc/*/exe",
+        "/proc/*/fd",
+        "/proc/net/tcp",
+        "/proc/net/tcp6",
+        "/proc/net/udp",
+        "/proc/net/udp6"
+      ],
+      "collector": "network",
+      "collector_version": "proc-v1",
+      "diagnostic_codes": [],
+      "limitations": [
+        "Collection is non-atomic; process and socket races may limit attribution. IPv6 zones are unavailable in these tables.",
+        "Current observable network namespace only; no reachability, firewall, dual-stack or executable-integrity inference.",
+        "UDP includes only state 07, nonzero local port and unspecified remote endpoint; connected UDP is excluded."
+      ],
+      "scope": "fictional-boot-a/net-a",
+      "status": "complete"
+    },
+    {
+      "attempted_sources": [],
+      "collector": "sudo",
+      "collector_version": "not-implemented",
+      "diagnostic_codes": [],
+      "limitations": [],
+      "scope": "local",
+      "status": "not_collected"
+    }
+  ],
+  "environment": {
+    "architecture": "amd64",
+    "effective_uid": 0,
+    "execution_scope": "fictional current network namespace",
+    "kernel_release": "fictional",
+    "os_id": "ubuntu",
+    "os_version": "fictional"
+  },
+  "evidence": [
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-1",
+      "location": "/proc/net/tcp:2",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            },
+            {
+              "executable": "/opt/fictional-worker",
+              "uid": 33
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-1-owner-1",
+      "location": "/proc/20/fd/8",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-worker",
+              "uid": 33
+            }
+          ]
+        },
+        "pid": 20
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-1-owner-2",
+      "location": "/proc/40/fd/1",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-2",
+      "location": "/proc/net/tcp:3",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 1001
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-2-owner-1",
+      "location": "/proc/40/fd/2",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 1001
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-3",
+      "location": "/proc/net/tcp:5",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-3-owner-1",
+      "location": "/proc/40/fd/3",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-4",
+      "location": "/proc/net/tcp6:2",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-4-owner-1",
+      "location": "/proc/40/fd/4",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 33
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-5",
+      "location": "/proc/net/tcp6:3",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 1001
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-5-owner-1",
+      "location": "/proc/40/fd/5",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 1001
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-6",
+      "location": "/proc/net/udp:2",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 100
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-6-owner-1",
+      "location": "/proc/40/fd/6",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 100
+            }
+          ]
+        },
+        "pid": 40
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-7",
+      "location": "/proc/net/udp6:2",
+      "method": "bounded proc socket row and inode-to-fd attribution; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 100
+            }
+          ]
+        }
+      }
+    },
+    {
+      "collected_at": "2026-10-01T09:00:00Z",
+      "evidence_id": "network-7-owner-1",
+      "location": "/proc/40/fd/7",
+      "method": "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace",
+      "source_kind": "proc",
+      "values": {
+        "observed": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-replacement",
+              "uid": 100
+            }
+          ]
+        },
+        "pid": 40
+      }
+    }
+  ],
+  "findings": [
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-2",
+        "network-2-owner-1"
+      ],
+      "fact_fingerprint": "sha256:c27c400b3836c7679427c4f65be299b5bfc0d76e5c0dbff231d2706002e523a5",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 1001
+          }
+        ]
+      },
+      "finding_id": "sha256:79761bc436fbd7dc5109d7d4bae27a560eb23d2d0a0838e8b080f715d1a27ec4",
+      "identity": {
+        "family": "ipv4",
+        "local_address": "127.0.0.1",
+        "local_port": 9000,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "listener",
+        "transport": "tcp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    },
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-6",
+        "network-6-owner-1"
+      ],
+      "fact_fingerprint": "sha256:5eef3b1ac5311ab3a3c33c2f44ff615de42988d016b513cedee1373f7262cc0f",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 100
+          }
+        ]
+      },
+      "finding_id": "sha256:a9b67179130f170536b0954e40cda438f56b943c3b1ac9cf5f24db7b81127269",
+      "identity": {
+        "family": "ipv4",
+        "local_address": "127.0.0.1",
+        "local_port": 53,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "bound_unconnected",
+        "transport": "udp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    },
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-1",
+        "network-1-owner-1",
+        "network-1-owner-2",
+        "network-3",
+        "network-3-owner-1"
+      ],
+      "fact_fingerprint": "sha256:3ec947faf9ea7e8cf8ee30c7f274a5fab283e869206783f187bb38b3b8be104f",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 33
+          },
+          {
+            "executable": "/opt/fictional-worker",
+            "uid": 33
+          }
+        ]
+      },
+      "finding_id": "sha256:d6f133c9a975a7430113f78be6bd22e0d423ce4bae65c6538eea3558aec09c50",
+      "identity": {
+        "family": "ipv4",
+        "local_address": "0.0.0.0",
+        "local_port": 80,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "listener",
+        "transport": "tcp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    },
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-4",
+        "network-4-owner-1"
+      ],
+      "fact_fingerprint": "sha256:685b68cbba955414fbfb5a8b2d8f3ee28495447a798c5fbf615ab2d9c05154e4",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 33
+          }
+        ]
+      },
+      "finding_id": "sha256:d96649ea5e744626c990ee5ba4afe22aad15d7f1afca9bb3e0679b763b2b06f3",
+      "identity": {
+        "family": "ipv6",
+        "local_address": "::",
+        "local_port": 443,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "listener",
+        "transport": "tcp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    },
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-7",
+        "network-7-owner-1"
+      ],
+      "fact_fingerprint": "sha256:0eff06a3a21419513f87cb5b12bf5a411575444e1d4de61c1b416152621dacc3",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 100
+          }
+        ]
+      },
+      "finding_id": "sha256:e75942aeea2d9b2b886ef072a8780e67b0490bf48d936ed3a8f800c09f53eb7f",
+      "identity": {
+        "family": "ipv6",
+        "local_address": "::",
+        "local_port": 53,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "bound_unconnected",
+        "transport": "udp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    },
+    {
+      "collector": "network",
+      "evidence_ids": [
+        "network-5",
+        "network-5-owner-1"
+      ],
+      "fact_fingerprint": "sha256:e41ff3221ca9191748e05d0d4d3f05b71a1a453d2dc5fc2103a6206d5991afd0",
+      "facts": {
+        "attribution_complete": true,
+        "owners": [
+          {
+            "executable": "/opt/fictional-replacement",
+            "uid": 1001
+          }
+        ]
+      },
+      "finding_id": "sha256:efd3c7872f81041fe12f2913b59454e288034911245882acc05f90deaf696b73",
+      "identity": {
+        "family": "ipv6",
+        "local_address": "::1",
+        "local_port": 9001,
+        "scope_id": "fictional-boot-a/net-a",
+        "socket_category": "listener",
+        "transport": "tcp",
+        "zone": ""
+      },
+      "kind": "network.endpoint"
+    }
+  ],
+  "finished_at": "2026-10-01T09:00:00Z",
+  "kind": "snapshot",
+  "schema_version": "0.1",
+  "snapshot_id": "network-changed-owner",
+  "target_id": "fictional-web-01",
+  "tool_version": "proc-v1"
+}

@@ -56,7 +56,7 @@ P0 is an optional lightweight rehearsal. The prepared T00 contract/fixtures allo
 
 T00 → T01 → T02 → T04 → T05 → T06 → T07 → P1 trial through T08 → T03 and affected integrations → P2 trial through T08.
 
-Current next task: [T02 — network collector](tasks/T02-network-collector.md), using the [T01 APIs](model-storage.md) and baseline `t00-2026-10-24.1`. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
+The [T02 network collector API and synthetic fixtures](network-collector.md) are available for [T04 — assessment reuse](tasks/T04-assessment-reuse.md), using the [T01 APIs](model-storage.md) and baseline `t00-2026-10-24.1`. T02 is complete: official Linux v6.8 source verification and the disposable Ubuntu comparison passed; the handoff records the tested userland/kernel combination and its limitations. T00's optional owner walkthrough may happen alongside implementation or be deferred to an executable trial; it is not another approval step in this sequence.
 
 ### Optional overlap
 

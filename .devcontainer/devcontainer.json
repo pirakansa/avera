@@ -8,6 +8,9 @@
             "CONTAINER_USERID": "${localEnv:USERID:1000}"
         }
     },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:4": {}
+    },
     "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
     "workspaceFolder": "${localWorkspaceFolder}",
     "remoteUser": "${localEnv:USERNAME:builder}",

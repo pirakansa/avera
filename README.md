@@ -24,7 +24,7 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is an early prototype. The shared model, strict artifact validation, and safe storage APIs are implemented; see the [T01 API handoff](docs/specifications/prototype/model-storage.md). The `avera` CLI currently prints `Hello, world!`; collection and review commands are not implemented yet.
+AVERA is an early prototype. The shared model, strict artifact validation, and safe storage APIs are implemented; see the [T01 API handoff](docs/specifications/prototype/model-storage.md). The [network collector API](docs/specifications/prototype/network-collector.md) has synthetic tests, verified Linux v6.8 source assumptions, and a passing disposable Ubuntu comparison with its tested kernel recorded. The `avera` CLI currently prints `Hello, world!`; collection and review commands are not implemented yet.
 
 Linux is the initial target. Windows and macOS support are future directions; their scope and schedule are undecided.
 
