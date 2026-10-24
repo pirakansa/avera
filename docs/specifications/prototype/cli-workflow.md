@@ -6,13 +6,13 @@ Status: T06 implemented and validated prototype; owner P1 feedback remains pendi
 
 - `collect --target-id ID --output NEW_DIRECTORY [--previous SNAPSHOT] [--assessments ASSESSMENTS]`: root-only live network collection in the current observable namespace. Sudo is explicitly `not_collected` for P1. Other domains are outside this increment.
 - `review --snapshot SNAPSHOT --output NEW_DIRECTORY [--previous SNAPSHOT] [--assessments ASSESSMENTS]`: explicit-file review without privilege checks or collection.
-- `report --snapshot SNAPSHOT --output NEW_MARKDOWN_FILE [--previous SNAPSHOT] [--assessments ASSESSMENTS]`: explicit-file report with embedded T05 guidance.
+- `report --snapshot SNAPSHOT --output NEW_FILE [--previous SNAPSHOT] [--assessments ASSESSMENTS] [--format markdown|html] [--lang en|ja]`: explicit-file report with embedded T05 guidance.
 
 All flags take values. Positional arguments, unknown commands/flags, and command-inappropriate flags are errors. `--help` describes each command. The proposed flags are unchanged. Offline processing supports Linux; other operating systems are unverified.
 
 Collection and review publish `snapshot.json`, recomputed `review.json`, and editable `assessments.json` as one new private directory. The latter retains matching entries, generated unreviewed starters, and unmatched prior context. Generated starters are new inputs: reporting with them records their IDs, so reproduce the original comparison using the original assessment context rather than assuming starters are byte-equivalent inputs. Assessments never modify observations or silently reconfirm changed facts.
 
-Report writes a single new Markdown file. It recomputes review states and counts using T04; it does not accept a stored review file. Use the same current snapshot, previous snapshot and assessment context to reproduce a comparison. Omission of `--previous` explicitly labels comparison unavailable. Missing metadata about distribution/kernel is recorded as `unknown`; the application does not inspect extra host files to infer it.
+Report writes a single new Markdown or HTML file. The default remains English Markdown; use `--format html --lang ja` for the Japanese browser report. Only `report` accepts presentation flags; unsupported values fail before publication. It recomputes review states and counts using T04; it does not accept a stored review file. Use the same current snapshot, previous snapshot and assessment context to reproduce a comparison. Omission of `--previous` explicitly labels comparison unavailable. Missing metadata about distribution/kernel is recorded as `unknown`; the application does not inspect extra host files to infer it.
 
 ## Validation and publication
 
@@ -37,3 +37,11 @@ All sources failing still publishes diagnostic artifacts with exit 2. Offline re
 `internal/app/workflow_test.go` compares fixture-derived review output with T00 expected reviews and checks offline Markdown equality with T05 rendering. It verifies injected root/non-root collection, prior/advance context, partial/failed sources, cancellation, collisions, invalid JSON, target mismatch, and symlink parents. CLI tests pass for dispatch, flags, diagnostics and exit behavior with injected sources. These are simulated evidence, not owner feedback or a live-target validation record.
 
 Validation on 2026-10-24: setup, check, race tests, build, the T00 fixture validator and `git diff --check` passed. The actual binary completed the combined fictional rehearsal and assessment editing flow as UID 1000, rejected non-root collection before output creation, and refused overwrite. The vulnerability scan found 0 reachable vulnerabilities; it also reported 1 finding in imported packages and 13 in required modules that current code does not appear to call. Cobra is pinned to v1.10.2 to provide command/flag dispatch; `go.mod` and `go.sum` are synchronized. No live root collection or owner usability trial is claimed.
+
+## P1 presentation feedback extension
+
+The owner requested Japanese content and a more graphical HTML deliverable. `--lang ja` localizes report headings, summary labels, decision/change/applicability states, guidance questions, missing-field prompts and review reasons. Human statements, identifiers, schema keys, technical evidence, diagnostic codes and source limitations retain their original text. CLI help and stderr remain English. Presentation options do not change T04 assessment results or artifact schemas.
+
+HTML is a UTF-8 single file with bundled CSS, responsive summary cards, section navigation, item details and expandable technical evidence. It requires no server, scripts, fonts, images, external stylesheet or network. Evidence references remain inert text. The fixed template HTML-escapes every interpolated value, controls are made visible, and a restrictive Content Security Policy blocks external resources and scripts. The existing private/no-clobber publication protocol also applies to HTML.
+
+Tests cover all 13 fixture scenarios in both languages and formats, count reconciliation, deterministic output, input immutability, local anchor integrity, hostile annotations, option validation and CLI publication. English Markdown output is unchanged when no presentation flags are supplied.

@@ -97,3 +97,34 @@ func TestOfflineCommands(t *testing.T) {
 		})
 	}
 }
+
+func TestReportPresentationFlags(t *testing.T) {
+	current, err := filepath.Abs("../../../../test/fixtures/prototype/contracts/snapshot-first.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, format := range []string{"html", "markdown"} {
+		output := filepath.Join(t.TempDir(), "report")
+		code, _, diag := execute(t, app.Service{}, "report", "--snapshot", current, "--format", format, "--lang", "ja", "--output", output)
+		if code != 0 {
+			t.Fatalf("code=%d %s", code, diag)
+		}
+		b, err := os.ReadFile(output)
+		if err != nil || !strings.Contains(string(b), "確認レポート") {
+			t.Fatalf("missing Japanese report: %v", err)
+		}
+	}
+	for _, args := range [][]string{{"--format", "pdf"}, {"--lang", "fr"}} {
+		output := filepath.Join(t.TempDir(), "not-created")
+		options := append([]string{"report", "--snapshot", current, "--output", output}, args...)
+		if code, _, _ := execute(t, app.Service{}, options...); code != 1 {
+			t.Fatal("invalid presentation accepted")
+		}
+		if _, err := os.Stat(output); !os.IsNotExist(err) {
+			t.Fatal("invalid output published")
+		}
+	}
+	if code, _, _ := execute(t, app.Service{}, "review", "--lang", "ja"); code != 1 {
+		t.Fatal("report-only flag accepted by review")
+	}
+}

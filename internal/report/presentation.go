@@ -1,0 +1,277 @@
+package report
+
+import (
+	"bytes"
+	"fmt"
+	"html"
+	"strings"
+	"text/template"
+	"unicode"
+
+	"github.com/pirakansa/avera/internal/assessment"
+	"github.com/pirakansa/avera/internal/guidance"
+	i "github.com/pirakansa/avera/internal/inventory"
+)
+
+// Options selects presentation only; source values and assessment rules are unchanged.
+type Options struct{ Format, Language string }
+
+func (o Options) normalized() Options {
+	if o.Format == "" {
+		o.Format = "markdown"
+	}
+	if o.Language == "" {
+		o.Language = "en"
+	}
+	return o
+}
+
+// ValidateOptions rejects unsupported output choices before publication.
+func ValidateOptions(o Options) error {
+	o = o.normalized()
+	if o.Format != "markdown" && o.Format != "html" {
+		return fmt.Errorf("--format: choose markdown or html")
+	}
+	if o.Language != "en" && o.Language != "ja" {
+		return fmt.Errorf("--lang: choose en or ja")
+	}
+	return nil
+}
+
+type field struct{ Label, Value string }
+type link struct{ ID, Label string }
+type block struct {
+	Technical       bool
+	ID, Title, Note string
+	Fields          []field
+	Questions       []string
+	Links           []link
+}
+type metric struct {
+	Label string
+	Count int
+}
+type document struct {
+	Language, Title, Warning, Summary, Contents, Details string
+	Metrics                                              []metric
+	Blocks                                               []block
+}
+type localizer struct{ ja bool }
+
+func (l localizer) text(en, ja string) string {
+	if l.ja {
+		return ja
+	}
+	return en
+}
+func (l localizer) state(s string) string {
+	if !l.ja {
+		return s
+	}
+	names := map[string]string{"accepted": "受容済み", "action_required": "対応が必要", "unreviewed": "未確認", "applicable": "適用可能", "needs_review": "再確認が必要", "conflict": "判断の競合", "none": "判断なし", "new": "新規", "unchanged": "変更なし", "changed": "変更あり", "unknown": "不明", "not_observed": "今回は未観測", "not_compared": "比較なし", "complete": "収集完了", "partial": "一部収集", "failed": "収集失敗", "not_collected": "未収集", "advance": "事前の判断", "reviewed_snapshot": "観測後の判断", "purpose": "目的", "exposure": "利用者・公開範囲", "safeguards": "保護策", "rationale": "判断理由", "supporting evidence references": "裏付ける証拠の参照"}
+	if v, ok := names[s]; ok {
+		return v
+	}
+	return s
+}
+func (l localizer) reasons(codes []string) string {
+	if !l.ja {
+		return reasonText(codes)
+	}
+	names := map[string]string{assessment.FactsChanged: "観測内容が変わりました。以前の説明を判断者と再確認してください", assessment.CoverageIncomplete: "収集や帰属の特定が不完全です。判断の再利用前に不足する情報を確認してください", assessment.MultipleAssessments: "複数の判断が競合しています。どの判断を適用するか担当者と確認してください", assessment.ExpectationMismatch: "事前の想定が不完全、または観測内容と異なります。作成者と確認してください", assessment.NotObserved: "比較可能な今回の収集では未観測です。対処済みとは限りません"}
+	out := []string{}
+	for _, c := range codes {
+		v, ok := names[c]
+		if !ok {
+			v = "この診断の意味を担当者に確認してください"
+		}
+		out = append(out, v+" ("+c+")")
+	}
+	return strings.Join(out, "; ")
+}
+func (l localizer) annotation(b *block, a i.Assessment, context string) {
+	b.Fields = append(b.Fields, field{l.text("Assessment context", "判断の位置付け"), context}, field{l.text("Assessment ID", "判断 ID"), a.AssessmentID}, field{l.text("Origin", "判断の由来"), l.state(string(a.Origin))}, field{l.text("Human decision", "人による判断"), l.state(string(a.Decision))}, field{l.text("Actor / date", "判断者・日時"), a.Actor + " / " + a.AssessedAt}, field{l.text("Purpose", "目的"), a.Purpose}, field{l.text("Audience / exposure", "利用者・公開範囲"), a.Exposure}, field{l.text("Safeguards (human statement, not verified)", "保護策（人の申告・ツール未検証）"), a.Safeguards}, field{l.text("Rationale", "判断理由"), a.Rationale})
+	for _, ref := range a.EvidenceRefs {
+		b.Fields = append(b.Fields, field{l.text("Evidence reference (not fetched)", "証拠の参照（取得しません）"), ref.Reference + " / " + ref.Provenance})
+	}
+	missing := guidance.Missing(a)
+	for n, v := range missing {
+		missing[n] = l.state(v)
+	}
+	if len(missing) > 0 {
+		b.Fields = append(b.Fields, field{l.text("Missing explanations (completeness only, not a verified defect)", "不足する説明（記入状況の確認であり、欠陥の検証ではありません）"), strings.Join(missing, ", ")})
+	}
+}
+func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, language string) (document, error) {
+	result, err := assessment.Evaluate(current, previous, annotations)
+	if err != nil {
+		return document{}, err
+	}
+	l := localizer{language == "ja"}
+	r := result.Review
+	s := r.Summary
+	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
+	d.Metrics = []metric{{l.text("Current items", "今回の項目"), s.Current}, {l.text("Accepted", "受容済み"), s.Accepted}, {l.text("Action required", "対応が必要"), s.ActionRequired}, {l.text("Unreviewed", "未確認"), s.Unreviewed}, {l.text("Needs re-review (subset)", "再確認が必要（内数）"), s.NeedsReview}, {l.text("Conflicts (subset)", "判断の競合（内数）"), s.Conflict}, {l.text("Historical items", "過去の項目"), s.Historical}, {l.text("Unmatched assessments", "対応する観測がない判断"), s.UnmatchedAssessments}}
+	env, err := technical(current.Environment)
+	if err != nil {
+		return d, err
+	}
+	meta := block{ID: "run", Title: l.text("Target and run", "対象と実行情報"), Fields: []field{{l.text("Target", "対象"), current.TargetID}, {l.text("Run", "実行 ID"), current.SnapshotID}, {l.text("Collection start / finish", "収集開始・終了"), current.CollectedAt + " / " + current.FinishedAt}, {l.text("Tool version", "ツールのバージョン"), current.ToolVersion}, {l.text("Environment / execution scope", "環境・実行範囲"), env}}}
+	if previous != nil {
+		meta.Fields = append(meta.Fields, field{l.text("Previous run", "前回の実行 ID"), previous.SnapshotID})
+	} else {
+		meta.Fields = append(meta.Fields, field{l.text("Comparison", "前回との比較"), l.text("Unavailable; no previous snapshot supplied", "比較できません。前回のスナップショットが指定されていません")})
+	}
+	d.Blocks = append(d.Blocks, meta)
+	scope := block{ID: "scope", Title: l.text("Collection scope and limitations", "収集範囲と制限")}
+	for _, c := range current.Coverage {
+		scope.Fields = append(scope.Fields, field{l.text("Collector / status / scope", "収集機能・状態・範囲"), string(c.Collector) + " / " + l.state(string(c.Status)) + " / " + c.Scope}, field{l.text("Collector version", "収集機能のバージョン"), c.CollectorVersion}, field{l.text("Attempted sources", "収集を試みた情報源"), strings.Join(c.AttemptedSources, ", ")}, field{l.text("Diagnostics", "診断コード"), strings.Join(c.DiagnosticCodes, ", ")}, field{l.text("Limitations (source text)", "制限事項（情報源の原文）"), strings.Join(c.Limitations, "; ")})
+	}
+	d.Blocks = append(d.Blocks, scope)
+	sources := []*i.Snapshot{current}
+	if previous != nil {
+		sources = append(sources, previous)
+	}
+	evidenceIDs := map[string]string{}
+	for si, source := range sources {
+		for ei, e := range source.Evidence {
+			evidenceIDs[fmt.Sprintf("%d/%s", si, e.EvidenceID)] = fmt.Sprintf("evidence-%d-%d", si, ei)
+		}
+	}
+	byID := map[string]i.Assessment{}
+	if annotations != nil {
+		for _, a := range annotations.Entries {
+			byID[a.AssessmentID] = a
+		}
+	}
+	for _, presence := range []i.Presence{i.Current, i.Historical} {
+		group := block{ID: "current", Title: l.text("Current items", "今回の確認項目")}
+		sourceIndex := 0
+		if presence == i.Historical {
+			group = block{ID: "historical", Title: l.text("Historical items", "過去の項目"), Note: l.text("Prior observations only; excluded from current counts.", "過去の観測です。今回の件数には含めません。")}
+			sourceIndex = 1
+		}
+		d.Blocks = append(d.Blocks, group)
+		if presence == i.Historical && previous == nil {
+			continue
+		}
+		findings := map[string]i.Finding{}
+		for _, f := range sources[sourceIndex].Findings {
+			findings[f.FindingID] = f
+		}
+		for n, item := range r.Items {
+			if item.Presence != presence {
+				continue
+			}
+			f := findings[item.FindingID]
+			g := guidance.ForLanguage(f.Kind, language)
+			title := fmt.Sprintf(l.text("Item %d", "項目 %d"), n+1)
+			if id, ok := f.Identity.(i.EndpointIdentity); ok {
+				title += " · " + strings.ToUpper(id.Transport) + " " + id.LocalAddress + fmt.Sprintf(":%d", id.LocalPort)
+			}
+			b := block{ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
+			if len(item.AssessmentIDs) == 0 {
+				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
+			}
+			for _, id := range item.AssessmentIDs {
+				context := l.text("Prior context only; does not establish current acceptance", "過去の説明です。今回の受容を意味しません")
+				if presence == i.Current && item.Applicability == i.Applicable {
+					context = l.text("Applicable human assessment; not a safety certification", "適用可能な人の判断です。安全性の認証ではありません")
+				}
+				l.annotation(&b, byID[id], context)
+			}
+			values, e := technical(struct {
+				Identity i.Identity
+				Facts    i.Facts
+			}{f.Identity, f.Facts})
+			if e != nil {
+				return d, e
+			}
+			b.Fields = append(b.Fields, field{l.text("Observed values (bounded)", "観測値（表示量に上限あり）"), values})
+			for _, id := range f.EvidenceIDs {
+				b.Links = append(b.Links, link{evidenceIDs[fmt.Sprintf("%d/%s", sourceIndex, id)], l.text("Underlying evidence", "根拠となる証拠")})
+			}
+			b.Links = append(b.Links, link{"scope", l.text("Collection limitations", "収集上の制限")})
+			d.Blocks = append(d.Blocks, b)
+		}
+	}
+	unmatched := block{ID: "unmatched", Title: l.text("Unmatched assessments", "対応する観測がない判断"), Note: l.text("Historical context only; excluded from current decisions.", "過去の文脈として保持します。今回の判断には含めません。")}
+	for _, id := range r.UnmatchedAssessmentIDs {
+		l.annotation(&unmatched, byID[id], unmatched.Note)
+	}
+	d.Blocks = append(d.Blocks, unmatched)
+	d.Blocks = append(d.Blocks, block{ID: "evidence", Title: l.text("Evidence", "技術的な証拠"), Note: l.text("Technical values are limited to 2000 Unicode characters per value. Truncated values require the original artifact. Source text and human statements are preserved, not translated. External references are never fetched.", "技術値の表示は各値 2000 文字までです。省略された部分は元のファイルで確認してください。情報源の原文と人の記述は翻訳せず保持します。外部参照にはアクセスしません。")})
+	for si, source := range sources {
+		for ei, e := range source.Evidence {
+			value, err := technical(e.Values)
+			if err != nil {
+				return d, err
+			}
+			b := block{Technical: true, ID: fmt.Sprintf("evidence-%d-%d", si, ei), Title: fmt.Sprintf(l.text("Evidence %d / %d", "証拠 %d / %d"), si, ei), Fields: []field{{l.text("Source run", "収集元の実行 ID"), source.SnapshotID}, {l.text("Evidence ID", "証拠 ID"), e.EvidenceID}, {l.text("Source / location", "情報源・位置"), e.SourceKind + " / " + e.Location}, {l.text("Method / time (source text)", "取得方法・時刻（原文）"), e.Method + " / " + e.CollectedAt}, {l.text("Technical values", "技術値"), value}}}
+			for _, c := range source.Coverage {
+				b.Fields = append(b.Fields, field{l.text("Source coverage / limitations", "収集元の状態・制限"), string(c.Collector) + " / " + l.state(string(c.Status)) + " / " + strings.Join(c.Limitations, "; ")})
+			}
+			d.Blocks = append(d.Blocks, b)
+		}
+	}
+	return d, nil
+}
+
+// RenderWithOptions renders a self-contained report, preserving the legacy English Markdown default.
+func RenderWithOptions(current, previous *i.Snapshot, annotations *i.Assessments, o Options) (string, error) {
+	if err := ValidateOptions(o); err != nil {
+		return "", err
+	}
+	o = o.normalized()
+	if o.Format == "markdown" && o.Language == "en" {
+		return Render(current, previous, annotations)
+	}
+	d, err := makeDocument(current, previous, annotations, o.Language)
+	if err != nil {
+		return "", err
+	}
+	var b bytes.Buffer
+	if o.Format == "html" {
+		t, err := template.New("report").Funcs(template.FuncMap{"escape": func(value any) string { return html.EscapeString(visible(fmt.Sprint(value))) }}).Parse(htmlReport)
+		if err != nil {
+			return "", err
+		}
+		if err = t.Execute(&b, d); err != nil {
+			return "", err
+		}
+		return b.String(), nil
+	}
+	fmt.Fprintf(&b, "# %s\n\n%s\n\n## %s\n\n", d.Title, d.Warning, d.Summary)
+	for _, m := range d.Metrics {
+		fmt.Fprintf(&b, "- %s: %d\n", m.Label, m.Count)
+	}
+	for _, section := range d.Blocks {
+		fmt.Fprintf(&b, "\n<a id=\"%s\"></a>\n\n## %s\n\n", section.ID, section.Title)
+		if section.Note != "" {
+			fmt.Fprintf(&b, "%s\n\n", section.Note)
+		}
+		for _, f := range section.Fields {
+			fmt.Fprintf(&b, "- %s: %s\n", f.Label, Text(f.Value))
+		}
+		for _, q := range section.Questions {
+			fmt.Fprintf(&b, "- %s\n", q)
+		}
+		for _, a := range section.Links {
+			fmt.Fprintf(&b, "- [%s](#%s)\n", a.Label, a.ID)
+		}
+	}
+	return b.String(), nil
+}
+
+// visible makes control and formatting characters explicit before HTML escaping.
+func visible(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || unicode.Is(unicode.Zl, r) || unicode.Is(unicode.Zp, r) {
+			fmt.Fprintf(&b, "\\u%04X", r)
+		} else {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}

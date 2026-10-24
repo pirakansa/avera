@@ -24,7 +24,7 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is an early Linux prototype with network collection, saved-file review, assessment reuse, and Markdown reports with embedded guidance. The CLI exposes `collect`, `review`, and `report`; P1 live collection enables network only. Sudo collection integration and owner usability feedback remain pending. See the [CLI reference](docs/specifications/prototype/cli-workflow.md) and [trial guide](docs/user-guides/prototype-trials.md).
+AVERA is an early Linux prototype with network collection, saved-file review, assessment reuse, and English/Japanese Markdown and HTML reports with embedded guidance. The CLI exposes `collect`, `review`, and `report`; P1 live collection enables network only. Sudo collection integration and owner usability feedback remain pending. See the [CLI reference](docs/specifications/prototype/cli-workflow.md) and [trial guide](docs/user-guides/prototype-trials.md).
 
 ## Development quick start
 
@@ -40,6 +40,6 @@ vorbere run build
   --output /tmp/avera-fictional-report.md
 ```
 
-Open `/tmp/avera-fictional-report.md` to inspect fictional findings, guidance, and evidence. Choose a new output path if it already exists. This rehearsal needs no root or live collection.
+Open `/tmp/avera-fictional-report.md` to inspect fictional findings, guidance, and evidence. Choose a new output path if it already exists. This rehearsal needs no root or live collection. Add `--format html --lang ja` and choose an `.html` output path for a Japanese browser report; see the [presentation trial](docs/user-guides/prototype-trials.md#japanese-html-presentation-trial).
 
 Run `vorbere run ci` for formatting checks, static analysis, vulnerability scanning, tests, and a build. Analysis tools are pinned in `go.mod`; setup and vulnerability scanning require network access.

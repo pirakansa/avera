@@ -28,3 +28,19 @@ func TestBundledKinds(t *testing.T) {
 		t.Fatal("context rejected")
 	}
 }
+
+func TestJapaneseGuidance(t *testing.T) {
+	for _, kind := range []i.Kind{i.Endpoint, i.Rule, i.Unparsed} {
+		content := ForLanguage(kind, "ja")
+		if content.Observed == "" || content.Why == "" || len(content.Questions) < 3 {
+			t.Fatal("incomplete Japanese content")
+		}
+		content.Questions[0] = "modified"
+		if ForLanguage(kind, "ja").Questions[0] == "modified" {
+			t.Fatal("shared questions")
+		}
+	}
+	if !strings.Contains(strings.Join(ForLanguage(i.Endpoint, "ja").Questions, " "), "認証が不要な場合") {
+		t.Fatal("missing public-content context")
+	}
+}

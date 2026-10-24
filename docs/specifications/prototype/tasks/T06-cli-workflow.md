@@ -55,3 +55,7 @@ Validation:
 - Vulnerability scan: 0 reachable vulnerabilities; 1 finding in imported packages and 13 in required modules not apparently called by current code remain visible. No unrelated dependency upgrades were bundled.
 
 The owner will try T05 guidance/reporting and T06 workflow together. No completed owner trial or live root collection is claimed. T07 delivery verification and P2 sudo registration remain follow-up work; the P1 binary intentionally registers network only and marks sudo uncollected. No contract revision or serialized field changes were needed.
+
+## Owner-requested presentation follow-up
+
+After this handoff, the owner requested Japanese support and a graphical HTML report. The report command now accepts optional `--format markdown|html` and `--lang en|ja`; existing invocations retain English Markdown. See the [presentation contract](../cli-workflow.md#p1-presentation-feedback-extension) and [feedback/trial record](../../../user-guides/prototype-trials/p1-report-presentation-feedback-2026-10-24.md). This extension does not change collection, review semantics or artifact schemas.

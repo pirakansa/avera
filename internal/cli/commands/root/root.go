@@ -33,14 +33,16 @@ func New(svc app.Service) *cobra.Command {
 				return nil
 			}
 		} else {
-			markdown := name == "report"
+			renderReport := name == "report"
 			cmd.Short = "Recompute review from explicit saved files without host access"
-			if markdown {
-				cmd.Short = "Render guidance and a Markdown report from explicit saved files"
+			if renderReport {
+				cmd.Short = "Render guidance and a Markdown or HTML report from explicit saved files"
+				cmd.Flags().StringVar(&o.Format, "format", "markdown", "Output format: markdown or html")
+				cmd.Flags().StringVar(&o.Language, "lang", "en", "Report language: en or ja")
 			}
 			cmd.Flags().StringVar(&o.Snapshot, "snapshot", "", "Current snapshot JSON")
 			cmd.RunE = func(cmd *cobra.Command, _ []string) error {
-				if err := svc.Offline(cmd.Context(), o, markdown); err != nil {
+				if err := svc.Offline(cmd.Context(), o, renderReport); err != nil {
 					return err
 				}
 				fmt.Fprintf(cmd.ErrOrStderr(), "Saved output to %q; keep the same --previous and --assessments context when regenerating.\n", o.Output)

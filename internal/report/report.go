@@ -1,4 +1,4 @@
-// Package report renders an offline, deterministic, three-level Markdown report.
+// Package report renders deterministic offline Markdown and HTML review reports.
 package report
 
 import (

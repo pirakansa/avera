@@ -17,7 +17,7 @@ Help a beginner understand what to explain, then give a less technical recipient
 3. Sudo prompts cover who uses the configured privilege, the required function, limits on target users/commands, safeguards, and supporting evidence. Unsupported interpretation needs a clear next question, not invented technical conclusions.
 4. Distinguish a missing explanation from a tool-verified defect. Plain field completeness checks may prompt the user but must not certify adequacy.
 5. Keep guidance bundled into the executable. No remote text service, AI dependency, or external template download is needed to run the prototype.
-6. Record the language used for the owner's trial and any comprehension issues. Repository documentation remains English; multilingual product behavior is not a committed feature.
+6. Record the language used for the owner's trial and any comprehension issues. Repository documentation remains English; English/Japanese report presentation is now implemented following owner feedback; additional languages remain undecided.
 
 ## Rendering work
 
@@ -42,4 +42,4 @@ Render untrusted values safely: control characters, Markdown tables/fences, embe
 
 ## Handoff
 
-Provide report examples, guidance content, escaping tests, supported language, and unresolved usability questions. HTML, PDF, dashboards, scoring, and approval workflows are deferred unless a later trial selects them.
+Provide report examples, guidance content, escaping tests, supported language, and unresolved usability questions. HTML and Japanese report presentation were selected by owner feedback and implemented as a follow-up; PDF, dashboards, scoring, and approval workflows remain deferred.

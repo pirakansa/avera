@@ -1,7 +1,6 @@
-# Guidance and Markdown report API
+# Guidance and report API
 
-T05 provides bundled English guidance in `internal/guidance` and a deterministic,
-offline Markdown renderer in `internal/report`. CLI integration belongs to T06.
+T05 provides bundled English and Japanese guidance in `internal/guidance` and deterministic offline Markdown/HTML renderers in `internal/report`. T06 integrates the CLI; the presentation extension follows owner P1 feedback.
 
 ## API and semantics
 
@@ -63,13 +62,13 @@ The [generated example](examples/generated-guidance-report.md) uses fictional
 contract fixtures: `snapshot-repeat.json`, `snapshot-first.json`, and
 `assessments-reviewed.json`. It is renderer output, not owner trial evidence.
 
-Supported trial content language: English. No owner P1 walkthrough has been
+Supported report content languages: English and Japanese. Source evidence and human statements retain their original language. No owner P1 walkthrough has been
 performed as part of implementation; trial language actually used and comprehension
 issues remain unrecorded until the owner tries it. Record them in the existing
 [trial workflow](../../user-guides/prototype-trials.md). Open usability questions:
 can the owner identify the next explanation, understand prior-context labels and
 source limitations, and navigate technical evidence without reading raw proc data?
-HTML/PDF output, dashboards, scoring, and approval workflows remain deferred.
+HTML was selected by owner feedback and is now implemented; PDF output, dashboards, scoring, and approval workflows remain deferred.
 
 ## Implementation validation record
 
@@ -82,3 +81,13 @@ affecting called code, with informational findings of one vulnerability in
 imported packages and thirteen in required modules whose vulnerable code does
 not appear to be called. Generated binaries were removed. No owner usability
 trial or CLI integration was performed.
+
+## Localized HTML and Markdown presentation
+
+`guidance.ForLanguage(kind, "ja")` returns bundled Japanese questions for each supported kind. `report.RenderWithOptions(current, previous, assessments, report.Options{Format: "html", Language: "ja"})` produces a self-contained Japanese HTML report. Accepted formats are `markdown` and `html`; accepted languages are `en` and `ja`. Empty options preserve the original English Markdown renderer and output. Unsupported choices return errors.
+
+Both HTML languages and Japanese Markdown use the same presentation model derived by T04, with current/historical items, unmatched assessments, source coverage, actor/date, missing explanations and source-qualified evidence links. The Japanese Markdown renderer escapes untrusted data using the existing entity policy. HTML uses a fixed `text/template` with explicit `html.EscapeString` on every interpolated value and visible control characters; it never promotes annotation strings to trusted markup, links or template code. Fixed fragment links are the only active destinations. No new runtime dependency or artifact schema change is introduced.
+
+See the [CLI reference](cli-workflow.md#p1-presentation-feedback-extension) for flags and boundaries and the [HTML trial](../../user-guides/prototype-trials.md#japanese-html-presentation-trial) for an executable example. Browser appearance and Japanese comprehension still require owner feedback; automated rendering tests do not establish usability.
+
+Validation note for the presentation revision: the first full check detected reachable standard-library findings GO-2026-6600 and GO-2026-6599 when using `html/template` on Go 1.25.14. The final renderer instead uses a fixed text template with explicit HTML escaping for every value, no script/style interpolation, and a test requiring escaping on every output action. The original toolchain and dependency versions are unchanged. Final quality-gate results are recorded with the feedback record.

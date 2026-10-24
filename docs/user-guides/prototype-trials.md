@@ -37,7 +37,7 @@ Preparation: a known disposable Ubuntu target, the T07-verified local binary, a 
 
 Do not introduce production changes merely to create a changed-item scenario. Scripted fixtures are a valid way to test comparison semantics; record them as simulated rather than live evidence.
 
-After P1, decide whether to keep separate files/commands for the next cycle. Consider a simpler editing surface only if the trial demonstrates that JSON or artifact movement is a problem. Do not assume a GUI or HTML is necessary before observing the difficulty.
+After P1, decide whether to keep separate files/commands for the next cycle. Consider a simpler editing surface only if the trial demonstrates that JSON or artifact movement is a problem. The owner has now requested Japanese content and a graphical HTML report. The presentation trial below evaluates that requested extension; an editing GUI remains undecided.
 
 ## Executable T05 + T06 rehearsal
 
@@ -125,6 +125,32 @@ Review/report can instead run as an ordinary user after explicitly transferring 
 Live network scope gets a fresh conservative namespace identity each run because `/proc` namespace inode numbers cannot prove incarnation. Therefore live repeat runs can require new review even when ports look unchanged. Use the fictional unchanged scenario to inspect exact-match reuse, and record live identity churn as P1 feedback. Live collection deliberately leaves sudo uncollected.
 
 Record actual observations and owner comments using the feedback template below. T05/T06 implementation and fixture tests are not a completed owner P1 trial.
+
+## Japanese HTML presentation trial
+
+The owner requested Japanese content and HTML after the initial T05/T06 handoff. Build the current binary, then generate a single-file browser report from fictional saved inputs:
+
+```sh
+vorbere run build
+html_trial=$(mktemp -d /tmp/avera-html-trial.XXXXXX)
+./bin/avera report \
+  --snapshot ./test/fixtures/prototype/contracts/snapshot-repeat.json \
+  --previous ./test/fixtures/prototype/contracts/snapshot-first.json \
+  --assessments ./test/fixtures/prototype/contracts/assessments-reviewed.json \
+  --format html --lang ja --output "$html_trial/unchanged.html"
+./bin/avera report \
+  --snapshot ./test/fixtures/prototype/contracts/snapshot-changed.json \
+  --previous ./test/fixtures/prototype/contracts/snapshot-first.json \
+  --assessments ./test/fixtures/prototype/contracts/assessments-reviewed.json \
+  --format html --lang ja --output "$html_trial/changed.html"
+printf 'Open the HTML files in a browser: %s\n' "$html_trial"
+```
+
+Open the files directly in a browser; no local server or network is required. Start with the overview cards, follow the current-item navigation, read the Japanese questions and decision context, then follow an evidence link and expand the technical details. Compare the unchanged and changed reports: stale acceptance must remain prior context. Repeat with a narrow browser window to assess readability. Evidence/source text and fictional human statements may remain English because their original content is preserved.
+
+Use `--format markdown --lang ja` for Japanese Markdown or `--format html --lang en` for English HTML. Omitting both flags preserves the original English Markdown. CLI help/errors and JSON editing remain in English; this increment localizes the report rather than introducing translated artifact fields or a browser editor.
+
+Feedback to gather: does Japanese wording clarify what to do next; are the cards and item headings understandable; can the owner distinguish observations from human statements and current acceptance from prior context; are the layout, density, mobile view and technical-detail expansion useful? Record actual feedback separately from automated checks. The first request is recorded in [the presentation feedback record](prototype-trials/p1-report-presentation-feedback-2026-10-24.md); acceptance of this new layout is still pending.
 
 ## P2 — Add the sudo example
 

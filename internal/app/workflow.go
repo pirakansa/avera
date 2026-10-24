@@ -29,7 +29,7 @@ type Service struct {
 	Now          func() time.Time
 	Collectors   []Registration
 }
-type Options struct{ TargetID, Snapshot, Previous, Assessments, Output string }
+type Options struct{ TargetID, Snapshot, Previous, Assessments, Output, Format, Language string }
 
 func load(path, kind, flag string) (i.Artifact, error) {
 	a, err := artifact.Read(path)
@@ -78,7 +78,12 @@ func evaluate(s, p *i.Snapshot, a *i.Assessments) (*assessment.Result, error) {
 }
 
 // Offline reads only the named artifacts and recomputes every derived decision/count.
-func (svc Service) Offline(ctx context.Context, o Options, markdown bool) error {
+func (svc Service) Offline(ctx context.Context, o Options, renderReport bool) error {
+	if renderReport {
+		if err := report.ValidateOptions(report.Options{Format: o.Format, Language: o.Language}); err != nil {
+			return err
+		}
+	}
 	if o.Snapshot == "" {
 		return fmt.Errorf("--snapshot is required")
 	}
@@ -101,8 +106,8 @@ func (svc Service) Offline(ctx context.Context, o Options, markdown bool) error 
 	if err = ctx.Err(); err != nil {
 		return err
 	}
-	if markdown {
-		text, err := report.Render(s, p, a)
+	if renderReport {
+		text, err := report.RenderWithOptions(s, p, a, report.Options{Format: o.Format, Language: o.Language})
 		if err != nil {
 			return fmt.Errorf("cannot render validated report")
 		}

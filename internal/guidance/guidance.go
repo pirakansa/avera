@@ -1,4 +1,4 @@
-// Package guidance supplies bundled English review questions, not acceptance rules.
+// Package guidance supplies bundled review questions, not acceptance rules.
 package guidance
 
 import (
