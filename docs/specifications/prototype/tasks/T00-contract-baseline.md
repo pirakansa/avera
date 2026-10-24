@@ -1,6 +1,6 @@
 # T00 — Establish the contract baseline and fictional walkthrough
 
-Status: not started. Type: design/fixtures. Prerequisites: [product direction](../../product-direction.md) and [prototype plan](../README.md).
+Status: agent-prepared baseline `t00-2026-10-24.1`; owner P0 walkthrough and live-target details pending. Type: design/fixtures. Prerequisites: [product direction](../../product-direction.md) and [prototype plan](../README.md).
 
 ## Outcome
 
@@ -40,3 +40,18 @@ No live host collection, full JSON Schema framework, approval workflow, GUI, rel
 ## Handoff
 
 Provide a contract revision identifier, examples, expected fingerprints, matching outcomes, and remaining questions. Notify T01–T06 of the baseline. Separate “reviewed by the owner” from “prepared by an agent.”
+
+## Prepared handoff
+
+See the [baseline contract](../data-contracts.md#t00-baseline-t00-2026-10-241), [artifact relationships and validation](../../../../test/fixtures/prototype/contracts/README.md), [fictional report](../examples/fictional-report.md), and [P0 preparation with unanswered questions](../examples/p0-preparation.md). T01–T06 are notified through these repository links and the contract's responsibility mapping. Work steps 1–7 are prepared; step 8 awaits actual owner participation. Do not equate this status with owner approval or a completed P0 trial.
+
+
+Validation performed on 2026-10-24:
+
+- `vorbere run setup`: passed.
+- `vorbere run check`, `vorbere run test`, `vorbere run build`: passed before and after the changes. The existing CLI package still has no Go test files; T00 adds fixture validation rather than collector implementation.
+- `python3 test/fixtures/prototype/contracts/validate.py`: passed; 29 JSON files, 13 scenarios, fixed hash/encoding vectors, preserved history, report counts, and 76 local links.
+- `git diff --check`: passed.
+- Vulnerability scan: 0 reachable vulnerabilities; the existing scan also reports 1 vulnerability in imported packages and 13 in required modules that current code does not appear to call. These findings remain, rather than being represented as a completely clean dependency scan.
+
+Remaining work is the actual owner P0 walkthrough/feedback and recording a selected live target when available. No product implementation, live collection, or release was performed.

@@ -1,6 +1,6 @@
 # Prototype implementation plan
 
-Status: proposed execution plan for an unreleased prototype. No implementation tasks in this plan are complete. The existing CLI only prints `Hello, world!`.
+Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md); owner P0 feedback remains pending. No executable implementation tasks in this plan are complete. The existing CLI only prints `Hello, world!`.
 
 ## Objective and authority
 

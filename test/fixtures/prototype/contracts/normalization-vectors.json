@@ -1,0 +1,46 @@
+{
+  "fictional": true,
+  "normalization_version": "avera.facts.v1",
+  "vectors": [
+    {
+      "kind": "sudo.unparsed",
+      "identity_canonical": "[\"avera.identity.v1\",\"fictional-web-01\",\"sudo\",\"sudo.unparsed\",{\"line\":2,\"ordinal\":0,\"source_path\":\"/etc/sudoers.d/fictional-web\"}]",
+      "finding_id": "sha256:1495f62e1f39487021e9d55a0b14b0c00bced80ff8417899dcd085bc72586e76",
+      "facts_canonical": "[\"avera.facts.v1\",\"sudo.unparsed\",{\"line\":2,\"ordinal\":0,\"source_path\":\"/etc/sudoers.d/fictional-web\"},{\"diagnostic_code\":\"unsupported_defaults\",\"raw\":\"Defaults env_reset\"}]",
+      "fact_fingerprint": "sha256:1c4a56a8a597d929070aaa1463d0613b6a215e46255dd43545853d4ffccc7324"
+    },
+    {
+      "kind": "network.endpoint",
+      "identity_canonical": "[\"avera.identity.v1\",\"fictional-web-01\",\"network\",\"network.endpoint\",{\"family\":\"ipv4\",\"local_address\":\"0.0.0.0\",\"local_port\":80,\"scope_id\":\"fictional-boot-a/net-initial\",\"socket_category\":\"listener\",\"transport\":\"tcp\",\"zone\":\"\"}]",
+      "finding_id": "sha256:46435c628b7e871dac6ae527f1aae5439fd02219496c5ff593e485e24b120164",
+      "facts_canonical": "[\"avera.facts.v1\",\"network.endpoint\",{\"family\":\"ipv4\",\"local_address\":\"0.0.0.0\",\"local_port\":80,\"scope_id\":\"fictional-boot-a/net-initial\",\"socket_category\":\"listener\",\"transport\":\"tcp\",\"zone\":\"\"},{\"attribution_complete\":true,\"owners\":[{\"executable\":\"/usr/sbin/fictional-httpd\",\"uid\":33}]}]",
+      "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10"
+    },
+    {
+      "kind": "network.endpoint",
+      "identity_canonical": "[\"avera.identity.v1\",\"fictional-web-01\",\"network\",\"network.endpoint\",{\"family\":\"ipv4\",\"local_address\":\"127.0.0.1\",\"local_port\":9000,\"scope_id\":\"fictional-boot-a/net-initial\",\"socket_category\":\"listener\",\"transport\":\"tcp\",\"zone\":\"\"}]",
+      "finding_id": "sha256:5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524",
+      "facts_canonical": "[\"avera.facts.v1\",\"network.endpoint\",{\"family\":\"ipv4\",\"local_address\":\"127.0.0.1\",\"local_port\":9000,\"scope_id\":\"fictional-boot-a/net-initial\",\"socket_category\":\"listener\",\"transport\":\"tcp\",\"zone\":\"\"},{\"attribution_complete\":true,\"owners\":[{\"executable\":\"/opt/fictional-admin\",\"uid\":1001}]}]",
+      "fact_fingerprint": "sha256:33f8a0708feb3bc0766c2fb48a7608bc8e9954ee5baf78db97c998fe9b375cd4"
+    },
+    {
+      "kind": "sudo.rule",
+      "identity_canonical": "[\"avera.identity.v1\",\"fictional-web-01\",\"sudo\",\"sudo.rule\",{\"line\":1,\"ordinal\":0,\"source_path\":\"/etc/sudoers.d/fictional-web\"}]",
+      "finding_id": "sha256:681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48",
+      "facts_canonical": "[\"avera.facts.v1\",\"sudo.rule\",{\"line\":1,\"ordinal\":0,\"source_path\":\"/etc/sudoers.d/fictional-web\"},{\"commands\":[{\"arguments\":\"\",\"path\":\"/usr/bin/id\",\"tags\":[\"PASSWD\"]}],\"host\":\"ALL\",\"interpretation_complete\":false,\"local_context_complete\":true,\"local_members\":[{\"membership\":\"supplementary\",\"name\":\"alex\",\"uid\":1001}],\"policy_context\":[\"%webops ALL=(root) PASSWD: /usr/bin/id\",\"Defaults env_reset\"],\"principal\":{\"name\":\"webops\",\"type\":\"group\"},\"run_as_groups\":[],\"run_as_users\":[\"root\"]}]",
+      "fact_fingerprint": "sha256:bf1bc4a89f4c542d564b122fc88aee55d2a6bc765e7848245550e6136c311c00"
+    }
+  ],
+  "encoding_vector": {
+    "value": [
+      "<>&",
+      " ",
+      "é",
+      "\"\\\n",
+      0,
+      true
+    ],
+    "canonical": "[\"<>&\",\" \",\"é\",\"\\\"\\\\\\n\",0,true]",
+    "digest": "sha256:c78f915fe025af1eb1535260d26a6e75dbea28c1737699f1873a3239fbc6e5af"
+  }
+}

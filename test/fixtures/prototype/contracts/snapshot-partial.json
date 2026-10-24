@@ -1,0 +1,107 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "snapshot",
+  "target_id": "fictional-web-01",
+  "snapshot_id": "fictional-partial",
+  "collected_at": "2026-10-03T09:00:00Z",
+  "finished_at": "2026-10-03T09:00:00Z",
+  "tool_version": "fictional-not-implemented",
+  "environment": {
+    "os_id": "ubuntu",
+    "os_version": "24.04",
+    "architecture": "amd64",
+    "kernel_release": "fictional",
+    "effective_uid": 0,
+    "execution_scope": "fictional host; current network namespace only"
+  },
+  "coverage": [
+    {
+      "collector": "network",
+      "collector_version": "fictional-v1",
+      "status": "partial",
+      "scope": "fictional-boot-a/net-initial",
+      "attempted_sources": [
+        "/proc/net/tcp",
+        "/proc/net/tcp6",
+        "/proc/net/udp",
+        "/proc/net/udp6",
+        "/proc/*/fd"
+      ],
+      "diagnostic_codes": [
+        "source_unreadable"
+      ],
+      "limitations": [
+        "Some requested sources unreadable; absence is not comparable"
+      ]
+    },
+    {
+      "collector": "sudo",
+      "collector_version": "fictional-v1",
+      "status": "partial",
+      "scope": "local policy inventory only",
+      "attempted_sources": [
+        "/etc/sudoers",
+        "/etc/sudoers.d/fictional-web",
+        "/etc/passwd",
+        "/etc/group"
+      ],
+      "diagnostic_codes": [
+        "source_unreadable"
+      ],
+      "limitations": [
+        "Some requested sources unreadable; absence is not comparable"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "sha256:46435c628b7e871dac6ae527f1aae5439fd02219496c5ff593e485e24b120164",
+      "collector": "network",
+      "kind": "network.endpoint",
+      "identity": {
+        "transport": "tcp",
+        "family": "ipv4",
+        "local_address": "0.0.0.0",
+        "zone": "",
+        "local_port": 80,
+        "scope_id": "fictional-boot-a/net-initial",
+        "socket_category": "listener"
+      },
+      "facts": {
+        "owners": [
+          {
+            "executable": "/usr/sbin/fictional-httpd",
+            "uid": 33
+          }
+        ],
+        "attribution_complete": true
+      },
+      "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10",
+      "evidence_ids": [
+        "e1"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "e1",
+      "source_kind": "proc",
+      "location": "/proc/net/tcp",
+      "collected_at": "2026-10-03T09:00:00Z",
+      "method": "fictional fixture, no host read",
+      "values": {
+        "observed": {
+          "owners": [
+            {
+              "executable": "/usr/sbin/fictional-httpd",
+              "uid": 33
+            }
+          ],
+          "attribution_complete": true
+        },
+        "pid": 402
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "assessments",
+  "target_id": "fictional-web-01",
+  "entries": [
+    {
+      "assessment_id": "a-other-endpoint",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "127.0.0.1",
+          "zone": "",
+          "local_port": 9999,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-earlier-port-9999",
+        "fact_fingerprint": "sha256:8155634566be195bd6db49f9f823e09de01e0cc70a17403d0bb1aa756724b4f9"
+      },
+      "purpose": "Publish fictional public static documentation",
+      "exposure": "Intended public readers; actual upstream access not observed",
+      "safeguards": "Operator reports upstream network restrictions; not verified",
+      "rationale": "Accept remaining plaintext and service risks for public static material; verify claimed network restriction separately",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "accepted",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-10-01T10:00:00Z"
+    }
+  ]
+}

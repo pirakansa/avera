@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "review",
+  "target_id": "fictional-web-01",
+  "snapshot_id": "fictional-supported-sudo",
+  "previous_snapshot_id": null,
+  "assessment_ids": [
+    "advance-http",
+    "advance-sudo"
+  ],
+  "items": [
+    {
+      "finding_id": "sha256:681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48",
+      "presence": "current",
+      "change": "not_compared",
+      "applicability": "applicable",
+      "assessment_ids": [
+        "advance-sudo"
+      ],
+      "current_decision": "accepted",
+      "reason_codes": []
+    }
+  ],
+  "unmatched_assessment_ids": [
+    "advance-http"
+  ],
+  "coverage_statuses": {
+    "sudo": "complete"
+  },
+  "summary": {
+    "current": 1,
+    "historical": 0,
+    "accepted": 1,
+    "action_required": 0,
+    "unreviewed": 0,
+    "needs_review": 0,
+    "conflict": 0,
+    "unmatched_assessments": 1
+  }
+}

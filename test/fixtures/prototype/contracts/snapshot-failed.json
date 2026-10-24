@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "snapshot",
+  "target_id": "fictional-web-01",
+  "snapshot_id": "fictional-failed",
+  "collected_at": "2026-10-03T09:00:00Z",
+  "finished_at": "2026-10-03T09:00:00Z",
+  "tool_version": "fictional-not-implemented",
+  "environment": {
+    "os_id": "ubuntu",
+    "os_version": "24.04",
+    "architecture": "amd64",
+    "kernel_release": "fictional",
+    "effective_uid": 0,
+    "execution_scope": "fictional host; current network namespace only"
+  },
+  "coverage": [
+    {
+      "collector": "network",
+      "collector_version": "fictional-v1",
+      "status": "failed",
+      "scope": "fictional-boot-a/net-initial",
+      "attempted_sources": [
+        "/proc/net/tcp",
+        "/proc/net/tcp6",
+        "/proc/net/udp",
+        "/proc/net/udp6",
+        "/proc/*/fd"
+      ],
+      "diagnostic_codes": [
+        "source_unreadable"
+      ],
+      "limitations": [
+        "No usable observations"
+      ]
+    },
+    {
+      "collector": "sudo",
+      "collector_version": "fictional-v1",
+      "status": "failed",
+      "scope": "local policy inventory only",
+      "attempted_sources": [
+        "/etc/sudoers",
+        "/etc/sudoers.d/fictional-web",
+        "/etc/passwd",
+        "/etc/group"
+      ],
+      "diagnostic_codes": [
+        "source_unreadable"
+      ],
+      "limitations": [
+        "No usable observations"
+      ]
+    }
+  ],
+  "findings": [],
+  "evidence": []
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "assessments",
+  "target_id": "fictional-web-01",
+  "entries": [
+    {
+      "assessment_id": "advance-insufficient",
+      "origin": "advance",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "zone": "",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "expectation": {
+          "normalization_version": "avera.facts.v1",
+          "facts": {}
+        }
+      },
+      "purpose": "Publish fictional public static documentation",
+      "exposure": "Intended public readers; actual upstream access not observed",
+      "safeguards": "Operator reports upstream network restrictions; not verified",
+      "rationale": "Accept remaining plaintext and service risks for public static material; verify claimed network restriction separately",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "accepted",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-09-30T12:00:00Z"
+    }
+  ]
+}

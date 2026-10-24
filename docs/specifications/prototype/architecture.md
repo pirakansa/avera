@@ -36,11 +36,11 @@ The integration owner adds and pins Cobra when CLI work begins, following reposi
 
 ## Proposed command walkthrough
 
-All names and flags below are **proposed**. They are not currently usable.
+All names and flags below are **proposed**. They are not currently usable. The T00 [fictional artifacts](../../../test/fixtures/prototype/contracts/README.md) and [report](examples/fictional-report.md) define the expected data relationships. `fictional-web-01` is an invented logical target, not a host to contact.
 
 ```sh
 # First collection; run this command as root on the target.
-avera collect --target-id lab-web-01 --output ./run-001
+avera collect --target-id fictional-web-01 --output ./run-001
 
 # Produce an editable assessment starter and a review report on a workstation.
 avera review --snapshot ./run-001/snapshot.json --output ./review-001
@@ -50,7 +50,7 @@ avera report --snapshot ./run-001/snapshot.json \
   --assessments ./review-001/assessments.json --output ./report-001.md
 
 # Next collection uses both previous observations and previous human context.
-avera collect --target-id lab-web-01 \
+avera collect --target-id fictional-web-01 \
   --previous ./run-001/snapshot.json \
   --assessments ./review-001/assessments.json --output ./run-002
 
@@ -60,9 +60,20 @@ avera report --snapshot ./run-002/snapshot.json \
   --assessments ./run-002/assessments.json --output ./report-002.md
 
 # Advance assessments can also be supplied without a previous snapshot.
-avera collect --target-id lab-web-01 \
+avera collect --target-id fictional-web-01 \
   --assessments ./prepared-assessments.json --output ./run-003
 ```
+
+For an offline fixture rehearsal, the planned report command maps directly to the unchanged scenario (still **not executable** today):
+
+```sh
+avera report --snapshot ./test/fixtures/prototype/contracts/snapshot-repeat.json \
+  --previous ./test/fixtures/prototype/contracts/snapshot-first.json \
+  --assessments ./test/fixtures/prototype/contracts/assessments-reviewed.json \
+  --output ./fictional-repeat-report.md
+```
+
+Its review semantics must equal `review-unchanged.json`. For explicit reconfirmation, save a new assessment input as shown in `assessments-reconfirmed.json`, then report against `snapshot-changed.json` and the same first snapshot. Keep the old assessment file. Passing both old and new entries as active judgments creates a conflict.
 
 `collect` proposes an output directory containing `snapshot.json`, `review.json`, and an updated `assessments.json` starter. Inputs are never overwritten. With no prior context it still generates an unreviewed queue. `review` recomputes these derived review/assessment outputs from saved inputs without accessing the host. `report` renders the same review semantics to Markdown and never writes a decision back to a snapshot. See [contracts](data-contracts.md) for artifact roles.
 
@@ -74,7 +85,7 @@ Offline review/report on Linux should not require root. Windows/macOS execution 
 
 ## Error and output contract
 
-Proposed exit meanings, to freeze in T00:
+Initial exit meanings frozen for experimental contract `t00-2026-10-24.1` (commands remain unimplemented):
 
 | Code | Meaning | Artifact handling |
 |---|---|---|

@@ -1,0 +1,97 @@
+{
+  "fictional": true,
+  "contract_revision": "t00-2026-10-24.1",
+  "scenarios": [
+    {
+      "name": "first",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": null,
+      "expected": "review-first.json"
+    },
+    {
+      "name": "advance",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": "assessments-advance.json",
+      "expected": "review-advance.json"
+    },
+    {
+      "name": "advance-sudo",
+      "snapshot": "snapshot-supported-sudo.json",
+      "previous": null,
+      "assessments": "assessments-advance.json",
+      "expected": "review-advance-sudo.json"
+    },
+    {
+      "name": "insufficient",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": "assessments-insufficient.json",
+      "expected": "review-insufficient.json"
+    },
+    {
+      "name": "unchanged",
+      "snapshot": "snapshot-repeat.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-unchanged.json"
+    },
+    {
+      "name": "changed",
+      "snapshot": "snapshot-changed.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-changed.json"
+    },
+    {
+      "name": "reconfirmed",
+      "snapshot": "snapshot-changed.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reconfirmed.json",
+      "expected": "review-reconfirmed.json"
+    },
+    {
+      "name": "partial",
+      "snapshot": "snapshot-partial.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-partial.json"
+    },
+    {
+      "name": "failed",
+      "snapshot": "snapshot-failed.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-failed.json"
+    },
+    {
+      "name": "empty",
+      "snapshot": "snapshot-empty.json",
+      "previous": "snapshot-first.json",
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-empty.json"
+    },
+    {
+      "name": "unmatched",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": "assessments-unmatched.json",
+      "expected": "review-unmatched.json"
+    },
+    {
+      "name": "conflict",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": "assessments-conflict.json",
+      "expected": "review-conflict.json"
+    },
+    {
+      "name": "basis-only",
+      "snapshot": "snapshot-first.json",
+      "previous": null,
+      "assessments": "assessments-reviewed.json",
+      "expected": "review-basis-only.json"
+    }
+  ]
+}

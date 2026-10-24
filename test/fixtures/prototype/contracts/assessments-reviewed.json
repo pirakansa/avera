@@ -1,0 +1,72 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "assessments",
+  "target_id": "fictional-web-01",
+  "entries": [
+    {
+      "assessment_id": "a-http",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "zone": "",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10"
+      },
+      "purpose": "Publish fictional public static documentation",
+      "exposure": "Intended public readers; actual upstream access not observed",
+      "safeguards": "Operator reports upstream network restrictions; not verified",
+      "rationale": "Accept remaining plaintext and service risks for public static material; verify claimed network restriction separately",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "accepted",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-10-01T10:00:00Z"
+    },
+    {
+      "assessment_id": "a-sudo",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "sudo",
+        "kind": "sudo.rule",
+        "identity": {
+          "source_path": "/etc/sudoers.d/fictional-web",
+          "line": 1,
+          "ordinal": 0
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:bf1bc4a89f4c542d564b122fc88aee55d2a6bc765e7848245550e6136c311c00"
+      },
+      "purpose": "Allow webops to inspect execution identity",
+      "exposure": "Local webops accounts only",
+      "safeguards": "Password required; local membership reviewed by operator",
+      "rationale": "Review unsupported Defaults before relying on configured privilege",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "action_required",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-10-01T10:00:00Z"
+    }
+  ]
+}

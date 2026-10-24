@@ -1,0 +1,115 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "assessments",
+  "target_id": "fictional-web-01",
+  "entries": [
+    {
+      "assessment_id": "advance-http",
+      "origin": "advance",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "zone": "",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "expectation": {
+          "normalization_version": "avera.facts.v1",
+          "facts": {
+            "owners": [
+              {
+                "executable": "/usr/sbin/fictional-httpd",
+                "uid": 33
+              }
+            ],
+            "attribution_complete": true
+          }
+        }
+      },
+      "purpose": "Publish fictional public static documentation",
+      "exposure": "Intended public readers; actual upstream access not observed",
+      "safeguards": "Operator reports upstream network restrictions; not verified",
+      "rationale": "Accept remaining plaintext and service risks for public static material; verify claimed network restriction separately",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "accepted",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-09-30T12:00:00Z"
+    },
+    {
+      "assessment_id": "advance-sudo",
+      "origin": "advance",
+      "selector": {
+        "collector": "sudo",
+        "kind": "sudo.rule",
+        "identity": {
+          "source_path": "/etc/sudoers.d/fictional-web",
+          "line": 1,
+          "ordinal": 0
+        }
+      },
+      "basis": {
+        "expectation": {
+          "normalization_version": "avera.facts.v1",
+          "facts": {
+            "principal": {
+              "type": "group",
+              "name": "webops"
+            },
+            "host": "ALL",
+            "run_as_users": [
+              "root"
+            ],
+            "run_as_groups": [],
+            "commands": [
+              {
+                "path": "/usr/bin/id",
+                "arguments": "",
+                "tags": [
+                  "PASSWD"
+                ]
+              }
+            ],
+            "local_members": [
+              {
+                "name": "alex",
+                "uid": 1001,
+                "membership": "supplementary"
+              }
+            ],
+            "local_context_complete": true,
+            "policy_context": [
+              "%webops ALL=(root) PASSWD: /usr/bin/id"
+            ],
+            "interpretation_complete": true
+          }
+        }
+      },
+      "purpose": "Allow webops to inspect execution identity",
+      "exposure": "Local webops accounts only",
+      "safeguards": "Password required; local membership reviewed by operator",
+      "rationale": "Accept bounded configured id command with complete observed local context; no claim about all effective privileges",
+      "evidence_refs": [
+        {
+          "reference": "https://example.invalid/fictional-design",
+          "provenance": "human_reported"
+        }
+      ],
+      "decision": "accepted",
+      "actor": "fictional-owner",
+      "assessed_at": "2026-09-30T12:00:00Z"
+    }
+  ]
+}

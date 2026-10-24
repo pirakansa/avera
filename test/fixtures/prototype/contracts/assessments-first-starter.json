@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "target_id": "fictional-web-01",
+  "kind": "assessments",
+  "entries": [
+    {
+      "assessment_id": "starter-e1",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "zone": "",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10"
+      },
+      "purpose": "",
+      "exposure": "",
+      "safeguards": "",
+      "rationale": "",
+      "evidence_refs": [],
+      "decision": "unreviewed",
+      "actor": "",
+      "assessed_at": ""
+    },
+    {
+      "assessment_id": "starter-e2",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "network",
+        "kind": "network.endpoint",
+        "identity": {
+          "transport": "tcp",
+          "family": "ipv4",
+          "local_address": "127.0.0.1",
+          "zone": "",
+          "local_port": 9000,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener"
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:33f8a0708feb3bc0766c2fb48a7608bc8e9954ee5baf78db97c998fe9b375cd4"
+      },
+      "purpose": "",
+      "exposure": "",
+      "safeguards": "",
+      "rationale": "",
+      "evidence_refs": [],
+      "decision": "unreviewed",
+      "actor": "",
+      "assessed_at": ""
+    },
+    {
+      "assessment_id": "starter-e3",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "sudo",
+        "kind": "sudo.rule",
+        "identity": {
+          "source_path": "/etc/sudoers.d/fictional-web",
+          "line": 1,
+          "ordinal": 0
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:bf1bc4a89f4c542d564b122fc88aee55d2a6bc765e7848245550e6136c311c00"
+      },
+      "purpose": "",
+      "exposure": "",
+      "safeguards": "",
+      "rationale": "",
+      "evidence_refs": [],
+      "decision": "unreviewed",
+      "actor": "",
+      "assessed_at": ""
+    },
+    {
+      "assessment_id": "starter-e4",
+      "origin": "reviewed_snapshot",
+      "selector": {
+        "collector": "sudo",
+        "kind": "sudo.unparsed",
+        "identity": {
+          "source_path": "/etc/sudoers.d/fictional-web",
+          "line": 2,
+          "ordinal": 0
+        }
+      },
+      "basis": {
+        "snapshot_id": "fictional-s1",
+        "fact_fingerprint": "sha256:1c4a56a8a597d929070aaa1463d0613b6a215e46255dd43545853d4ffccc7324"
+      },
+      "purpose": "",
+      "exposure": "",
+      "safeguards": "",
+      "rationale": "",
+      "evidence_refs": [],
+      "decision": "unreviewed",
+      "actor": "",
+      "assessed_at": ""
+    }
+  ]
+}

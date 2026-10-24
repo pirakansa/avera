@@ -1,0 +1,71 @@
+{
+  "schema_version": "0.1",
+  "contract_revision": "t00-2026-10-24.1",
+  "kind": "review",
+  "target_id": "fictional-web-01",
+  "snapshot_id": "fictional-s2",
+  "previous_snapshot_id": "fictional-s1",
+  "assessment_ids": [
+    "a-http",
+    "a-sudo"
+  ],
+  "items": [
+    {
+      "finding_id": "sha256:1495f62e1f39487021e9d55a0b14b0c00bced80ff8417899dcd085bc72586e76",
+      "presence": "current",
+      "change": "unknown",
+      "applicability": "none",
+      "assessment_ids": [],
+      "current_decision": "unreviewed",
+      "reason_codes": []
+    },
+    {
+      "finding_id": "sha256:46435c628b7e871dac6ae527f1aae5439fd02219496c5ff593e485e24b120164",
+      "presence": "current",
+      "change": "unchanged",
+      "applicability": "applicable",
+      "assessment_ids": [
+        "a-http"
+      ],
+      "current_decision": "accepted",
+      "reason_codes": []
+    },
+    {
+      "finding_id": "sha256:5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524",
+      "presence": "current",
+      "change": "unchanged",
+      "applicability": "none",
+      "assessment_ids": [],
+      "current_decision": "unreviewed",
+      "reason_codes": []
+    },
+    {
+      "finding_id": "sha256:681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48",
+      "presence": "current",
+      "change": "unknown",
+      "applicability": "needs_review",
+      "assessment_ids": [
+        "a-sudo"
+      ],
+      "current_decision": "unreviewed",
+      "reason_codes": [
+        "coverage_incomplete"
+      ]
+    }
+  ],
+  "unmatched_assessment_ids": [],
+  "coverage_statuses": {
+    "network": "complete",
+    "sudo": "partial"
+  },
+  "summary": {
+    "current": 4,
+    "historical": 0,
+    "accepted": 1,
+    "action_required": 0,
+    "unreviewed": 3,
+    "needs_review": 1,
+    "conflict": 0,
+    "unmatched_assessments": 0
+  }
+}
