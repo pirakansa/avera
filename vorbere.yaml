@@ -1,0 +1,74 @@
+version: 1
+
+vars:
+  BIN_DIR: ./bin
+  MAIN_PACKAGE: ./cmd/avera
+
+# Staticcheck and govulncheck are versioned tool dependencies in go.mod.
+tasks:
+  require-go-module:
+    desc: Verify that Go implementation has been initialized
+    run: |
+      if [ ! -f go.mod ]; then
+        echo "AVERA is in the design stage: go.mod is missing. Initialize the Go module before running development tasks." >&2
+        exit 1
+      fi
+
+  setup:
+    desc: Download dependencies and verify CLI installability
+    depends_on: [require-go-module]
+    run: |
+      set -eu
+      go mod download
+      go install ${{ .vars.MAIN_PACKAGE }}
+
+  build:
+    desc: Build the host CLI binary
+    depends_on: [require-go-module]
+    run: |
+      set -eu
+      mkdir -p ${{ .vars.BIN_DIR }}
+      go build -trimpath -o ${{ .vars.BIN_DIR }}/avera ${{ .vars.MAIN_PACKAGE }}
+
+  fmt:
+    desc: Check Go formatting without modifying files
+    depends_on: [require-go-module]
+    run: |
+      set -eu
+      unformatted=$(git ls-files -z --cached --others --exclude-standard '*.go' | xargs -0 -r gofmt -l)
+      if [ -n "$unformatted" ]; then
+        printf 'Go files need formatting:\n%s\n' "$unformatted" >&2
+        exit 1
+      fi
+
+  vet:
+    desc: Run go vet
+    depends_on: [require-go-module]
+    run: go vet ./...
+
+  staticcheck:
+    desc: Run Staticcheck using the Go module tool dependency
+    depends_on: [require-go-module]
+    run: go tool staticcheck ./...
+
+  vulnerability:
+    desc: Scan dependencies using the Go module govulncheck tool
+    depends_on: [require-go-module]
+    run: go tool govulncheck ./...
+
+  check:
+    desc: Check formatting, static analysis, and known vulnerabilities
+    depends_on: [fmt, vet, staticcheck, vulnerability]
+
+  test:
+    desc: Run unit tests with the race detector
+    depends_on: [require-go-module]
+    run: go test -race ./...
+
+  ci:
+    desc: Run all CI checks, tests, and the host build
+    depends_on: [check, test, build]
+
+  clean:
+    desc: Remove generated build artifacts
+    run: rm -rf ./bin/

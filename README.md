@@ -20,8 +20,22 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is in the design stage. No working CLI or installation instructions are available yet. The planned command name is `avera`.
+AVERA is in the design stage. The `avera` CLI currently prints `Hello, world!`; security inventory features are not implemented yet.
 
 Linux is the initial target. Windows and macOS support are future directions; their scope and schedule are undecided.
 
 The first milestone is to define the data model and sample report before implementing collection. AVERA is intended to complement source code analysis and other security assessment activities. Its reports do not establish overall product safety or regulatory compliance.
+
+## Development quick start
+
+With Go 1.25.14 or later and [Vorbere](https://github.com/pirakansa/Vorbere) installed, run:
+
+```sh
+vorbere run setup
+vorbere run build
+./bin/avera
+```
+
+Expected output: `Hello, world!`.
+
+Run `vorbere run ci` for formatting checks, static analysis, vulnerability scanning, tests, and a build. Analysis tools are pinned in `go.mod`; setup and vulnerability scanning require network access.
