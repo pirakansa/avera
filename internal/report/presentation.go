@@ -54,7 +54,13 @@ type metric struct {
 	Count        int
 	Tone, Notice string
 }
+type reportPages struct {
+	Summary, Configuration, Details, ReadingGuide, Conclusion string
+	Context, Coverage                                         []field
+	FollowUp                                                  []link
+}
 type document struct {
+	Pages                                                reportPages
 	Network                                              *NetworkMap
 	Language, Title, Warning, Summary, Contents, Details string
 	Metrics                                              []metric
@@ -118,6 +124,30 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 	r := result.Review
 	s, referenceCount := assessment.ReviewSummary(current, r)
 	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。「追加対応不要」は人による判断です。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
+	d.Pages = reportPages{
+		Summary: l.text("Report summary", "報告サマリー"), Configuration: l.text("Configuration overview", "構成の概要"), Details: l.text("Judgments and evidence", "判断・根拠の詳細"),
+		ReadingGuide: l.text("Start here for the conclusion and required follow-up. Configuration and individual evidence are available on the other pages when needed.", "報告の結論と必要な対応は、このページで確認できます。構成や個別の判断根拠は、必要に応じて他のページで確認してください。"),
+		Context:      []field{{l.text("Target", "対象"), current.TargetID}, {l.text("Collection start / finish", "収集開始・終了"), current.CollectedAt + " / " + current.FinishedAt}},
+	}
+	switch {
+	case s.ActionRequired > 0:
+		d.Pages.Conclusion = l.text("Human judgments identify items requiring action. Review the follow-up items below.", "人による判断で、対応が必要な項目があります。下の確認・対応事項を確認してください。")
+	case s.Unreviewed > 0 || s.NeedsReview > 0 || s.Conflict > 0:
+		d.Pages.Conclusion = l.text("Judgments remain unfinished. Review or reconfirm the items below before concluding the report.", "判断が完了していません。報告の結論を確定する前に、下の項目の判断・再確認が必要です。")
+	case s.Current == 0:
+		d.Pages.Conclusion = l.text("There are no items in the main review scope. Check collection coverage before drawing a conclusion.", "主な確認対象は0件です。結論を出す前に、収集範囲と確認できていない事項を確認してください。")
+	default:
+		d.Pages.Conclusion = l.text("Within the reviewed scope, no current items are judged to require additional action. Check collection coverage separately.", "確認した範囲では、追加対応が必要と判断された項目はありません。収集範囲と確認できていない事項も確認してください。")
+	}
+	for _, c := range current.Coverage {
+		d.Pages.Coverage = append(d.Pages.Coverage, field{string(c.Collector), l.state(string(c.Status)) + " / " + c.Scope})
+		if len(c.Limitations) > 0 {
+			d.Pages.Coverage = append(d.Pages.Coverage, field{l.text("Limitations (source text)", "制限事項（情報源の原文）"), strings.Join(c.Limitations, "; ")})
+		}
+		if len(c.DiagnosticCodes) > 0 {
+			d.Pages.Coverage = append(d.Pages.Coverage, field{l.text("Diagnostics", "診断コード"), strings.Join(c.DiagnosticCodes, ", ")})
+		}
+	}
 	d.Metrics = []metric{
 		{Label: l.text("Current items", "主な確認対象"), Count: s.Current},
 		{Label: l.text("Accepted", "追加対応不要"), Count: s.Accepted},
@@ -206,6 +236,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				title += l.text(" · Forwarding configuration", " · 転送設定")
 			}
 			b := block{FindingID: f.FindingID, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
+			if presence == i.Current && !assessment.IsReference(f) && (item.CurrentDecision != i.Accepted || item.Applicability == i.NeedsReview || item.Applicability == i.Conflict) {
+				d.Pages.FollowUp = append(d.Pages.FollowUp, link{b.ID, title + " · " + l.state(string(item.CurrentDecision)) + " / " + l.state(string(item.Applicability))})
+			}
 			if facts, ok := f.Facts.(i.ForwardingFacts); ok {
 				b.Fields = append(b.Fields, field{l.text("Observed forwarding rule", "観測した転送設定"), facts.Rule})
 			}

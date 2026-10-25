@@ -50,6 +50,18 @@ The Japanese display label for the stored `accepted` decision is now "追加対�
 
 Save records the current observation basis, actor/time and, for network endpoints, updates the common service judgment. Earlier human entries are archived verbatim; generated empty starters need not be archived. Common endpoint judgments can apply even when network collection is incomplete; coverage and diagnostic information remain visible independently. Raw fact-based decisions, conflicts or stale manual relationships can still require review. A configured judgment is not verification of missing evidence. Use the unmatched-judgment section to inspect explanations without a current observation. Replaced judgment history is not displayed. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON rather than becoming extra active judgments.
 
+The preview and exported HTML open on **報告サマリー** (Report summary). A recipient
+can read this page for the scoped conclusion, target and collection time, review
+counts, required follow-up and collection limitations. Unfinished judgments and
+zero main-scope observations are stated explicitly; the conclusion does not
+certify overall safety or complete collection.
+
+Use **構成の概要** (Configuration overview) for the network diagram and
+**判断・根拠の詳細** (Judgments and evidence) for individual explanations, run
+metadata and technical evidence. Diagram and follow-up links open the relevant
+detail page. These pages remain within one offline HTML file. Browser Back works
+with page navigation; printing includes all three pages. Markdown stays textual.
+
 `--lang en` selects English report questions and export content; editor controls remain Japanese in this prototype.
 
 ## Network entrances and local reference services

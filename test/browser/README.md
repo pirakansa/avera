@@ -24,3 +24,9 @@ the shared-judgment explanation in HTML. It starts/stops its own fixture viewer.
 The shared-services browser check also covers the network overview in the editor
 and standalone HTML, configured destination arrows, loopback references, card-to-
 item navigation and narrow-screen layout.
+
+`python3 test/browser/report_pages.py` starts a temporary fictional-report session,
+saves the HTML locally and opens it with JavaScript disabled. It checks the
+summary default, page switching, diagram-to-detail navigation, browser Back,
+keyboard activation, all-page printing and narrow layouts. Screenshots and a
+print PDF are written to the printed temporary directory.

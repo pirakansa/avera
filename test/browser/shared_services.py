@@ -41,7 +41,7 @@ try:
   assert len(next(item for item in state['Items'] if item['finding']['kind']=='network.forwarding')['detected_targets'])==1
   assert page.evaluate('window.injected') is None
   body=page.request.get(url+'/download.json').json();assert body['format']=='avera.report.v3' and len(body.get('routes',[]))==0
-  preview=browser.new_page();preview.goto(url+'/preview');assert preview.locator('#local-reference').count()==1
+  preview=browser.new_page();preview.goto(url+'/preview');preview.locator('a[href="#report-details"]').first.click();assert preview.locator('#local-reference').count()==1
   assert '転送設定' in preview.inner_text('body') and '127.0.0.1:9000' in preview.inner_text('body')
   assert '設定に記載された転送先との一致' in preview.inner_text('body') and '<script>' not in preview.content()
   web=page.locator('#items > details').filter(has=page.locator(':scope > summary',has_text=':80 '));web.locator(':scope > summary').click()
@@ -57,11 +57,15 @@ try:
   state=page.request.get(url+'/api/state').json();assert 'History' not in state and 'RouteHistory' not in state
   assert page.locator('#history').count()==0 and '置き換え前の判断履歴' not in page.inner_text('body')
 
-  preview.reload();assert '共通設定' in preview.inner_text('body')
+  preview.reload();preview.locator('a[href="#report-details"]').first.click();assert '共通設定' in preview.inner_text('body')
   assert preview.locator('#network-map .map-row.observed').count()==1
+  preview.locator('a[href="#report-configuration"]').click()
   assert '判断理由に補足してください' in preview.locator('#network-map .map-outside').inner_text()
   assert preview.locator('#network-map a[href^="#item-"]').count()>0
+  preview.locator('#network-map .map-card a').first.click()
+  assert preview.locator('#report-details').is_visible()
   assert 'CurrentStaticWebExplanation' in preview.inner_text('body') and 'Static public web service; upstream load balancer controls apply' not in preview.inner_text('body')
+  preview.locator('a[href="#report-configuration"]').click()
   preview.screenshot(path=str(out/'report.png'),full_page=True)
   preview.locator('#network-map').screenshot(path=str(out/'network-map-report.png'))
   page.locator('#network-map').screenshot(path=str(out/'network-map-editor.png'))

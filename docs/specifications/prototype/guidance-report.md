@@ -111,3 +111,27 @@ from raw T00 comparison via `Render`; templates do not implement these rules.
 Current accepted items stay visible, with human provenance. Superseded archives
 are JSON-only. HTML includes the [network diagram](network-overview.md); Markdown
 is textual. See the [current trial handoff](../../user-guides/prototype-trials/current-status.md).
+
+## Recipient HTML pages
+
+Standalone HTML and the saved-state preview have three fragment-addressed pages:
+report summary (default), configuration overview, and judgments/evidence.
+The summary derives its conclusion and follow-up links from the existing scoped
+review result. Action-required judgments take precedence, followed by unfinished
+judgments, zero main-scope items, and no items judged to require additional action
+within the reviewed scope. Coverage statuses, scopes, source limitations and
+diagnostics remain visible on the summary independently of judgment reuse.
+No new safety judgment or matching rule is introduced.
+
+The configuration page contains the existing network diagram. Item links and
+summary follow-up links reveal the detail page, which retains full run metadata,
+coverage, current judgments, references, relationships and evidence. Fixed fragment
+navigation uses bundled CSS without JavaScript or remote resources, preserving
+the restrictive CSP. Browsers without CSS `:has()` show all content in sequence.
+Print media always includes all three pages. English and Japanese HTML share
+this layout; Markdown output and portable JSON remain unchanged.
+
+Unit tests cover scoped conclusions, follow-up destinations, page boundaries and
+existing escaping/scenario invariants. The optional `test/browser/report_pages.py`
+checks offline script-disabled navigation, diagram links, browser Back, keyboard
+activation, print visibility and narrow layouts.
