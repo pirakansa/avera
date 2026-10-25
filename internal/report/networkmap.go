@@ -52,6 +52,7 @@ func NetworkMapFor(f *reportfile.File, review *i.Review, language string) Networ
 			judgments[a.AssessmentID] = a
 		}
 	}
+	services := EndpointServices(f.Current, language)
 	cards := map[string]NetworkCard{}
 	for _, finding := range f.Current.Findings {
 		if finding.Collector != i.Network {
@@ -67,6 +68,9 @@ func NetworkMapFor(f *reportfile.File, review *i.Review, language string) Networ
 					owners = append(owners, owner.Executable)
 				}
 				card.Detail = mapText(strings.Join(owners, ", "))
+				if service := services[finding.FindingID]; service.Summary != "" {
+					card.Detail = mapText(service.Summary + " · " + strings.Join(owners, ", "))
+				}
 			}
 		case i.SourceIdentity:
 			if finding.Kind != i.Forwarding {

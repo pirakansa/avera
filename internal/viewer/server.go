@@ -116,13 +116,14 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type item struct {
-	DetectedTargets []i.Finding      `json:"detected_targets,omitempty"`
-	Finding         i.Finding        `json:"finding"`
-	Review          i.ReviewItem     `json:"review"`
-	Guidance        guidance.Content `json:"guidance"`
-	Judgments       []i.Assessment   `json:"judgments"`
-	Reference       bool             `json:"reference"`
-	Reusable        bool             `json:"reusable"`
+	Service         *report.ServiceView `json:"service,omitempty"`
+	DetectedTargets []i.Finding         `json:"detected_targets,omitempty"`
+	Finding         i.Finding           `json:"finding"`
+	Review          i.ReviewItem        `json:"review"`
+	Guidance        guidance.Content    `json:"guidance"`
+	Judgments       []i.Assessment      `json:"judgments"`
+	Reference       bool                `json:"reference"`
+	Reusable        bool                `json:"reusable"`
 }
 type state struct {
 	Network        report.NetworkMap
@@ -155,9 +156,13 @@ func (s *Session) state(w http.ResponseWriter) {
 	for _, v := range result.Review.Items {
 		byFinding[v.FindingID] = v
 	}
+	services := report.EndpointServices(s.file.Current, s.language)
 	for _, f := range s.file.Current.Findings {
 		v := byFinding[f.FindingID]
 		it := item{DetectedTargets: s.file.DetectedTargets(f), Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
+		if service, ok := services[f.FindingID]; ok {
+			it.Service = &service
+		}
 		for _, code := range v.ReasonCodes {
 			if code == reportfile.SharedJudgment {
 				it.Reusable = true

@@ -68,3 +68,10 @@ fragment destinations and interpolation escaping. Browser checks verify the
 editor/export diagram, reference services, item navigation, save refresh and
 narrow layouts. No remote reachability or upstream configuration validation is
 claimed by these checks.
+
+Port-based service enrichment adds abbreviated process/service-candidate and
+effective-UID observations to endpoint cards when present. These are derived
+from the endpoint's linked proc evidence, not guessed from its port number.
+Legacy reports retain executable-only cards. Full observations, explicit unknowns
+and attribution diagnostics are available in item details; see
+[listening services](listening-services.md).

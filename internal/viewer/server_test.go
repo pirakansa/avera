@@ -247,3 +247,38 @@ func TestArchivedJudgmentsHiddenFromUIButRetainedInDownload(t *testing.T) {
 		t.Fatal("current judgment missing")
 	}
 }
+
+func TestServiceInventoryStateSaveAndExport(t *testing.T) {
+	s := session(t)
+	s.file.Current.ContractRevision = i.ContractRevision
+	uid := uint32(2000)
+	values := s.file.Current.Evidence[0].Values.(i.ProcessValues)
+	values.Service = &i.ServiceObservation{ProcessName: "fictional-worker", EffectiveUID: &uid, UnitCandidate: "fictional.service", CgroupPath: "/system.slice/fictional.service", Diagnostics: []string{}}
+	s.file.Current.Evidence[0].Values = values
+	stateResponse := request(s, "GET", "/api/state", nil, "")
+	if stateResponse.Code != 200 || !strings.Contains(stateResponse.Body.String(), "fictional.service") || !strings.Contains(stateResponse.Body.String(), "実行ユーザ") {
+		t.Fatal(stateResponse.Body.String())
+	}
+	response := request(s, "POST", "/api/assess", editBody(t, s, 0), "http://"+testHost)
+	if response.Code != 200 {
+		t.Fatal(response.Body.String())
+	}
+	response = request(s, "GET", "/download.json", nil, "")
+	file, err := reportfile.Decode(response.Body.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	preserved := false
+	for _, entry := range file.Current.Evidence {
+		if v, ok := entry.Values.(i.ProcessValues); ok && v.Service != nil {
+			preserved = v.Service.EffectiveUID != nil && *v.Service.EffectiveUID == 2000 && v.Service.UnitCandidate == "fictional.service"
+		}
+	}
+	if !preserved {
+		t.Fatal("save lost immutable service observations")
+	}
+	response = request(s, "GET", "/export.html", nil, "")
+	if response.Code != 200 || !strings.Contains(response.Body.String(), "fictional.service") || !strings.Contains(response.Body.String(), "待受サービスの棚卸し") {
+		t.Fatal("export lost service inventory")
+	}
+}

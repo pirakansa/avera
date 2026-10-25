@@ -38,9 +38,11 @@ func defaultLimits() Limits {
 // Collector returns domain observations only; privilege enforcement belongs to
 // the application boundary. Tests can use synthetic sources without root.
 type Collector struct {
-	Source Source
-	Now    func() time.Time
-	Limits Limits
+	// IncludeServices adds bounded process metadata only for observed socket holders.
+	IncludeServices bool
+	Source          Source
+	Now             func() time.Time
+	Limits          Limits
 	// ScopeID is an assertion of comparable namespace incarnation by the caller.
 	// Leave empty for live reads: proc namespace inode reuse cannot establish
 	// stable incarnation, so each run conservatively gets a fresh scope.
@@ -113,7 +115,14 @@ func (c Collector) Collect(ctx context.Context, target string) (inventory.Collec
 		}
 		sockets = append(sockets, rows...)
 	}
-	owners, attributionOK, err := attribute(ctx, c.Source, sockets, l, diagnose)
+	if c.IncludeServices {
+		r.Coverage.CollectorVersion += "+" + serviceVersion
+		r.Coverage.Limitations = append(r.Coverage.Limitations, "Service inventory covers observed socket holders only, not all daemons. Effective UID is process status in the reader user namespace; no username or privilege resolution. Cgroup service names are candidates, not verified systemd units or socket-activation targets.")
+		if len(sockets) > 0 {
+			r.Coverage.AttemptedSources = append(r.Coverage.AttemptedSources, "/proc/*/status", "/proc/*/cgroup", "/proc/*/stat")
+		}
+	}
+	owners, attributionOK, err := attribute(ctx, c.Source, sockets, l, diagnose, c.IncludeServices)
 	if err != nil {
 		return r, err
 	}
@@ -157,7 +166,12 @@ func (c Collector) Collect(ctx context.Context, target string) (inventory.Collec
 		for j, owner := range observations {
 			pid := owner.pid
 			eid := fmt.Sprintf("network-%d-owner-%d", i+1, j+1)
-			r.Evidence = append(r.Evidence, inventory.Evidence{EvidenceID: eid, SourceKind: "proc", Location: fmt.Sprintf("/proc/%d/fd/%s", pid, owner.fd), CollectedAt: timestamp, Method: "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace", Values: inventory.ProcessValues{Observed: inventory.NetworkFacts{Owners: []inventory.Owner{owner.owner}, AttributionComplete: facts.AttributionComplete}, PID: &pid}})
+			method := "socket inode link and bounded executable path; UID is observed socket UID in reader user namespace"
+			if owner.service != nil {
+				method += "; bounded process status effective UID/name and cgroup service candidate, with stat start-time, executable and descriptor rechecks"
+			}
+
+			r.Evidence = append(r.Evidence, inventory.Evidence{EvidenceID: eid, SourceKind: "proc", Location: fmt.Sprintf("/proc/%d/fd/%s", pid, owner.fd), CollectedAt: timestamp, Method: method, Values: inventory.ProcessValues{Observed: inventory.NetworkFacts{Owners: []inventory.Owner{owner.owner}, AttributionComplete: facts.AttributionComplete}, PID: &pid, Service: owner.service}})
 			ids = append(ids, eid)
 		}
 		r.Findings = append(r.Findings, inventory.Finding{Collector: inventory.Network, Kind: inventory.Endpoint, Identity: s.identity, Facts: facts, EvidenceIDs: ids})
@@ -229,12 +243,13 @@ func readTable(ctx context.Context, source Source, path, transport, family, scop
 }
 
 type ownerObservation struct {
-	owner inventory.Owner
-	pid   int64
-	fd    string
+	owner   inventory.Owner
+	pid     int64
+	fd      string
+	service *inventory.ServiceObservation
 }
 
-func attribute(ctx context.Context, source Source, sockets []socket, l Limits, diagnose func(string)) (map[string][]ownerObservation, bool, error) {
+func attribute(ctx context.Context, source Source, sockets []socket, l Limits, diagnose func(string), includeServices bool) (map[string][]ownerObservation, bool, error) {
 	out := map[string][]ownerObservation{}
 	if len(sockets) == 0 {
 		return out, true, nil
@@ -276,6 +291,7 @@ func attribute(ctx context.Context, source Source, sockets []socket, l Limits, d
 		remaining -= len(fds)
 		slices.Sort(fds)
 		seen := map[string]bool{}
+		var service *inventory.ServiceObservation
 		for _, fd := range fds {
 			if err := ctx.Err(); err != nil {
 				return out, false, err
@@ -301,7 +317,18 @@ func attribute(ctx context.Context, source Source, sockets []socket, l Limits, d
 				diagnose("executable_unreadable")
 				exe = ""
 			}
-			out[inode] = append(out[inode], ownerObservation{inventory.Owner{Executable: exe, UID: uid}, n, fd})
+			if includeServices && service == nil {
+				service = observeService(ctx, source, "/proc/"+pid, exe, l, diagnose)
+			}
+			observedService := service
+			if service != nil {
+				checked, checkErr := source.Readlink("/proc/"+pid+"/fd/"+fd, l.PathBytes)
+				if checkErr != nil || checked != link {
+					observedService = &inventory.ServiceObservation{Diagnostics: []string{"service_process_changed"}}
+					diagnose("service_process_changed")
+				}
+			}
+			out[inode] = append(out[inode], ownerObservation{owner: inventory.Owner{Executable: exe, UID: uid}, pid: n, fd: fd, service: observedService})
 		}
 	}
 	return out, complete, nil

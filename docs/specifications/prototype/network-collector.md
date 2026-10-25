@@ -209,3 +209,11 @@ The socket-only collector described above is unchanged. The live CLI now wraps i
 with read-only [forwarding collection](forwarding-collector.md), sharing namespace
 scope and conservatively combining coverage. Socket-only fixtures retain the T00
 contract revision.
+
+## Port-based service enrichment
+
+The live CLI additionally enables `Collector.IncludeServices` for bounded metadata
+reads of processes holding observed sockets. See [listening services](listening-services.md)
+for sources, effective-UID semantics, cgroup service candidates, diagnostics and
+contract compatibility. The socket-only API/fixtures above retain their behavior;
+this extension does not enumerate every daemon or change endpoint hashes.

@@ -30,3 +30,10 @@ saves the HTML locally and opens it with JavaScript disabled. It checks the
 summary default, page switching, diagram-to-detail navigation, browser Back,
 keyboard activation, all-page printing and narrow layouts. Screenshots and a
 print PDF are written to the printed temporary directory.
+
+`python3 test/browser/listening_services.py` imports a synthetic services-revision
+snapshot and checks multiple socket holders, effective UID zero, unknown service
+candidates, reference scope, human explanations, immutable metadata after saving,
+escaped offline HTML, diagram/detail navigation and narrow layouts. It inspects
+no real host services. Temporary screenshots and exported HTML remain in the
+printed artifact directory.

@@ -96,17 +96,26 @@ function renderItem(item) {
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
     box.id = 'finding-' + f.finding_id;
+    const service = node('div', undefined, 'service-inventory');
+    if (item.service) {
+        service.append(node('h3', '待受サービスの棚卸し'), node('p', item.service.Note));
+        const fields = node('dl');
+        for (const field of item.service.Fields) fields.append(node('dt', field.Label), node('dd', field.Value));
+        service.append(fields);
+    }
     if (item.reference) {
         box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'ループバック限定の接続口です。主な確認対象の件数には含めず、自動的な追加対応不要の判断もしません。'), node('pre', JSON.stringify({
             identity: f.identity,
             facts: f.facts
         }, null, 2)));
         for (const a of item.judgments.filter(a => a.actor || a.purpose || a.rationale || a.exposure || a.safeguards || (a.evidence_refs || []).length || a.decision !== 'unreviewed')) box.append(judgment(a));
+        if (item.service) box.append(service);
         $('reference-items').append(box);
         return;
     }
     box.append(node('summary', title + ' — ' + text(r.current_decision) + ' / ' + text(r.applicability) + ' / ' + text(r.change)));
     box.append(node('p', g.Observed), node('p', g.Why));
+    if (item.service) box.append(service);
     const qs = node('ul');
     for (const q of g.Questions) qs.append(node('li', q));
     box.append(qs);
@@ -139,7 +148,7 @@ function renderItem(item) {
     form.append(node('h3', '今回の説明・判断'));
     const controls = {};
     for (const [key, label] of [
-            ['purpose', '目的・必要な機能'],
+            ['purpose', f.kind === 'network.endpoint' ? 'サービスの用途・必要性・管理担当' : '目的・必要な機能'],
             ['exposure', '利用者・公開範囲'],
             ['safeguards', '保護策（ツールで検証した事実とは区別します）'],
             ['rationale', '今回の判断理由'],

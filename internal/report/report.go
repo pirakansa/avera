@@ -122,6 +122,12 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 	if previous != nil {
 		sources = append(sources, previous)
 	}
+	services := map[string]ServiceView{}
+	for _, source := range sources {
+		for id, view := range EndpointServices(source, "en") {
+			services[id] = view
+		}
+	}
 	for si, source := range sources {
 		for ei, e := range source.Evidence {
 			evidenceLinks[fmt.Sprintf("%d/%s", si, e.EvidenceID)] = fmt.Sprintf("evidence-%d-%d", si, ei)
@@ -158,6 +164,12 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 					return "", err
 				}
 				w.field("Observed values (bounded)", facts)
+				if view, ok := services[f.FindingID]; ok {
+					w.field("Listening service inventory", view.Note)
+					for _, value := range view.Fields {
+						w.field(value.Label, value.Value)
+					}
+				}
 				w.field("Change", string(item.Change))
 				for _, id := range item.AssessmentIDs {
 					w.annotation(annotationsByID[id], "Stored judgment outside the main review scope")
@@ -187,6 +199,12 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				return "", err
 			}
 			w.field("Observed values (bounded)", facts)
+			if view, ok := services[f.FindingID]; ok {
+				w.field("Listening service inventory", view.Note)
+				for _, value := range view.Fields {
+					w.field(value.Label, value.Value)
+				}
+			}
 			w.field("Why review", g.Why)
 			for _, q := range g.Questions {
 				w.field("Question", q)

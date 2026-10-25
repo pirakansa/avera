@@ -2,11 +2,12 @@
 package inventory
 
 const (
-	SchemaVersion          = "0.1"
-	ContractRevision       = "netfilter-2026-10-25.1"
-	LegacyContractRevision = "t00-2026-10-24.1"
-	IdentityVersion        = "avera.identity.v1"
-	FactsVersion           = "avera.facts.v1"
+	SchemaVersion              = "0.1"
+	ContractRevision           = "services-2026-10-25.1"
+	ForwardingContractRevision = "netfilter-2026-10-25.1"
+	LegacyContractRevision     = "t00-2026-10-24.1"
+	IdentityVersion            = "avera.identity.v1"
+	FactsVersion               = "avera.facts.v1"
 )
 
 type Collector string
@@ -199,9 +200,21 @@ type Finding struct {
 	EvidenceIDs     []string  `json:"evidence_ids"`
 }
 type EvidenceValues interface{ evidenceValues() }
+
+// ServiceObservation describes only a process holding an observed socket.
+// EffectiveUID is distinct from the socket UID in NetworkFacts.
+type ServiceObservation struct {
+	ProcessName   string   `json:"process_name"`
+	EffectiveUID  *uint32  `json:"effective_uid,omitempty"`
+	UnitCandidate string   `json:"unit_candidate"`
+	CgroupPath    string   `json:"cgroup_path"`
+	Diagnostics   []string `json:"diagnostics"`
+}
+
 type ProcessValues struct {
-	Observed NetworkFacts `json:"observed"`
-	PID      *int64       `json:"pid,omitempty"`
+	Service  *ServiceObservation `json:"service,omitempty"`
+	Observed NetworkFacts        `json:"observed"`
+	PID      *int64              `json:"pid,omitempty"`
 }
 
 func (ProcessValues) evidenceValues() {}

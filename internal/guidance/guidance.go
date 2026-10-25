@@ -20,7 +20,7 @@ func For(kind i.Kind) Content {
 		return Content{"A destination translation or redirect rule was observed; effective reachability is not verified.", "Review the entrance and its internal destination. Upstream safeguards do not remove the observed configuration.", []string{"What traffic, interface and source conditions apply, and where does it go?", "Does this lead to a loopback service? Select the observed service and explain the relationship.", "Which upstream router or cloud restrictions protect this entrance? Record references, remaining risk and the reason for your decision."}}
 	case i.Endpoint:
 		return Content{"A local network endpoint was observed. This does not establish external reachability.", "Review who needs this service and how access is protected.", []string{
-			"What function does the service provide? Is it public static content or does it accept sensitive data?",
+			"What service holds this port, what function is needed, and which person or team manages it? Record this in the purpose explanation. Is it public static content or does it accept sensitive data?",
 			"Who is the intended audience, and which networks or users should be allowed access?",
 			"Which safeguards apply? Authentication may be inapplicable to intentionally public content; explain why and describe other protections.",
 			"Is access restricted by an external firewall? Record this as a human statement and provide a configuration or design reference.",

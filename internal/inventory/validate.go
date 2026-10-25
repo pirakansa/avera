@@ -150,7 +150,7 @@ func payloadSets(f Facts) error {
 }
 func validate(a Artifact) error {
 	env := a.envelope()
-	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, LegacyContractRevision) {
+	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, ForwardingContractRevision, LegacyContractRevision) {
 		return fmt.Errorf("unsupported schema_version/contract_revision; require %s / %s", SchemaVersion, ContractRevision)
 	}
 	if env.TargetID == "" {
@@ -243,6 +243,20 @@ func validateSnapshot(s *Snapshot) error {
 			}
 			if err := payloadSets(v.Observed); err != nil {
 				return err
+			}
+			if v.Service != nil {
+				if s.ContractRevision != ContractRevision || v.PID == nil {
+					return fmt.Errorf("service evidence requires services revision and PID")
+				}
+				if err := ids(v.Service.Diagnostics, "service diagnostic"); err != nil {
+					return err
+				}
+				if v.Service.CgroupPath != "" && !strings.HasPrefix(v.Service.CgroupPath, "/") {
+					return fmt.Errorf("service cgroup path must be absolute")
+				}
+				if v.Service.UnitCandidate != "" && (!strings.HasSuffix(v.Service.UnitCandidate, ".service") || strings.Contains(v.Service.UnitCandidate, "/")) {
+					return fmt.Errorf("invalid service unit candidate")
+				}
 			}
 			if v.PID != nil && *v.PID <= 0 {
 				return fmt.Errorf("pid must be positive")

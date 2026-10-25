@@ -237,3 +237,14 @@ Still pending for later trials: owner usability feedback, available disposable U
 ## Forwarding extension
 
 New live collections use `netfilter-2026-10-25.1`. See the [forwarding contract](forwarding-collector.md#artifact-contract) for the additional kind and command evidence. Original T00 fixtures retain their baseline revision and remain accepted without rewriting.
+
+## Listening-service evidence extension
+
+New live artifacts use `services-2026-10-25.1`, adding an optional structured
+`service` observation to PID-qualified proc evidence. This revision preserves
+endpoint identity/fact normalization and the forwarding contract. The T00 and
+netfilter revisions remain accepted, including mixed known revisions during
+repeat collection, without rewriting old immutable snapshots or assessment bases.
+Service metadata is forbidden under those earlier revisions. See the
+[listening-service contract](listening-services.md#storage-and-compatibility)
+for exact fields, unknown values and presentation boundaries.

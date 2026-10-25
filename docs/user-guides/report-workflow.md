@@ -180,3 +180,28 @@ provenance. Select a card's title to open its full item; the editor expands the
 matching judgment form. After saving, the diagram updates. Use HTML export to
 share the same diagram offline or print it. Markdown remains textual. The diagram
 is an overview with explicit abbreviation/size limits; see the [display contract](../specifications/prototype/network-overview.md).
+
+## Identify the service behind a listening port
+
+New live collections include a **待受サービスの棚卸し** (listening service inventory)
+inside each endpoint's details. Use the observed process name, executable,
+numeric process effective UID and systemd cgroup service candidate to identify
+what holds that port. Multiple holders remain separate. The socket UID is a
+separate observation and can differ from the process effective UID.
+
+The systemd name is a candidate from the observed cgroup, not a verified service
+or socket-activation target. Unknown/uncollected values remain explicit. Existing
+JSON files still open, but need a new collection to acquire the added metadata.
+The tool inspects only processes holding observed sockets; it does not inventory
+all daemons or users.
+
+For a main endpoint, record the service's purpose, necessity and responsible
+person/team in **サービスの用途・必要性・管理担当**. Continue to explain its audience,
+safeguards and judgment separately. Loopback-only endpoints remain read-only
+references. The configuration diagram shows abbreviated service observations;
+open its linked details for the complete inventory. Saved JSON and HTML/Markdown
+exports preserve observations separately from human explanations.
+
+PID is omitted from the listening-service inventory because it changes across
+process restarts. It remains in technical collection evidence and JSON, not as a
+service identity or a field to review.

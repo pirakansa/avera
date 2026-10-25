@@ -72,7 +72,7 @@ Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
 New saves use portable v3; v1/v2 inputs remain readable. New live artifacts use
-`netfilter-2026-10-25.1`, while T00 fixtures retain their original contract. Raw
+`services-2026-10-25.1`, while T00 fixtures retain their original contract. Raw
 split-artifact comparison tests are diagnostic compatibility cases, not the main
 shared-setting workflow.
 
@@ -109,3 +109,31 @@ judgment reuse or navigation. Read this record and the linked specification for
 the affected behavior before changing it. Update the relevant docs and record
 actual results; do not restore machine binding, opt-in shared saving or visible
 archive sections merely because an older handoff describes them.
+
+## Port-based service inventory revision
+
+The owner selected listening-port-based service identification before user and
+privilege inventory. The live CLI now enriches only processes holding observed
+TCP listeners / bound-unconnected UDP sockets. Editor and reports distinguish
+socket UID from process effective UID, show executable/process/cgroup service
+candidates, and leave unknowns explicit. Use the existing purpose explanation to
+record service function, necessity and responsible team. Loopback-reference scope,
+shared judgment matching and endpoint hashes remain unchanged. New service
+evidence uses the services contract revision; older reports remain readable.
+See [listening services](../../specifications/prototype/listening-services.md).
+Owner acceptance and live systemd validation remain pending.
+
+Validation for the service revision: Go 1.26.10 setup, full race tests, build,
+fmt, vet, staticcheck and `git diff --check` passed. The opt-in `networklive`
+test package compiled with `-run '^$'`; no live/root comparison was executed.
+Chromium checks for listening services, shared services and report pages passed,
+including offline exports and narrow layouts. The initial staticcheck finding
+(S1016 field conversion) was fixed before the final checks. `vorbere run check`
+remains incomplete only at vulnerability database fetching because external
+access was disabled pending authorization. No successful fresh vulnerability scan
+is claimed. Generated build artifacts were cleaned after validation.
+
+Owner feedback: PID is unnecessary for an inventory rather than monitoring.
+The service inventory now omits PID in the editor and HTML/Markdown item fields;
+PID/source locations remain in technical evidence and JSON. Service identification
+and matching do not use PID.

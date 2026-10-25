@@ -191,6 +191,10 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			evidenceIDs[fmt.Sprintf("%d/%s", si, e.EvidenceID)] = fmt.Sprintf("evidence-%d-%d", si, ei)
 		}
 	}
+	services := map[*i.Snapshot]map[string]ServiceView{}
+	for _, source := range sources {
+		services[source] = EndpointServices(source, language)
+	}
 	byID := map[string]i.Assessment{}
 	if annotations != nil {
 		for _, a := range annotations.Entries {
@@ -245,6 +249,12 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			if assessment.IsReference(f) {
 				b.Fields = []field{{l.text("Finding ID", "観測項目 ID"), f.FindingID}, {l.text("Observed fact", "観測した事実"), l.text("Loopback-only endpoint; retained as reference, not a verified vulnerability or safety judgment.", "ループバック限定の接続口です。参考情報として保持し、脆弱性や安全性を判定したものではありません。")}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}}
 				b.Questions = nil
+			}
+			if view, ok := services[sources[sourceIndex]][f.FindingID]; ok {
+				b.Fields = append(b.Fields, field{l.text("Listening service inventory", "待受サービスの棚卸し"), view.Note})
+				for _, value := range view.Fields {
+					b.Fields = append(b.Fields, field(value))
+				}
 			}
 			if !assessment.IsReference(f) && len(item.AssessmentIDs) == 0 {
 				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
