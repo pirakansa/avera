@@ -244,6 +244,10 @@ func stripTerminator(s string) string {
 func normalizeFacts(f Facts) Facts {
 	switch x := f.(type) {
 	case USBFacts:
+		if x.Input != nil {
+			v := NormalizeUSBInput(*x.Input)
+			x.Input = &v
+		}
 		x.StorageFingerprints = append([]string{}, x.StorageFingerprints...)
 		slices.Sort(x.StorageFingerprints)
 		x.Interfaces = append([]USBInterface{}, x.Interfaces...)

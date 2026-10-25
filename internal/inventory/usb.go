@@ -20,6 +20,7 @@ type USBInterface struct {
 	Protocol string `json:"protocol"`
 }
 type USBFacts struct {
+	Input               *USBInputFacts `json:"input,omitempty"`
 	VendorID            string         `json:"vendor_id"`
 	ProductID           string         `json:"product_id"`
 	Manufacturer        string         `json:"manufacturer"`
@@ -43,7 +44,8 @@ type USBNode struct {
 	Facts     USBFacts `json:"facts"`
 }
 type USBValues struct {
-	Nodes []USBNode `json:"nodes"`
+	Input *USBInputValues `json:"input,omitempty"`
+	Nodes []USBNode       `json:"nodes"`
 }
 
 func (USBValues) evidenceValues() {}
@@ -60,6 +62,11 @@ func USBHID(f USBFacts) bool {
 	return false
 }
 func validUSB(f USBFacts) error {
+	if f.Input != nil {
+		if err := validUSBInputFacts(*f.Input); err != nil {
+			return err
+		}
+	}
 	hex := func(v string, n int) bool {
 		return len(v) == n && strings.IndexFunc(v, func(r rune) bool { return !(r >= '0' && r <= '9' || r >= 'a' && r <= 'f') }) < 0
 	}

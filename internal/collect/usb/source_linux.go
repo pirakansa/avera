@@ -20,7 +20,7 @@ type Source interface {
 type LocalSource struct{ Root string }
 
 func (s LocalSource) resolved(name string) (string, error) {
-	if name != busPath && !strings.HasPrefix(name, busPath+"/") && !strings.HasPrefix(name, "/sys/devices/") {
+	if name != busPath && !strings.HasPrefix(name, busPath+"/") && !strings.HasPrefix(name, "/sys/devices/") && !inputMetadata(name) {
 		return "", fmt.Errorf("not a USB metadata source")
 	}
 	if s.Root == "" || !filepath.IsAbs(name) || filepath.Clean(name) != name {
@@ -56,6 +56,9 @@ func (s LocalSource) Resolve(name string) (string, error) {
 	return "/" + filepath.ToSlash(relative), nil
 }
 func (s LocalSource) ReadFile(name string, limit int) ([]byte, error) {
+	if fdPath(name) || filepath.Base(name) == "exe" {
+		return nil, fmt.Errorf("not a readable metadata file")
+	}
 	target, err := s.resolved(name)
 	if err != nil {
 		return nil, err

@@ -44,6 +44,13 @@ func AccountReferences(current *i.Snapshot) map[string]bool {
 			}
 		}
 	}
+	for _, finding := range current.Findings {
+		if facts, ok := finding.Facts.(i.USBFacts); ok && facts.Input != nil {
+			for _, consumer := range facts.Input.Consumers {
+				serviceUsers[consumer.EffectiveUID] = true
+			}
+		}
+	}
 	out := map[string]bool{}
 	for _, finding := range current.Findings {
 		if facts, ok := finding.Facts.(i.AccountFacts); ok && facts.UID < UserCandidateUID && !serviceUsers[facts.UID] {

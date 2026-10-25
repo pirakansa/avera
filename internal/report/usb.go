@@ -31,7 +31,8 @@ func USBFields(finding i.Finding, language string) []ServiceField {
 		}
 		functions = append(functions, v.Number+": "+label)
 	}
-	return []ServiceField{{l.text("USB device", "USB機器"), f.Manufacturer + " " + f.Product}, {"VID:PID", f.VendorID + ":" + f.ProductID}, {l.text("Observed serial", "観測したシリアル番号"), f.Serial}, {l.text("Declared interfaces", "申告されたインターフェース"), strings.Join(functions, "\n")}, {l.text("Grouped storage observations", "同じ機器にまとめたストレージ観測"), fmt.Sprint(len(f.StorageFingerprints))}, {l.text("Review scope", "確認する範囲"), l.text("Record intended use, responsible team, permitted handling and physical/manual safeguards. These are human statements, not verified port restrictions.", "用途・想定・管理担当と、取り扱いルールや運用マニュアルなどの保護策を記録します。人の申告であり、USBポートの接続制限や実施を検証したものではありません。")}}
+	fields := []ServiceField{{l.text("USB device", "USB機器"), f.Manufacturer + " " + f.Product}, {"VID:PID", f.VendorID + ":" + f.ProductID}, {l.text("Observed serial", "観測したシリアル番号"), f.Serial}, {l.text("Declared interfaces", "申告されたインターフェース"), strings.Join(functions, "\n")}, {l.text("Grouped storage observations", "同じ機器にまとめたストレージ観測"), fmt.Sprint(len(f.StorageFingerprints))}, {l.text("Review scope", "確認する範囲"), l.text("Record intended use, responsible team, permitted handling and physical/manual safeguards. These are human statements, not verified port restrictions.", "用途・想定・管理担当と、取り扱いルールや運用マニュアルなどの保護策を記録します。人の申告であり、USBポートの接続制限や実施を検証したものではありません。")}}
+	return append(fields, usbInputFields(f, language)...)
 }
 
 type PhysicalNode struct {
@@ -158,6 +159,44 @@ func PhysicalMapFor(f *reportfile.File, review *i.Review, language string) Physi
 		}
 		if len(m.Nodes) >= 64 {
 			break
+		}
+	}
+
+	remaining := 64 - displayed
+	for _, usb := range nodes {
+		parent := byKey[usb.Key]
+		if parent == nil || !i.USBHID(usb.Facts) {
+			continue
+		}
+		if usb.Facts.Input == nil {
+			parent.Card.Detail += " · " + l.text("Input route not collected", "入力経路は未収集")
+		} else {
+			parent.Card.Detail += " · " + l.text("Input route: ", "入力経路：") + l.state(string(usb.Facts.Input.Status))
+		}
+		var bounded func(*PhysicalNode, int) *PhysicalNode
+		bounded = func(n *PhysicalNode, depth int) *PhysicalNode {
+			if remaining <= 0 || depth > 8 {
+				m.LimitNote = l.text("Diagram limited to 64 nodes/eight levels; consult item details and JSON.", "図は64項目・8階層まで表示します。続きは項目の詳細・JSONで確認してください。")
+				return nil
+			}
+			remaining--
+			children := n.Children
+			n.Children = []*PhysicalNode{}
+			for _, child := range children {
+				if v := bounded(child, depth+1); v != nil {
+					n.Children = append(n.Children, v)
+				}
+			}
+			return n
+		}
+		depth := 1
+		for key := parents[usb.Key]; key != "" && depth < 9; key = parents[key] {
+			depth++
+		}
+		for _, input := range inputPhysicalNodes(f.Current, usb.Key, language) {
+			if v := bounded(input, depth+1); v != nil {
+				parent.Children = append(parent.Children, v)
+			}
 		}
 	}
 	return m

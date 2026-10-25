@@ -115,8 +115,8 @@ function renderItem(item) {
     box.id = 'finding-' + f.finding_id;
     const related = node('div', undefined, 'related-privileges');
     if ((item.related || []).length) {
-        related.append(node('h3', '関連するアカウント・サービス・sudo設定'));
-        related.append(node('p', '実効UIDとローカルUIDの一致、またはsudo設定の対象・実行先に基づく関連です。ログイン可否や実効権限の証明ではありません。'));
+        related.append(node('h3', '関連するアカウント・サービス・USB入力・sudo設定'));
+        related.append(node('p', '待受サービス・USB入力口を開くプロセスの実効UIDとローカルUIDの一致、またはsudo設定の対象・実行先に基づく関連です。ログイン可否や実効権限の証明ではありません。'));
         if (item.related.length >= 64) related.append(node('p', '関連リンクは各項目最大64件です。その他の設定は項目一覧で確認できます。'));
         for (const target of item.related) {
             const link = node('a', target.Label);
@@ -143,7 +143,7 @@ function renderItem(item) {
  $('usb-storage-reference-items').append(box);return;
  }
  if (item.account_reference) {
-        box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。今回の判断件数には含めません。'));
+        box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'UID 1000未満で、主な待受サービス・USB入力口を開くプロセスの実行ユーザとして対応付いていないアカウントです。今回の判断件数には含めません。'));
         const fields = node('dl');
         for (const field of item.account_fields || []) fields.append(node('dt', field.Label), node('dd', field.Value));
         box.append(fields);

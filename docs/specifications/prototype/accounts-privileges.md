@@ -17,14 +17,14 @@ remains an actual collection diagnostic with partial/failed coverage.
 
 Individual account review is restricted to UID 1000+ user-account candidates and
 accounts whose UID matches an observed process effective UID of a main-scope
-(non-loopback) listening endpoint. UID 1000 is a presentation heuristic, not a
+(non-loopback) listening endpoint or an observed USB input descriptor holder. UID 1000 is a presentation heuristic, not a
 login permission test, universal account classification or inferred SSH access.
 A socket UID, runtime GID or sudo run-as target alone does not promote an account.
 Other low-UID system accounts remain read-only references, outside current,
 accepted, action-required, unreviewed, re-review and conflict counts. Their source
 observations and existing human judgments remain in JSON. Routine references do
 not display explanation-completeness prompts or offer a judgment form. Root is
-in scope if a main-scope service actually has observed effective UID 0; otherwise
+in scope if a main-scope service or USB input holder has observed effective UID 0; otherwise
 it can still be consulted from a sudo run-as link. Loopback-service observations
 retain the existing reference-scope policy.
 
@@ -105,7 +105,7 @@ judgments persist through the portable report workflow.
 
 ## Contract compatibility
 
-New live artifacts use `accounts-2026-10-25.1`; services, netfilter and T00 revisions
+Accounts were introduced in `accounts-2026-10-25.1`; services, netfilter and T00 revisions
 remain readable. Portable saves remain v3 with v1/v2 inputs supported. Existing
 network/sudo identity and facts hash algorithms remain unchanged.
 
@@ -134,3 +134,10 @@ The browser regression `test/browser/accounts_sudo.py` exercises service → acc
 → sudo navigation, account judgment saving, unchanged immutable observations,
 standalone script-disabled HTML, escaping and narrow layouts. This does not
 establish owner acceptance, actual SSH login access or a live sudo/systemd trial.
+
+
+USB input descriptor holders also contribute observed effective UID/GID and
+runtime group context. Matching effective UIDs promote local accounts into the
+main review scope and supply bidirectional USB/account links. This is an observed
+open-descriptor relation, not event delivery, login access or full privilege
+analysis. See the [input route contract](usb-physical-overview.md#input-route-extension).

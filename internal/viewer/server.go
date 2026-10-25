@@ -185,12 +185,14 @@ func (s *Session) state(w http.ResponseWriter) {
 		}
 		it.AccountFields = report.PrivilegeFields(f, s.language)
 		it.StorageFields = report.StorageFields(f, s.language)
-		it.USBFields = report.USBFields(f, s.language)
+		it.USBFields = report.USBObservationFields(s.file.Current, f, s.language)
 		it.USBStorageOwner = i.USBStorageOwners(s.file.Current)[f.FindingID]
 		for _, id := range connections[f.FindingID] {
 			target := byFindingID[id]
 			label := string(target.Kind)
 			switch identity := target.Identity.(type) {
+			case i.USBIdentity:
+				label = "USB入力機器 " + target.Facts.(i.USBFacts).Product
 			case i.AccountIdentity:
 				label = "アカウント " + identity.Name
 			case i.EndpointIdentity:

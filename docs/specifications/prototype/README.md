@@ -92,7 +92,7 @@ The [network overview](network-overview.md) adds a shared graphical aid to the e
 
 ## USB HID and physical overview extension
 
-Live artifacts now use `usb-2026-10-25.1`, retaining earlier supported revisions.
+Live artifacts now use `usb-input-2026-10-25.1`, retaining earlier supported revisions.
 USB HID findings, reference attachment topology, manual/physical safeguard
 explanations and composite storage judgment ownership are described in the
 [USB contract](usb-physical-overview.md). The GUI and standalone HTML include a

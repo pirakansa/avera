@@ -3,7 +3,8 @@ package inventory
 
 const (
 	SchemaVersion              = "0.1"
-	ContractRevision           = "usb-2026-10-25.1"
+	ContractRevision           = "usb-input-2026-10-25.1"
+	USBContractRevision        = "usb-2026-10-25.1"
 	StorageContractRevision    = "storage-2026-10-25.1"
 	AccountsContractRevision   = "accounts-2026-10-25.1"
 	ServicesContractRevision   = "services-2026-10-25.1"

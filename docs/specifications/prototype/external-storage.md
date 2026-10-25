@@ -92,7 +92,7 @@ layout. Dynamic product names, labels and Markdown headings are escaped as text.
 
 ## Contract
 
-Storage was introduced in `storage-2026-10-25.1`; new live artifacts use `usb-2026-10-25.1`. Accounts, services, netfilter and T00
+Storage was introduced in `storage-2026-10-25.1`; new live artifacts use `usb-input-2026-10-25.1`. Accounts, services, netfilter and T00
 contracts remain readable. Portable saves remain v3 and read v1/v2 inputs.
 
 - Collector: `storage`; kind: `storage.external`.

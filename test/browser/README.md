@@ -60,3 +60,10 @@ It checks nested physical topology, diagram-to-item navigation, manual-based
 safeguards, a single composite HID/storage judgment, immutable metadata/source
 JSON, standalone HTML navigation with scripts disabled, and narrow/print layouts.
 No host peripherals are inspected or configured. The server is stopped afterward.
+
+
+`python3 test/browser/usb_input.py` tests USB → Linux input → evdev holder metadata,
+kernel-only kbd paths, root account promotion/navigation, immutable judgment saves,
+untrusted process-name escaping, offline HTML anchors and narrow/print layouts.
+It uses a new private report and stops its temporary server; no input contents
+or host input devices are read.

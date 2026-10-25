@@ -240,7 +240,7 @@ New live collections use `netfilter-2026-10-25.1`. See the [forwarding contract]
 
 ## Listening-service evidence extension
 
-New live artifacts use `services-2026-10-25.1`, adding an optional structured
+The `services-2026-10-25.1` extension introduced an optional structured
 `service` observation to PID-qualified proc evidence. This revision preserves
 endpoint identity/fact normalization and the forwarding contract. The T00 and
 netfilter revisions remain accepted, including mixed known revisions during
@@ -251,7 +251,7 @@ for exact fields, unknown values and presentation boundaries.
 
 ## Accounts and runtime-group extension
 
-New live artifacts use `accounts-2026-10-25.1`, adding `accounts/account.local`
+The `accounts-2026-10-25.1` extension introduced `accounts/account.local`
 findings, sanitized `local_identity` group-directory evidence and optional runtime
 group fields in proc service evidence. Earlier T00, netfilter and services
 revisions remain readable without rewriting immutable snapshots. Account
@@ -271,8 +271,13 @@ Existing network/sudo/account hash behavior is unchanged. See the
 
 ## USB HID and physical overview extension
 
-Live artifacts now use `usb-2026-10-25.1`, retaining earlier supported revisions.
+Live artifacts now use `usb-input-2026-10-25.1`, retaining earlier supported revisions.
 USB HID findings, reference attachment topology, manual/physical safeguard
 explanations and composite storage judgment ownership are described in the
 [USB contract](usb-physical-overview.md). The GUI and standalone HTML include a
 physical overview; collection performs metadata reads only.
+
+
+The input extension adds optional typed input summaries/evidence to USB facts.
+See [input fields and normalization](usb-physical-overview.md#input-route-extension)
+for exact types, compatibility gates, stable judgment basis and known limitations.

@@ -72,7 +72,7 @@ Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
 New saves use portable v3; v1/v2 inputs remain readable. New live artifacts use
-`usb-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
+`usb-input-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
 split-artifact comparison tests are diagnostic compatibility cases, not the main
 shared-setting workflow.
 
@@ -250,3 +250,19 @@ It includes an accepted mouse with a fictional manual reference and a pending
 HID/storage composite. Existing account/service/storage examples remain.
 See the [contract](../../specifications/prototype/usb-physical-overview.md) and
 [user workflow](../report-workflow.md#explain-usb-devices-and-physical-operation).
+
+
+## USB input-route increment
+
+Live artifacts use `usb-input-2026-10-25.1`; older USB and other supported
+snapshots remain readable. New USB observations include input-device sysfs
+ancestry, registered kernel handlers, open evdev descriptor holders and observed
+runtime UID/GID/groups. The physical overview and USB details show these links;
+matching local accounts, including root, enter the main review scope.
+
+Use `test/fixtures/prototype/reports/usb-input-demo.json` for a durable trial with
+an Xorg-like root process and a kernel-only kbd path. Existing device judgments
+remain context; new input facts require fresh review. PID/FD/event numbering is
+not a stable judgment key. No keystrokes or input events are read; kbd does not
+identify a particular tty/shell, and open descriptors do not establish delivery
+to the intended application. Permissions, races and limits remain explicit.

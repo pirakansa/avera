@@ -240,7 +240,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			group = block{ID: "local-reference", Title: l.text("Local-only reference services", "ローカル限定の参考情報"), Note: l.text("Outside the main review scope, not automatically accepted. Explain paths and safeguards at the entrance; collected translation candidates do not verify effective paths.", "通常は個別の判断を求めず、未確認件数にも含めません。安全と自動判定したものではありません。転送先として利用する場合は入口側で経路と保護策を説明してください。ツールは転送設定を検証していません。")}
 		}
 		if category == "account-reference" {
-			group = block{ID: "account-reference", Title: l.text("System accounts (reference)", "システムアカウント（参考情報）"), Note: l.text("UID below 1000 and not identified as the process user of an in-scope listening service. No individual judgment is requested; excluded from current counts. UID 1000+ is only a user-account candidate heuristic, not proof of SSH login access.", "UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。個別判断を求めず、今回の集計に含めません。UID 1000以上もユーザ候補を選ぶ目安で、SSHログイン可否の判定ではありません。")}
+			group = block{ID: "account-reference", Title: l.text("System accounts (reference)", "システムアカウント（参考情報）"), Note: l.text("UID below 1000 and not identified as the process user of an in-scope listening service or USB input consumer. No individual judgment is requested; excluded from current counts. UID 1000+ is only a user-account candidate heuristic, not proof of SSH login access.", "UID 1000未満で、主な待受サービス・USB入力口を開くプロセスの実行ユーザとして対応付いていないアカウントです。個別判断を求めず、今回の集計に含めません。UID 1000以上もユーザ候補を選ぶ目安で、SSHログイン可否の判定ではありません。")}
 		}
 		if category == "usb-storage-reference" {
 			group = block{ID: "usb-storage-reference", Title: l.text("Storage grouped with USB HID devices (reference)", "USBのHID機器にまとめたストレージ（参考情報）"), Note: l.text("Judge the whole composite device in its USB item. Stored storage judgments remain context only.", "複合機器全体の用途・保護策はUSB機器の項目で判断します。ストレージの以前の判断は文脈として保持します。")}
@@ -317,7 +317,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 					}
 				}
 			}
-			for _, value := range append(StorageFields(f, language), USBFields(f, language)...) {
+			for _, value := range append(StorageFields(f, language), USBObservationFields(sources[sourceIndex], f, language)...) {
 				b.Fields = append(b.Fields, field(value))
 			}
 			for _, value := range PrivilegeFields(f, language) {

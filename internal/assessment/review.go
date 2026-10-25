@@ -201,6 +201,9 @@ func reusable(s *i.Snapshot, f i.Finding) bool {
 	}
 	switch x := f.Facts.(type) {
 	case i.USBFacts:
+		if x.Input != nil && x.Input.Status != i.Complete {
+			return false
+		}
 		if len(x.StorageFingerprints) > 0 && !coverageComplete(s, i.Storage) {
 			return false
 		}

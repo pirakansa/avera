@@ -202,7 +202,7 @@ func payloadSets(f Facts) error {
 }
 func validate(a Artifact) error {
 	env := a.envelope()
-	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, StorageContractRevision, AccountsContractRevision, ServicesContractRevision, ForwardingContractRevision, LegacyContractRevision) {
+	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision, AccountsContractRevision, ServicesContractRevision, ForwardingContractRevision, LegacyContractRevision) {
 		return fmt.Errorf("unsupported schema_version/contract_revision; require %s / %s", SchemaVersion, ContractRevision)
 	}
 	if env.TargetID == "" {
@@ -229,7 +229,7 @@ func validate(a Artifact) error {
 			}
 		}
 	}
-	if !oneOf(env.ContractRevision, ContractRevision, StorageContractRevision, AccountsContractRevision) {
+	if !oneOf(env.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision, AccountsContractRevision) {
 		switch value := a.(type) {
 		case *Snapshot:
 			for _, f := range value.Findings {
@@ -254,7 +254,7 @@ func validate(a Artifact) error {
 			}
 		}
 	}
-	if !oneOf(env.ContractRevision, ContractRevision, StorageContractRevision) {
+	if !oneOf(env.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision) {
 		switch v := a.(type) {
 		case *Snapshot:
 			for _, f := range v.Findings {
@@ -279,7 +279,7 @@ func validate(a Artifact) error {
 			}
 		}
 	}
-	if env.ContractRevision != ContractRevision {
+	if !oneOf(env.ContractRevision, ContractRevision, USBContractRevision) {
 		switch v := a.(type) {
 		case *Snapshot:
 			for _, f := range v.Findings {
@@ -373,10 +373,10 @@ func validateSnapshot(s *Snapshot) error {
 				return err
 			}
 			if v.Service != nil {
-				if !oneOf(s.ContractRevision, ContractRevision, StorageContractRevision, AccountsContractRevision, ServicesContractRevision) || v.PID == nil {
+				if !oneOf(s.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision, AccountsContractRevision, ServicesContractRevision) || v.PID == nil {
 					return fmt.Errorf("service evidence requires services revision and PID")
 				}
-				if (v.Service.EffectiveGID != nil || v.Service.SupplementaryGroups != nil) && !oneOf(s.ContractRevision, ContractRevision, StorageContractRevision, AccountsContractRevision) {
+				if (v.Service.EffectiveGID != nil || v.Service.SupplementaryGroups != nil) && !oneOf(s.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision, AccountsContractRevision) {
 					return fmt.Errorf("runtime groups require accounts contract")
 				}
 				if v.Service.SupplementaryGroups != nil {
@@ -398,7 +398,7 @@ func validateSnapshot(s *Snapshot) error {
 				return fmt.Errorf("pid must be positive")
 			}
 		case AccountValues:
-			if e.SourceKind != "local_identity" || !oneOf(s.ContractRevision, ContractRevision, StorageContractRevision, AccountsContractRevision) {
+			if e.SourceKind != "local_identity" || !oneOf(s.ContractRevision, ContractRevision, USBContractRevision, StorageContractRevision, AccountsContractRevision) {
 				return fmt.Errorf("account directory requires accounts contract")
 			}
 			names := map[string]bool{}
@@ -412,14 +412,17 @@ func validateSnapshot(s *Snapshot) error {
 				}
 			}
 		case USBValues:
-			if e.SourceKind != "usb_metadata" || s.ContractRevision != ContractRevision {
+			if e.SourceKind != "usb_metadata" || !oneOf(s.ContractRevision, ContractRevision, USBContractRevision) {
 				return fmt.Errorf("USB evidence requires USB contract")
+			}
+			if err := validateUSBInputEvidence(s.ContractRevision, v); err != nil {
+				return err
 			}
 			if err := validUSBNodes(v.Nodes); err != nil {
 				return err
 			}
 		case FileValues:
-			if v.USB != nil && s.ContractRevision != ContractRevision {
+			if v.USB != nil && !oneOf(s.ContractRevision, ContractRevision, USBContractRevision) {
 				return fmt.Errorf("USB link requires USB contract")
 			}
 			if e.SourceKind != "local_file" && e.SourceKind != "command_output" {
@@ -448,6 +451,9 @@ func validateSnapshot(s *Snapshot) error {
 			if !evidence[id] {
 				return fmt.Errorf("dangling evidence reference %q", id)
 			}
+		}
+		if facts, ok := f.Facts.(USBFacts); ok && facts.Input != nil && s.ContractRevision != ContractRevision {
+			return fmt.Errorf("USB input requires input contract")
 		}
 		if e := payloadSets(f.Facts); e != nil {
 			return e

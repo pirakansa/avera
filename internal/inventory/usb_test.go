@@ -48,3 +48,20 @@ func TestUSBAttachmentNeedsAllInstanceFields(t *testing.T) {
 		t.Fatal("different descriptors grouped")
 	}
 }
+
+func TestUSBInputSummaryAndContractValidation(t *testing.T) {
+	node := usbNode()
+	facts := USBInputFacts{Status: Complete, Handlers: []string{"evdev"}, Consumers: []USBInputConsumer{}, DiagnosticCodes: []string{}}
+	node.Facts.Input = &facts
+	values := USBValues{Nodes: []USBNode{node}, Input: &USBInputValues{Status: Complete, DiagnosticCodes: []string{}, Devices: []USBInputDevice{{USBKey: node.Key, SysfsPath: node.SysfsPath + "/input/input1/event5", Node: "/dev/input/event5", DeviceNumber: "13:69", Handlers: []string{"evdev"}, Consumers: []USBInputConsumer{}}}}}
+	if err := validateUSBInputEvidence(ContractRevision, values); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateUSBInputEvidence(USBContractRevision, values); err == nil {
+		t.Fatal("old revision accepted input extension")
+	}
+	values.Input.Devices[0].Handlers = []string{"kbd"}
+	if err := validateUSBInputEvidence(ContractRevision, values); err == nil {
+		t.Fatal("mismatched input summary accepted")
+	}
+}

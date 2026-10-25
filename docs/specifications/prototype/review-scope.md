@@ -42,12 +42,13 @@ candidate register](retirement-candidates.md).
 ## Account judgment scope
 
 All collected account observations remain stored, but individual account
-judgments cover observed effective users of main-scope listening endpoints and
+judgments cover observed effective users of main-scope listening endpoints,
+USB input descriptor holders, and
 UID 1000+ user-account candidates. Other low-UID system accounts have a separate
 read-only reference section. The threshold does not establish SSH login access.
 References contribute no current/accepted/action/unreviewed/re-review/conflict
 counts, prompts or save targets. Existing reference-account judgments remain in
 JSON. Explicit sudo run-as references remain navigable without promoting an
 account into scope. Root becomes a main account item if a main-scope listening
-process actually has observed effective UID 0. Collection, artifact hashes and
+process or USB input descriptor holder has observed effective UID 0. Collection, artifact hashes and
 raw review decisions remain unchanged; see [accounts and privileges](accounts-privileges.md).

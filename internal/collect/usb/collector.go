@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	Version           = "sysfs-usb-v1"
+	Version           = "sysfs-usb-input-v2"
 	busPath           = "/sys/bus/usb/devices"
 	maxEntries        = 8192
 	maxDevices        = 1024
@@ -25,8 +25,10 @@ const (
 )
 
 type Collector struct {
-	Source Source
-	Now    func() time.Time
+	Source       Source
+	InputSource  InputSource
+	IncludeInput bool
+	Now          func() time.Time
 	// ScopeID is for deterministic synthetic tests; live collections use a fresh scope.
 	ScopeID string
 }
@@ -232,7 +234,47 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 			clean[n].ParentKey = ""
 		}
 	}
-	r.Evidence = append(r.Evidence, i.Evidence{EvidenceID: "usb-topology", SourceKind: "usb_metadata", Location: busPath, CollectedAt: timestamp, Method: "bounded USB device and active interface sysfs metadata; no input data or device writes", Values: i.USBValues{Nodes: clean}})
+	var input *i.USBInputValues
+	if c.IncludeInput || c.InputSource != nil {
+		source := c.InputSource
+		if source == nil {
+			if local, ok := c.Source.(LocalSource); ok {
+				source = LocalInputSource{local}
+			}
+		}
+		input = collectInput(ctx, source, clean)
+		r.Coverage.AttemptedSources = append(r.Coverage.AttemptedSources, inputPath, inputHandlersPath, "/proc/*/fd", "/proc/*/status", "/proc/*/stat", "/proc/*/exe")
+		r.Coverage.Limitations = append(r.Coverage.Limitations, "Input relationships are sysfs ancestry and open character-device descriptors only, not delivered events, focused applications or tty login access. hidraw, aggregate mice devices, device brokers and kernel internals beyond registered handlers are outside this backend. Process UID/GID/groups are observations in the reader namespace, not effective privilege certification.")
+		if input.Status != i.Complete {
+			diagnose("usb_input_incomplete")
+		}
+		for n := range clean {
+			if !i.USBHID(clean[n].Facts) {
+				continue
+			}
+			summary := i.USBInputFacts{Status: input.Status, Handlers: []string{}, Consumers: []i.USBInputConsumer{}, DiagnosticCodes: input.DiagnosticCodes}
+			for _, d := range input.Devices {
+				if d.USBKey == clean[n].Key {
+					summary.Handlers = append(summary.Handlers, d.Handlers...)
+					summary.Consumers = append(summary.Consumers, d.Consumers...)
+				}
+			}
+			summary = i.NormalizeUSBInput(summary)
+			clean[n].Facts.Input = &summary
+		}
+		r.Findings = []i.Finding{}
+		for _, node := range clean {
+			if !i.USBHID(node.Facts) {
+				continue
+			}
+			finding, err := i.NormalizeFinding(target, i.Finding{Collector: i.USB, Kind: i.USBDevice, Identity: i.USBIdentity{Key: node.Key}, Facts: node.Facts, EvidenceIDs: []string{"usb-topology"}})
+			if err != nil {
+				return r, err
+			}
+			r.Findings = append(r.Findings, finding)
+		}
+	}
+	r.Evidence = append(r.Evidence, i.Evidence{EvidenceID: "usb-topology", SourceKind: "usb_metadata", Location: busPath, CollectedAt: timestamp, Method: "bounded USB device and active interface sysfs metadata; no input data or device writes", Values: i.USBValues{Nodes: clean, Input: input}})
 	slices.Sort(r.Coverage.DiagnosticCodes)
 	return r, ctx.Err()
 }

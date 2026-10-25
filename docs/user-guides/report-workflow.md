@@ -155,7 +155,7 @@ source context do, conservatively. Missing or changed linked services also requi
 re-review. Live namespace incarnation is still not proven across runs, so existing
 conservative namespace re-review rules continue to apply.
 
-New collected artifacts use contract revision `usb-2026-10-25.1` inside the
+New collected artifacts use contract revision `usb-input-2026-10-25.1` inside the
 v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.
@@ -209,7 +209,7 @@ service identity or a field to review.
 ## Review local accounts and configured sudo
 
 New collections retain local accounts, but individual judgments cover observed
-main listening-service users and UID 1000+ user-account candidates. Other low-UID
+main listening-service users, observed USB input consumers and UID 1000+ user-account candidates. Other low-UID
 system accounts appear under **システムアカウントの参考情報** without a judgment
 form or contribution to current/unreviewed counts. UID 1000 is a selection
 heuristic, not proof of SSH login access. Record each in-scope account's
@@ -238,8 +238,8 @@ prevent completing the in-scope report. Existing JSON files remain readable;
 recollect to obtain accounts and runtime groups that were not collected before.
 
 A root account listed as a reference does not mean a service runs as root. It
-becomes a main account item when a main listening service's observed process
-effective UID is 0. Sudo run-as links can open reference accounts without asking
+becomes a main account item when a main listening service or USB input consumer
+has observed effective UID 0. Sudo run-as links can open reference accounts without asking
 for another account judgment. Existing stored decisions on reference accounts
 remain in JSON and are not included in report follow-up counts.
 
@@ -300,3 +300,34 @@ For a fictional rehearsal, open `test/fixtures/prototype/reports/usb-demo.json`.
 It contains a hub, a mouse accepted with a manual-based human safeguard, a
 pending HID/storage composite device and the earlier storage/account/service
 examples. Stop an older `serve` and restart after rebuilding to load new assets.
+
+
+## Follow USB input routes and execution users
+
+The physical overview now continues from a USB HID device to its Linux input
+device, registered kernel handlers and observed evdev descriptor holders. Expand
+the USB item for input-node metadata and the holder's executable, effective
+UID/GID and supplementary groups. A uniquely matched holder card opens its local
+account; related account links include all matching collected aliases. Root is
+included when its process actually holds an observed USB input descriptor.
+
+For example, the diagram can show USB mouse → Linux input device → evdev node →
+Xorg with its runtime UID/GID. A separate `kbd` branch identifies a kernel
+virtual-terminal handler. It does not identify a particular tty or shell. AVERA
+observes open descriptors and metadata, not keystrokes, active reads or delivery
+to an application. HID raw interfaces and further application routing remain
+outside scope.
+
+Older USB reports show **入力経路は未収集**; recollect to acquire it. No observed
+holder and incomplete enumeration are shown differently. Denied proc reads,
+collection limits or changing devices/processes leave explicit diagnostics.
+A changed holder/executable/runtime identity requires fresh USB review. Changes
+only to PID, FD or input-node numbering do not invalidate the stable basis.
+Keep the existing purpose and operating-manual safeguards, review new observed
+context, then save the current human decision.
+
+`test/fixtures/prototype/reports/usb-input-demo.json` provides a fictional mouse
+opened by an Xorg-like process with effective UID 0, and a kernel-only `kbd`
+example. Its prior device-only mouse judgment requires fresh review of the new
+input context. No real peripherals or input contents are involved. See the
+[input contract](../specifications/prototype/usb-physical-overview.md#input-route-extension).

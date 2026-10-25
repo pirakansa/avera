@@ -26,7 +26,7 @@ func main() {
 		{Name: "accounts", Collector: accounts.Collector{Source: localSource}},
 		{Name: "sudo", Collector: sudo.Collector{Source: localSource}},
 		{Name: "storage", Collector: storage.Collector{}},
-		{Name: "usb", Collector: usb.Collector{}},
+		{Name: "usb", Collector: usb.Collector{IncludeInput: true}},
 	}
 	cmd := root.New(app.Service{EffectiveUID: os.Geteuid, Collectors: collectors})
 	err := cmd.ExecuteContext(ctx)

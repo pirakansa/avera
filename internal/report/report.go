@@ -183,7 +183,7 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 					return "", err
 				}
 				w.field("Observed values (bounded)", facts)
-				for _, value := range append(StorageFields(f, "en"), USBFields(f, "en")...) {
+				for _, value := range append(StorageFields(f, "en"), USBObservationFields(current, f, "en")...) {
 					w.field(value.Label, value.Value)
 				}
 				for _, value := range PrivilegeFields(f, "en") {
@@ -227,7 +227,7 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				return "", err
 			}
 			w.field("Observed values (bounded)", facts)
-			for _, value := range append(StorageFields(f, "en"), USBFields(f, "en")...) {
+			for _, value := range append(StorageFields(f, "en"), USBObservationFields(current, f, "en")...) {
 				w.field(value.Label, value.Value)
 			}
 			for _, value := range PrivilegeFields(f, "en") {
