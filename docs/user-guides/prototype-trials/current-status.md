@@ -72,7 +72,7 @@ Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
 New saves use portable v3; v1/v2 inputs remain readable. New live artifacts use
-`storage-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
+`usb-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
 split-artifact comparison tests are diagnostic compatibility cases, not the main
 shared-setting workflow.
 
@@ -233,3 +233,20 @@ JSON is backed up in `/tmp/avera-storage-demo.djl4fqln/`. A durable entirely
 fictional copy is `test/fixtures/prototype/reports/storage-demo.json`; the original
 T00/v1 fixture remains unchanged. The rebuilt `bin/avera` is retained for the
 same-command demo; restart serve to load both the new JSON and embedded assets.
+
+
+## USB and physical overview increment
+
+USB HID candidates now have a whole-device purpose/safeguards/reason workflow.
+Hubs and other USB metadata provide reference topology. The editor and offline
+HTML configuration page include a physical attachment tree and a human operating
+boundary for manuals, permitted handlers and physical safeguards. These controls
+are not verified or enforced. Reliably associated composite storage is judged in
+the USB item; its changes invalidate the whole-device basis. Socket and daemon
+expansion remains deferred.
+
+Use `test/fixtures/prototype/reports/usb-demo.json` for a durable fictional trial.
+It includes an accepted mouse with a fictional manual reference and a pending
+HID/storage composite. Existing account/service/storage examples remain.
+See the [contract](../../specifications/prototype/usb-physical-overview.md) and
+[user workflow](../report-workflow.md#explain-usb-devices-and-physical-operation).

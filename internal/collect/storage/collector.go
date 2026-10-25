@@ -18,7 +18,7 @@ import (
 	i "github.com/pirakansa/avera/internal/inventory"
 )
 
-const Version = "sysfs-storage-v1"
+const Version = "sysfs-storage-v2"
 const (
 	blockPath          = "/sys/class/block"
 	mountInfoPath      = "/proc/self/mountinfo"
@@ -364,6 +364,7 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 		key      string
 		nodes    []string
 		sequence string
+		usb      *i.USBLink
 	}
 	candidates := []candidate{}
 	keys := map[string]int{}
@@ -380,6 +381,7 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 			continue
 		}
 		base := blockPath + "/" + name
+		usbLink := s.usbLink(item.location)
 		facts := i.StorageFacts{Connection: "removable", Vendor: s.optional(base + "/device/vendor"), Model: s.optional(base + "/device/model"), Serial: s.optional(base + "/device/serial"), Volumes: []i.StorageVolume{}, ObservationComplete: true}
 		if ancestor != "" {
 			facts.Connection = "usb"
@@ -457,7 +459,12 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 			diagnose("storage_device_changed")
 			continue
 		}
-		candidates = append(candidates, candidate{item: item, facts: facts, key: key, nodes: deviceNodes, sequence: sequence})
+		if afterLink := s.usbLink(item.location); usbLink != nil && (afterLink == nil || *afterLink != *usbLink) {
+			diagnose("storage_usb_changed")
+			usbLink = nil
+			facts.ObservationComplete = false
+		}
+		candidates = append(candidates, candidate{item: item, facts: facts, key: key, nodes: deviceNodes, sequence: sequence, usb: usbLink})
 		if key != "" {
 			keys[key]++
 		}
@@ -478,7 +485,7 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 		if err != nil {
 			return r, err
 		}
-		r.Evidence = append(r.Evidence, i.Evidence{EvidenceID: eid, SourceKind: "local_file", Location: blockPath + "/" + candidate.item.name, CollectedAt: timestamp, Method: "bounded sysfs block metadata and sanitized current-namespace mountinfo projection; no device contents read", Values: i.FileValues{Excerpt: string(excerpt)}})
+		r.Evidence = append(r.Evidence, i.Evidence{EvidenceID: eid, SourceKind: "local_file", Location: blockPath + "/" + candidate.item.name, CollectedAt: timestamp, Method: "bounded sysfs block metadata and sanitized current-namespace mountinfo projection; no device contents read", Values: i.FileValues{Excerpt: string(excerpt), USB: candidate.usb}})
 		finding, err := i.NormalizeFinding(target, i.Finding{Collector: i.Storage, Kind: i.ExternalStorage, Identity: i.StorageIdentity{Key: key}, Facts: candidate.facts, EvidenceIDs: []string{eid}})
 		if err != nil {
 			return r, err
@@ -487,4 +494,23 @@ func (c Collector) Collect(ctx context.Context, target string) (i.CollectorResul
 	}
 	slices.Sort(r.Coverage.DiagnosticCodes)
 	return r, ctx.Err()
+}
+
+// usbLink is optional association evidence; absent metadata never guesses a link.
+func (s *scan) usbLink(location string) *i.USBLink {
+	base := usbAncestor(location)
+	if base == "" {
+		return nil
+	}
+	read := func(name string) string { return s.optional(base + "/" + name) }
+	link := &i.USBLink{SysfsPath: base, VendorID: read("idVendor"), ProductID: read("idProduct"), Serial: read("serial")}
+	bus, dev, configuration := read("busnum"), read("devnum"), read("bConfigurationValue")
+	if bus == "" || dev == "" || configuration == "" || link.VendorID == "" || link.ProductID == "" {
+		return nil
+	}
+	link.Instance = bus + "/" + dev + "/" + configuration
+	if read("busnum") != bus || read("devnum") != dev || read("bConfigurationValue") != configuration {
+		return nil
+	}
+	return link
 }

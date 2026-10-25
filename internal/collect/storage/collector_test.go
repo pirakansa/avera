@@ -283,3 +283,25 @@ func TestNoExternalDevicesIsCompleteEmpty(t *testing.T) {
 		t.Fatal("successful empty mistaken for failure", result.Coverage)
 	}
 }
+
+func TestUSBLinkMetadata(t *testing.T) {
+	root, c := fixture(t)
+	base := usbAncestor(usbLocation)
+	for name, value := range map[string]string{"idVendor": "1234", "idProduct": "5678", "serial": "USB-SERIAL", "busnum": "1", "devnum": "4", "bConfigurationValue": "1"} {
+		write(t, root, base+"/"+name, value)
+	}
+	r := collect(t, c)
+	found := false
+	for _, e := range r.Evidence {
+		v := e.Values.(i.FileValues)
+		if v.USB != nil {
+			found = true
+			if v.USB.SysfsPath != base || v.USB.Instance != "1/4/1" || v.USB.Serial != "USB-SERIAL" {
+				t.Fatal(v.USB)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("USB association metadata missing")
+	}
+}

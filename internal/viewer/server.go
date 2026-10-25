@@ -103,7 +103,7 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/editor.css":
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		_, _ = w.Write(styles)
-		_, _ = io.WriteString(w, report.NetworkMapStyles)
+		_, _ = io.WriteString(w, report.NetworkMapStyles+report.PhysicalMapStyles)
 	case "/api/state":
 		s.state(w)
 	case "/download.json":
@@ -117,6 +117,8 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type relatedFinding struct{ ID, Label string }
 type item struct {
+	USBFields        []report.ServiceField `json:"usb_fields,omitempty"`
+	USBStorageOwner  string                `json:"usb_storage_owner"`
 	StorageFields    []report.ServiceField `json:"storage_fields,omitempty"`
 	AccountReference bool                  `json:"account_reference"`
 	AccountFields    []report.ServiceField `json:"account_fields,omitempty"`
@@ -135,6 +137,7 @@ type state struct {
 	Boundary              string
 	LocalGroups           []i.LocalGroup
 	Network               report.NetworkMap
+	Physical              report.PhysicalMap
 	Revision              int `json:"revision"`
 	Target, Run           string
 	Summary               i.Summary
@@ -156,6 +159,7 @@ func (s *Session) state(w http.ResponseWriter) {
 		return
 	}
 	out := state{StorageStatus: report.StorageStatus(s.file.Current, s.language), Boundary: report.AccountBoundary(s.language), LocalGroups: report.LocalGroups(s.file.Current), Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
+	out.Physical = report.PhysicalMapFor(s.file, result.Review, s.language)
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.PolicyJudgments().Entries {
@@ -181,6 +185,8 @@ func (s *Session) state(w http.ResponseWriter) {
 		}
 		it.AccountFields = report.PrivilegeFields(f, s.language)
 		it.StorageFields = report.StorageFields(f, s.language)
+		it.USBFields = report.USBFields(f, s.language)
+		it.USBStorageOwner = i.USBStorageOwners(s.file.Current)[f.FindingID]
 		for _, id := range connections[f.FindingID] {
 			target := byFindingID[id]
 			label := string(target.Kind)

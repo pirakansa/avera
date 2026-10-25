@@ -77,6 +77,9 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 	m := NetworkMapFor(f, result.Review, o.Language)
 	attachMapAnchors(&m, d.Blocks)
 	d.Network = &m
+	physical := PhysicalMapFor(f, result.Review, o.Language)
+	attachPhysicalAnchors(&physical, d.Blocks)
+	d.Physical = &physical
 	text, err := renderDocument(d, o)
 	if err != nil {
 		return "", fmt.Errorf("render portable report: %w", err)

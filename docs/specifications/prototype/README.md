@@ -88,3 +88,12 @@ Forwarding configuration collection and its compatibility boundaries are defined
 [Shared service judgments](shared-service-judgments.md) record the owner clarification prioritizing reusable explanations over machine identity and strict per-run difference review.
 
 The [network overview](network-overview.md) adds a shared graphical aid to the editor and HTML report without expanding collection scope.
+
+
+## USB HID and physical overview extension
+
+Live artifacts now use `usb-2026-10-25.1`, retaining earlier supported revisions.
+USB HID findings, reference attachment topology, manual/physical safeguard
+explanations and composite storage judgment ownership are described in the
+[USB contract](usb-physical-overview.md). The GUI and standalone HTML include a
+physical overview; collection performs metadata reads only.

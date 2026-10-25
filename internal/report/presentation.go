@@ -64,6 +64,7 @@ type document struct {
 	Boundary                                             string
 	Pages                                                reportPages
 	Network                                              *NetworkMap
+	Physical                                             *PhysicalMap
 	Language, Title, Warning, Summary, Contents, Details string
 	Metrics                                              []metric
 	Blocks                                               []block
@@ -223,7 +224,8 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 		}
 	}
 	accountReferences := assessment.AccountReferences(current)
-	for _, category := range []string{"current", "historical", "reference", "account-reference"} {
+	usbReferences := i.USBStorageOwners(current)
+	for _, category := range []string{"current", "historical", "reference", "account-reference", "usb-storage-reference"} {
 		presence := i.Current
 		if category == "historical" {
 			presence = i.Historical
@@ -240,6 +242,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 		if category == "account-reference" {
 			group = block{ID: "account-reference", Title: l.text("System accounts (reference)", "システムアカウント（参考情報）"), Note: l.text("UID below 1000 and not identified as the process user of an in-scope listening service. No individual judgment is requested; excluded from current counts. UID 1000+ is only a user-account candidate heuristic, not proof of SSH login access.", "UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。個別判断を求めず、今回の集計に含めません。UID 1000以上もユーザ候補を選ぶ目安で、SSHログイン可否の判定ではありません。")}
 		}
+		if category == "usb-storage-reference" {
+			group = block{ID: "usb-storage-reference", Title: l.text("Storage grouped with USB HID devices (reference)", "USBのHID機器にまとめたストレージ（参考情報）"), Note: l.text("Judge the whole composite device in its USB item. Stored storage judgments remain context only.", "複合機器全体の用途・保護策はUSB機器の項目で判断します。ストレージの以前の判断は文脈として保持します。")}
+		}
 		d.Blocks = append(d.Blocks, group)
 		if presence == i.Historical && previous == nil {
 			continue
@@ -254,12 +259,12 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			}
 			f := findings[item.FindingID]
 			if presence == i.Current {
-				if assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference") {
+				if assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference") || (usbReferences[f.FindingID] != "") != (category == "usb-storage-reference") {
 					continue
 				}
 			}
 			isAccountReference := presence == i.Current && accountReferences[f.FindingID]
-			isReference := assessment.IsReference(f) || isAccountReference
+			isReference := assessment.IsReference(f) || isAccountReference || (presence == i.Current && usbReferences[f.FindingID] != "")
 			g := guidance.ForLanguage(f.Kind, language)
 			title := fmt.Sprintf(l.text("Item %d", "項目 %d"), n+1)
 			if id, ok := f.Identity.(i.EndpointIdentity); ok {
@@ -267,6 +272,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			}
 			if account, ok := f.Identity.(i.AccountIdentity); ok {
 				title += l.text(" · Local account ", " · ローカルアカウント ") + account.Name
+			}
+			if facts, ok := f.Facts.(i.USBFacts); ok {
+				title += l.text(" · USB HID ", " · USB HID機器 ") + facts.Product
 			}
 			if facts, ok := f.Facts.(i.StorageFacts); ok {
 				model := facts.Model
@@ -300,7 +308,16 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 					b.Fields = append(b.Fields, field(value))
 				}
 			}
-			for _, value := range StorageFields(f, language) {
+			if owner := usbReferences[f.FindingID]; presence == i.Current && owner != "" {
+				b.Questions = nil
+				b.Note = l.text("Review with the composite USB device; no separate storage judgment requested.", "複合USB機器の項目でまとめて判断します。ストレージ単独の判断は求めません。")
+				for k, v := range r.Items {
+					if v.FindingID == owner {
+						b.Links = append(b.Links, link{fmt.Sprintf("item-%d", k), l.text("Review USB device", "USB機器の判断へ")})
+					}
+				}
+			}
+			for _, value := range append(StorageFields(f, language), USBFields(f, language)...) {
 				b.Fields = append(b.Fields, field(value))
 			}
 			for _, value := range PrivilegeFields(f, language) {
@@ -386,6 +403,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 	m := NetworkMapFor(&reportfile.File{Current: current, Assessments: annotations}, r, language)
 	attachMapAnchors(&m, d.Blocks)
 	d.Network = &m
+	physical := PhysicalMapFor(&reportfile.File{Current: current, Assessments: annotations}, r, language)
+	attachPhysicalAnchors(&physical, d.Blocks)
+	d.Physical = &physical
 	return d, nil
 }
 

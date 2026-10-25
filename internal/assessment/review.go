@@ -200,6 +200,16 @@ func reusable(s *i.Snapshot, f i.Finding) bool {
 		return false
 	}
 	switch x := f.Facts.(type) {
+	case i.USBFacts:
+		if len(x.StorageFingerprints) > 0 && !coverageComplete(s, i.Storage) {
+			return false
+		}
+		for _, other := range s.Findings {
+			if facts, ok := other.Facts.(i.StorageFacts); ok && slices.Contains(x.StorageFingerprints, other.FactFingerprint) && !facts.ObservationComplete {
+				return false
+			}
+		}
+		return x.ObservationComplete
 	case i.StorageFacts:
 		return x.ObservationComplete
 	case i.AccountFacts:

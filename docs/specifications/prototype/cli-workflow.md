@@ -86,3 +86,12 @@ The [storage extension](external-storage.md) reads bounded sysfs/mountinfo metad
 without mounting or modifying devices. It adds ordinary purpose/reason judgments
 for connected candidates, including unmounted ones, under the storage contract.
 Earlier nested contracts remain readable; the CLI flags are unchanged.
+
+
+## USB HID and physical overview extension
+
+Live artifacts now use `usb-2026-10-25.1`, retaining earlier supported revisions.
+USB HID findings, reference attachment topology, manual/physical safeguard
+explanations and composite storage judgment ownership are described in the
+[USB contract](usb-physical-overview.md). The GUI and standalone HTML include a
+physical overview; collection performs metadata reads only.

@@ -57,6 +57,7 @@ func AccountReferences(current *i.Snapshot) map[string]bool {
 // Raw T04 artifacts remain an inventory of all observations for compatibility.
 func ReviewSummary(current *i.Snapshot, review *i.Review) (i.Summary, int) {
 	accountReferences := AccountReferences(current)
+	usbReferences := i.USBStorageOwners(current)
 	references := map[string]bool{}
 	for _, f := range current.Findings {
 		if IsReference(f) {
@@ -70,7 +71,7 @@ func ReviewSummary(current *i.Snapshot, review *i.Review) (i.Summary, int) {
 			count++
 			continue
 		}
-		if item.Presence == i.Current && accountReferences[item.FindingID] {
+		if item.Presence == i.Current && (accountReferences[item.FindingID] || usbReferences[item.FindingID] != "") {
 			continue
 		}
 		focused = append(focused, item)

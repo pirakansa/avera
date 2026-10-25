@@ -209,6 +209,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 		switch dst.Type() {
 		case reflect.TypeFor[Identity]():
 			switch Kind(kind) {
+			case USBDevice:
+				concrete = USBIdentity{}
 			case ExternalStorage:
 				concrete = StorageIdentity{}
 			case Account:
@@ -220,6 +222,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			}
 		case reflect.TypeFor[Facts]():
 			switch Kind(kind) {
+			case USBDevice:
+				concrete = USBFacts{}
 			case ExternalStorage:
 				concrete = StorageFacts{}
 			case Account:
@@ -242,6 +246,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			}
 		case reflect.TypeFor[EvidenceValues]():
 			switch context["source_kind"] {
+			case "usb_metadata":
+				concrete = USBValues{}
 			case "local_identity":
 				concrete = AccountValues{}
 			case "proc":

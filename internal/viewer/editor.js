@@ -66,6 +66,7 @@ async function load() {
     }
 
     renderNetworkMap(state.Network);
+ renderPhysicalMap(state.Physical);
     currentItems = state.Items;
     routes = state.Routes || [];
     $('target').textContent = '対象: ' + state.Target + ' / 実行: ' + state.Run;
@@ -107,7 +108,7 @@ function renderItem(item) {
         r = item.review,
         g = item.guidance;
     const id = f.identity;
-    const title = f.kind === 'storage.external' ? '外付けストレージ · ' + (f.facts.model || f.facts.serial || '製品名不明') : f.kind === 'account.local' ? 'ローカルアカウント ' + id.name : f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
+    const title = f.kind === 'usb.device' ? 'USB HID機器 · ' + (f.facts.product || f.facts.vendor_id + ':' + f.facts.product_id) : f.kind === 'storage.external' ? '外付けストレージ · ' + (f.facts.model || f.facts.serial || '製品名不明') : f.kind === 'account.local' ? 'ローカルアカウント ' + id.name : f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
     const box = node('details');
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
@@ -134,7 +135,14 @@ function renderItem(item) {
         for (const field of item.service.Fields) fields.append(node('dt', field.Label), node('dd', field.Value));
         service.append(fields);
     }
-    if (item.account_reference) {
+    if (item.usb_storage_owner) {
+ box.append(node('summary', title+' — USB機器とまとめて判断（集計外）'));
+ const fields=node('dl');for(const f of item.storage_fields || []) fields.append(node('dt',f.Label),node('dd',f.Value));box.append(fields);
+ const link=node('a','複合USB機器の用途・保護策・判断へ');link.href='#finding-'+item.usb_storage_owner;link.addEventListener('click',()=>{const target=$('finding-'+item.usb_storage_owner);if(target)target.open=true;});box.append(link);
+ for(const a of item.judgments.filter(a=>a.actor||a.purpose||a.rationale))box.append(judgment(a));
+ $('usb-storage-reference-items').append(box);return;
+ }
+ if (item.account_reference) {
         box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。今回の判断件数には含めません。'));
         const fields = node('dl');
         for (const field of item.account_fields || []) fields.append(node('dt', field.Label), node('dd', field.Value));
@@ -163,7 +171,8 @@ function renderItem(item) {
         for (const field of item.account_fields) fields.append(node('dt', field.Label), node('dd', field.Value));
         box.append(fields);
     }
-    if ((item.storage_fields || []).length) {
+    if ((item.usb_fields || []).length) {const fields=node('dl');for(const f of item.usb_fields)fields.append(node('dt',f.Label),node('dd',f.Value));box.append(fields);}
+ if ((item.storage_fields || []).length) {
         const fields = node('dl');
         for (const field of item.storage_fields) fields.append(node('dt', field.Label), node('dd', field.Value));
         box.append(fields);
@@ -209,7 +218,8 @@ function renderItem(item) {
             ['references', '証拠の参照（1行に1件・URLを取得しません）']
         ]) {
         if (f.kind === 'storage.external' && ['exposure', 'safeguards', 'references'].includes(key)) continue;
-        const displayLabel = f.kind === 'storage.external' && key === 'purpose' ? '接続の用途・必要性・管理担当' : f.kind === 'storage.external' && key === 'rationale' ? '接続を継続してよい理由・今回の判断理由' : label;
+ if(f.kind==='usb.device' && key==='exposure')continue;
+        const displayLabel = f.kind==='usb.device' && key==='purpose' ? '用途・想定・管理担当（複合機器の機能全体）' : f.kind==='usb.device' && key==='safeguards' ? '保護策（運用マニュアル・物理管理など／人の申告）' : f.kind === 'storage.external' && key === 'purpose' ? '接続の用途・必要性・管理担当' : f.kind === 'storage.external' && key === 'rationale' ? '接続を継続してよい理由・今回の判断理由' : label;
         const wrapper = node('label', displayLabel);
         const control = node(key === 'actor' ? 'input' : 'textarea');
         control.name = key;
@@ -409,4 +419,12 @@ function renderNetworkMap(map) {
     const coverage = node('ul');
     for (const value of map.Coverage) coverage.append(node('li', value));
     box.append(coverage);
+}
+
+function renderPhysicalMap(map) {
+ const box=$('physical-map');box.replaceChildren();if(!map)return;
+ box.append(node('h2',map.Title),node('p',map.Note),node('div',map.Outside,'map-outside'));
+ const host=node('div',undefined,'map-host');host.append(node('h3',map.Host));
+ const tree=items=>{const ul=node('ul',undefined,'physical-tree');for(const item of items || []){const li=node('li');li.append(mapCard(item.Card));if(item.Children.length)li.append(tree(item.Children));ul.append(li);}return ul;};
+ host.append(tree(map.Nodes));box.append(host,node('p',map.Status));if(map.LimitNote)box.append(node('p',map.LimitNote,'notice'));
 }

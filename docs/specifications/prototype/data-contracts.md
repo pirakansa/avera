@@ -267,3 +267,12 @@ accounts, services, netfilter and T00 contracts remain readable. Account/runtime
 group evidence remains permitted under the accounts and storage revisions.
 Existing network/sudo/account hash behavior is unchanged. See the
 [storage contract](external-storage.md#contract) for exact fields and normalization.
+
+
+## USB HID and physical overview extension
+
+Live artifacts now use `usb-2026-10-25.1`, retaining earlier supported revisions.
+USB HID findings, reference attachment topology, manual/physical safeguard
+explanations and composite storage judgment ownership are described in the
+[USB contract](usb-physical-overview.md). The GUI and standalone HTML include a
+physical overview; collection performs metadata reads only.

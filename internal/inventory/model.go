@@ -3,7 +3,8 @@ package inventory
 
 const (
 	SchemaVersion              = "0.1"
-	ContractRevision           = "storage-2026-10-25.1"
+	ContractRevision           = "usb-2026-10-25.1"
+	StorageContractRevision    = "storage-2026-10-25.1"
 	AccountsContractRevision   = "accounts-2026-10-25.1"
 	ServicesContractRevision   = "services-2026-10-25.1"
 	ForwardingContractRevision = "netfilter-2026-10-25.1"
@@ -19,6 +20,7 @@ const (
 	Sudo     Collector = "sudo"
 	Accounts Collector = "accounts"
 	Storage  Collector = "storage"
+	USB      Collector = "usb"
 )
 
 type Kind string
@@ -30,6 +32,7 @@ const (
 	Unparsed        Kind = "sudo.unparsed"
 	Account         Kind = "account.local"
 	ExternalStorage Kind = "storage.external"
+	USBDevice       Kind = "usb.device"
 )
 
 type Status string
@@ -288,8 +291,16 @@ type ProcessValues struct {
 
 func (ProcessValues) evidenceValues() {}
 
+type USBLink struct {
+	SysfsPath string `json:"sysfs_path"`
+	Instance  string `json:"instance"`
+	VendorID  string `json:"vendor_id"`
+	ProductID string `json:"product_id"`
+	Serial    string `json:"serial"`
+}
 type FileValues struct {
-	Excerpt string `json:"excerpt"`
+	USB     *USBLink `json:"usb,omitempty"`
+	Excerpt string   `json:"excerpt"`
 }
 
 func (FileValues) evidenceValues() {}

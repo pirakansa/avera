@@ -147,12 +147,15 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 		}
 	}
 	accountReferences := assessment.AccountReferences(current)
-	for _, category := range []string{"current", "historical", "reference", "account-reference"} {
+	usbReferences := i.USBStorageOwners(current)
+	for _, category := range []string{"current", "historical", "reference", "account-reference", "usb-storage-reference"} {
 		presence := i.Current
 		if category == "historical" {
 			presence = i.Historical
 		}
-		if category == "account-reference" {
+		if category == "usb-storage-reference" {
+			w.WriteString("\n## Storage grouped with USB HID devices (reference)\n\nJudge the whole device in its USB item; no separate storage judgment requested.\n\n")
+		} else if category == "account-reference" {
 			w.WriteString("\n## System accounts (reference)\n\nUID below 1000, not identified as the process user of an in-scope listening service. No individual judgment requested; excluded from current counts.\n\n")
 		} else if category == "reference" {
 			w.WriteString("\n## Local-only reference services\n\nOutside the main review counts, not automatically accepted. Explain forwarding at the network entrance; forwarding is not verified by this tool.\n\n")
@@ -166,10 +169,10 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				continue
 			}
 			f := findings[item.FindingID]
-			if presence == i.Current && (assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference")) {
+			if presence == i.Current && (assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference") || (usbReferences[f.FindingID] != "") != (category == "usb-storage-reference")) {
 				continue
 			}
-			if assessment.IsReference(f) || (presence == i.Current && accountReferences[f.FindingID]) {
+			if assessment.IsReference(f) || (presence == i.Current && (accountReferences[f.FindingID] || usbReferences[f.FindingID] != "")) {
 				fmt.Fprintf(&w.Builder, "### Item %d\n\n", n+1)
 				w.field("Finding ID", f.FindingID)
 				facts, err := technical(struct {
@@ -180,7 +183,7 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 					return "", err
 				}
 				w.field("Observed values (bounded)", facts)
-				for _, value := range StorageFields(f, "en") {
+				for _, value := range append(StorageFields(f, "en"), USBFields(f, "en")...) {
 					w.field(value.Label, value.Value)
 				}
 				for _, value := range PrivilegeFields(f, "en") {
@@ -224,7 +227,7 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				return "", err
 			}
 			w.field("Observed values (bounded)", facts)
-			for _, value := range StorageFields(f, "en") {
+			for _, value := range append(StorageFields(f, "en"), USBFields(f, "en")...) {
 				w.field(value.Label, value.Value)
 			}
 			for _, value := range PrivilegeFields(f, "en") {

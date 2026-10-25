@@ -197,7 +197,7 @@ func (svc Service) observe(ctx context.Context, o Options, p *i.Snapshot, a *i.A
 	}
 	seen := map[i.Collector]bool{}
 	for _, reg := range svc.Collectors {
-		if reg.Collector == nil || (reg.Name != i.Network && reg.Name != i.Sudo && reg.Name != i.Accounts && reg.Name != i.Storage) || seen[reg.Name] {
+		if reg.Collector == nil || (reg.Name != i.Network && reg.Name != i.Sudo && reg.Name != i.Accounts && reg.Name != i.Storage && reg.Name != i.USB) || seen[reg.Name] {
 			return nil, nil, 1, fmt.Errorf("invalid collector registration")
 		}
 		seen[reg.Name] = true
@@ -225,6 +225,9 @@ func (svc Service) observe(ctx context.Context, o Options, p *i.Snapshot, a *i.A
 		if !seen[name] {
 			s.Coverage = append(s.Coverage, i.Coverage{Collector: name, Status: i.NotCollected, AttemptedSources: []string{}, DiagnosticCodes: []string{"not_enabled_in_increment"}, Limitations: []string{"Not enabled in this collection increment; no absence claim."}})
 		}
+	}
+	if err := i.EnrichUSBStorage(s); err != nil {
+		return nil, nil, 1, err
 	}
 	s.FinishedAt = now().UTC().Format(time.RFC3339)
 	r, err := evaluate(s, p, a)

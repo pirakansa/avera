@@ -191,6 +191,12 @@ func normalizeAddress(family, address string) (string, error) {
 // NormalizeIdentity preserves namespace and source anchors exactly.
 func NormalizeIdentity(kind Kind, id Identity) (Identity, error) {
 	switch kind {
+	case USBDevice:
+		x, ok := id.(USBIdentity)
+		if !ok || x.Key == "" {
+			return nil, fmt.Errorf("invalid USB identity")
+		}
+		return x, nil
 	case ExternalStorage:
 		x, ok := id.(StorageIdentity)
 		if !ok || x.Key == "" {
@@ -237,6 +243,12 @@ func stripTerminator(s string) string {
 }
 func normalizeFacts(f Facts) Facts {
 	switch x := f.(type) {
+	case USBFacts:
+		x.StorageFingerprints = append([]string{}, x.StorageFingerprints...)
+		slices.Sort(x.StorageFingerprints)
+		x.Interfaces = append([]USBInterface{}, x.Interfaces...)
+		slices.SortFunc(x.Interfaces, func(a, b USBInterface) int { return strings.Compare(a.Number, b.Number) })
+		return x
 	case StorageFacts:
 		x.Volumes = append([]StorageVolume{}, x.Volumes...)
 		for n := range x.Volumes {

@@ -16,6 +16,8 @@ type Content struct {
 // For returns fresh content for every implemented finding kind.
 func For(kind i.Kind) Content {
 	switch kind {
+	case i.USBDevice:
+		return Content{"A USB device declaring HID functions was observed.", "Review intended use and permitted handling; metadata does not authenticate a device.", []string{"What application or operation requires this device, and who manages it?", "What handling rules, operating manuals or physical safeguards protect it? Human statements are sufficient; the tool does not verify implementation.", "Record a reason and a human decision for the whole device, including grouped storage functions."}}
 	case i.ExternalStorage:
 		return Content{"A connected USB/removable non-root storage candidate was observed, including devices not mounted.", "Confirm why it is connected and whether it should remain. Connection does not establish a vulnerability or safety.", []string{"Which application or work uses this storage, for example an application save destination?", "Who manages it, and is continued connection necessary?", "Record the reason and select no additional action required if appropriate. Unmounting or disabling is not required by this inventory."}}
 
@@ -55,6 +57,14 @@ func For(kind i.Kind) Content {
 // change a decision, or identify a tool-verified defect.
 func Missing(a i.Assessment) []string {
 	var out []string
+	if a.Selector.Kind == i.USBDevice {
+		for _, f := range []struct{ name, value string }{{"purpose", a.Purpose}, {"safeguards", a.Safeguards}, {"rationale", a.Rationale}} {
+			if strings.TrimSpace(f.value) == "" {
+				out = append(out, f.name)
+			}
+		}
+		return out
+	}
 	if a.Selector.Kind == i.ExternalStorage {
 		for _, f := range []struct{ name, value string }{{"purpose", a.Purpose}, {"rationale", a.Rationale}} {
 			if strings.TrimSpace(f.value) == "" {

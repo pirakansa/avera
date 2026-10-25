@@ -53,3 +53,10 @@ storage and checks the simplified purpose/reason form, accepted judgment without
 advanced permission fields, immutable saved observations, escaped offline HTML
 and narrow layouts. All artifacts use a new temporary directory; no real USB
 device, mount or device-control operation is involved.
+
+
+`python3 test/browser/usb_devices.py` starts a private fictional USB report session.
+It checks nested physical topology, diagram-to-item navigation, manual-based
+safeguards, a single composite HID/storage judgment, immutable metadata/source
+JSON, standalone HTML navigation with scripts disabled, and narrow/print layouts.
+No host peripherals are inspected or configured. The server is stopped afterward.

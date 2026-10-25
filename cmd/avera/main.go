@@ -14,6 +14,7 @@ import (
 	"github.com/pirakansa/avera/internal/collect/network"
 	"github.com/pirakansa/avera/internal/collect/storage"
 	"github.com/pirakansa/avera/internal/collect/sudo"
+	"github.com/pirakansa/avera/internal/collect/usb"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 		{Name: "accounts", Collector: accounts.Collector{Source: localSource}},
 		{Name: "sudo", Collector: sudo.Collector{Source: localSource}},
 		{Name: "storage", Collector: storage.Collector{}},
+		{Name: "usb", Collector: usb.Collector{}},
 	}
 	cmd := root.New(app.Service{EffectiveUID: os.Geteuid, Collectors: collectors})
 	err := cmd.ExecuteContext(ctx)

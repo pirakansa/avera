@@ -23,7 +23,7 @@ Run in an explicitly opened root shell on the selected Linux/amd64 target. Choos
 
 For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
 
-The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, bounded local sudo configuration, and connected USB/removable non-root storage metadata. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
+The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, bounded local sudo configuration, and connected USB/removable non-root storage metadata, and current USB device/interface metadata. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
 The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, a conflicting logical group label, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
 
@@ -155,7 +155,7 @@ source context do, conservatively. Missing or changed linked services also requi
 re-review. Live namespace incarnation is still not proven across runs, so existing
 conservative namespace re-review rules continue to apply.
 
-New collected artifacts use contract revision `storage-2026-10-25.1` inside the
+New collected artifacts use contract revision `usb-2026-10-25.1` inside the
 v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.
@@ -268,3 +268,35 @@ possible external transport or past connection. See the
 For a fictional rehearsal with accounts, existing service judgments and two USB
 examples, open `test/fixtures/prototype/reports/storage-demo.json` with `serve`.
 The backup SSD is already explained; the unmounted transfer USB is ready to judge.
+
+
+## Explain USB devices and physical operation
+
+New collections include **USB HID機器** for devices declaring HID functions.
+Use **物理構成の概要** in the editor or the HTML configuration page to follow
+PC → root hub → hub → attached device. Open a device card to review its item.
+Hubs and other USB functions provide context without extra judgment tasks.
+
+Record the intended application/use and responsible team, then explain safeguards.
+For example: “Used to operate the existing application; the upstream operating
+manual defines who may connect devices and how the equipment is physically
+managed.” A manual reference and operating rule are valid human explanation;
+AVERA does not verify their implementation or enforce a mouse-only USB port.
+Record a reason and select **追加対応不要** when the responsible person agrees.
+
+A reliably associated HID/storage composite device is judged once in the USB
+item, covering all its functions. Its storage detail remains in a reference
+section, and prior storage explanations remain in JSON. Changing the associated
+storage observation requires fresh USB review. Without reliable association,
+storage remains independently reviewable. Never interpret an old storage-only
+judgment as approval of HID behavior.
+
+USB uncollected/partial/failed states are explicit in the diagram. Old files do
+not imply no USB devices; recollect for attachment metadata. No input events,
+keystrokes, storage contents or device configuration writes are involved.
+See the [USB contract and limits](../specifications/prototype/usb-physical-overview.md).
+
+For a fictional rehearsal, open `test/fixtures/prototype/reports/usb-demo.json`.
+It contains a hub, a mouse accepted with a manual-based human safeguard, a
+pending HID/storage composite device and the earlier storage/account/service
+examples. Stop an older `serve` and restart after rebuilding to load new assets.
