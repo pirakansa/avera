@@ -66,8 +66,9 @@ do not assume changes are uncommitted or reset someone else's work.
 ## Live collection and evidence limits
 
 Follow the [primary workflow](../report-workflow.md). Collection requires root
-and a new output path with a trusted parent owned by root/the effective user.
-Create a `/tmp` collection directory as root, not as the ordinary host user.
+and a new output filename in an existing writable directory. The normal
+ordinary-user `mkdir` followed by `sudo collect` workflow is supported; no root
+login or root-owned parent is required.
 Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
@@ -272,9 +273,26 @@ to the intended application. Permissions, races and limits remain explicit.
 
 Single-report collection now identifies directory arguments, existing output,
 missing parents, non-directory/symlink path components, owner UID mismatches,
-unsafe permissions and staging failures before collection. The owner restriction
-remains: root collection requires a root-owned output parent. Errors include the
-specific reason and corrective hints; the collect help and primary workflow show
-a JSON filename and a new root-owned private directory. Existing files and
+unsafe permissions and staging failures before collection. The initial owner restriction was subsequently corrected: root/sudo execution
+accepts ordinary-user-owned directories. Errors retain specific causes and
+corrective hints; collect help and the primary workflow show an ordinary
+`mkdir -p ./fuga` followed by `sudo collect --output ./fuga/fuga.json`. Existing files and
 permissions are not changed automatically. Artifact and CLI tests cover rejection
 without source access and preserve private atomic/no-overwrite publication.
+
+
+## Sudo output-directory compatibility fix
+
+Privileged collection now supports an explicitly selected ordinary-user-owned
+output parent, including group-writable project directories, without changing
+parent ownership or permissions. Input reports in ordinary-user-owned directories
+are also supported under sudo. Non-root parent-policy checks are unchanged.
+Private staging is checked by opened inode ownership/type/permissions, and
+legacy run publication uses a source inside that pinned private directory to
+resist replacement of the staging name by the output-parent owner.
+
+Tests cover root/non-root policy, untrusted staging owners, parent-name
+replacement for both files/runs, cleanup, collisions and existing no-follow
+behavior. Optional tests were actually run under sudo in a UID 1000-owned mode
+775 directory, including the collect command with an injected collector, so no
+host inventory was collected. Output remains root-owned mode 0600 under sudo.

@@ -15,45 +15,46 @@ Go 1.26.10 is the minimum because the local Web server makes standard-library vu
 
 ## First collection on the target
 
-Run in an explicitly opened root shell on the selected Linux/amd64 target. Choose an existing private output directory owned by root and a new JSON filename:
+Run from your ordinary working directory using `sudo` on the selected
+Linux/amd64 target. A direct root login or root-owned output directory is not
+required. The output parent must already exist and the JSON filename must be new:
 
 ```sh
-./avera collect --target-id my-server --output /root/avera-run-001.json
+mkdir -p ./fuga
+sudo ./bin/avera collect --target-id my-server --output ./fuga/fuga.json
 ```
 
-For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
-
-For `sudo` from an ordinary shell, create a **new** root-owned output directory
-and include a JSON filename (choose another directory name if it already exists):
-
-```sh
-sudo mkdir -m 700 ./avera-output
-sudo ./bin/avera collect --output ./avera-output/report.json
-```
+The normal `sudo collect` workflow accepts directories owned by the ordinary
+user, including group-writable project directories. Root can also read an
+explicit input report from an ordinary-user-owned directory. AVERA checks actual
+filesystem access, never changes the existing parent's owner or permissions, and
+does not use `SUDO_UID` or `SUDO_USER` to decide which path root may select.
+If already in a root shell, run `./avera collect --output PATH/report.json`
+without `sudo`; the same rules apply.
 
 `--output` is the new report **file**, not its directory. `./fuga/` is a directory
-argument; `./fuga/report.json` is a file argument but still requires an existing,
-trusted parent. A directory created with ordinary `mkdir` remains owned by that
-ordinary user even when `collect` is later run with `sudo`. Do not change existing
-project-directory ownership just to store a report; create a separate directory.
-The private root-generated file remains root-owned with mode `0600`; transfer it
-for ordinary-user review through your chosen method below.
+argument; `./fuga/fuga.json` is a file argument. Paths must have no symlink
+components. The report file remains owned by the effective writer (root under
+`sudo`) with mode `0600`; its parent can remain owned by the ordinary user.
+Transfer the file through your chosen method below for ordinary-user review.
 
-Output errors now identify the failing condition before source collection:
+Output errors identify the failing condition before source collection:
 
 | Diagnostic | Action |
 | --- | --- |
 | Output is a directory / include a filename | Add a new filename such as `report.json`. |
 | Destination already exists | Choose an unused filename; AVERA never overwrites it. |
-| Parent directory does not exist | Create the parent as the user running AVERA. |
-| Parent is owned by another UID | Use a private directory owned by the effective user or root. Root collection requires a root-owned parent. |
-| Parent allows group/other writes | Use a private directory, normally mode `0700`. |
+| Parent directory does not exist | Create the parent, for example with `mkdir -p ./fuga`. |
+| Parent is owned by another UID (ordinary execution only) | Choose a directory owned by that user or root. This restriction does not apply to root/sudo execution. |
+| Parent allows group/other writes (ordinary execution only) | Use a private directory, normally mode `0700`, or an appropriate sticky directory. |
 | Parent component is a symbolic link | Use an existing path without symlink components. |
 | Cannot access the parent / cannot create temporary directory | Check access/write permissions, read-only filesystems and available space. |
 
-Ownership errors include the parent path, actual UID, required owner and an
-example of creating a new private directory. Diagnostics remain English. The
-trust checks, private staging and no-overwrite behavior remain in force.
+Private staging is created as the effective writer and verified by its opened
+inode's owner and permissions. Publication uses pinned directory descriptors and
+never overwrites an existing destination. A parent owner can move directory
+entries, so the selected recipient controls availability of files in that parent;
+AVERA does not treat their continued presence as an integrity guarantee.
 
 The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, bounded local sudo configuration, and connected USB/removable non-root storage metadata, and current USB device/interface metadata. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 

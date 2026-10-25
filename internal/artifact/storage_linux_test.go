@@ -254,8 +254,10 @@ func TestUnsafeParentAndMixedTargets(t *testing.T) {
 	if e := os.Chmod(unsafe, 0777); e != nil {
 		t.Fatal(e)
 	}
-	if e := Write(context.Background(), filepath.Join(unsafe, "out.json"), a); e == nil {
-		t.Fatal("unsafe parent accepted")
+	if e := Write(context.Background(), filepath.Join(unsafe, "out.json"), a); os.Geteuid() != 0 && e == nil {
+		t.Fatal("unsafe ordinary-user parent accepted")
+	} else if os.Geteuid() == 0 && e != nil {
+		t.Fatal(e)
 	}
 	other := example(t)
 	other.(*inventory.Assessments).TargetID = "other"
@@ -387,10 +389,12 @@ func TestParentPolicyDiagnostics(t *testing.T) {
 		permissions uint32
 		message     string
 	}{
-		{"sudo user-owned directory", ordinaryUID, 0, 0700, "sudo mkdir -m 700 NEW_DIRECTORY"},
+		{"sudo user-owned directory", ordinaryUID, 0, 0700, ""},
 		{"different ordinary owner", ordinaryUID + 1, ordinaryUID, 0700, "expected effective UID 1000"},
 		{"writable by other users", ordinaryUID, ordinaryUID, 0777, "allows group/other writes"},
 		{"root private directory", 0, 0, 0700, ""},
+		{"sudo group-writable user directory", ordinaryUID, 0, 0775, ""},
+		{"sudo world-writable parent", ordinaryUID, 0, 0777, ""},
 		{"own private directory", ordinaryUID, ordinaryUID, 0700, ""},
 		{"root-owned sticky tmp", 0, ordinaryUID, unix.S_ISVTX | 0777, ""},
 	} {
@@ -406,5 +410,210 @@ func TestParentPolicyDiagnostics(t *testing.T) {
 				t.Fatalf("policy diagnostic: %v", err)
 			}
 		})
+	}
+}
+
+func TestStagingDirectoryMustBelongToWriter(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		st    unix.Stat_t
+		uid   int
+		valid bool
+	}{
+		{"root private stage", unix.Stat_t{Uid: 0, Mode: unix.S_IFDIR | 0700}, 0, true},
+		{"ordinary private stage", unix.Stat_t{Uid: 1000, Mode: unix.S_IFDIR | 0700}, 1000, true},
+		{"substituted user-owned stage under root", unix.Stat_t{Uid: 1000, Mode: unix.S_IFDIR | 0700}, 0, false},
+		{"public stage", unix.Stat_t{Uid: 0, Mode: unix.S_IFDIR | 0777}, 0, false},
+		{"non-directory", unix.Stat_t{Uid: 0, Mode: unix.S_IFREG | 0600}, 0, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := checkStageMetadata(test.st, test.uid)
+			if (err == nil) != test.valid {
+				t.Fatalf("valid=%t error=%v", test.valid, err)
+			}
+		})
+	}
+}
+
+type replaceStageName struct {
+	context.Context
+	t             *testing.T
+	parent, moved string
+	calls         int
+}
+
+func (c *replaceStageName) Err() error {
+	c.calls++
+	// One artifact: writeFile checks before/after the write, then publication checks.
+	if c.calls == 3 {
+		matches, err := filepath.Glob(filepath.Join(c.parent, ".avera-*"))
+		if err != nil || len(matches) != 1 {
+			c.t.Fatalf("find stage: %v %v", matches, err)
+		}
+		if err := os.Rename(matches[0], c.moved); err != nil {
+			c.t.Fatal(err)
+		}
+		if err := os.Mkdir(matches[0], 0700); err != nil {
+			c.t.Fatal(err)
+		}
+		// The replacement has attacker-chosen contents at the original source name.
+		if err := os.WriteFile(filepath.Join(matches[0], "a.json"), []byte("substituted"), 0600); err != nil {
+			c.t.Fatal(err)
+		}
+	}
+	return nil
+}
+func TestParentNameReplacementCannotSubstitutePublishedRun(t *testing.T) {
+	dir := t.TempDir()
+	ctx := &replaceStageName{Context: context.Background(), t: t, parent: dir, moved: filepath.Join(dir, "moved-stage")}
+	output := filepath.Join(dir, "run")
+	a := example(t)
+	err := WriteRun(ctx, output, map[string]inventory.Artifact{"a.json": a})
+	// Cleanup can report the substituted, nonempty parent's name. Publication must
+	// nevertheless have come from the pinned private source, never its replacement.
+	if err != nil && !errors.Is(err, unix.ENOTEMPTY) {
+		t.Fatal(err)
+	}
+	data, encodeErr := inventory.Encode(a)
+	if encodeErr != nil {
+		t.Fatal(encodeErr)
+	}
+	if got := contents(t, filepath.Join(output, "a.json")); got != string(data) {
+		t.Fatalf("published substituted contents: %q", got)
+	}
+	mode(t, output, DirectoryMode)
+	mode(t, filepath.Join(output, "a.json"), FileMode)
+}
+
+// This optional integration test is executed separately under sudo with a
+// disposable directory created by the ordinary user. Default tests need no root.
+func TestSudoPublicationInUserOwnedDirectory(t *testing.T) {
+	parent := os.Getenv("AVERA_TEST_USER_DIRECTORY")
+	if os.Geteuid() != 0 || parent == "" {
+		t.Skip("requires explicit sudo integration fixture")
+	}
+	var st unix.Stat_t
+	if err := unix.Stat(parent, &st); err != nil {
+		t.Fatal(err)
+	}
+	if st.Uid == 0 {
+		t.Fatal("integration parent must belong to an ordinary user")
+	}
+	a := example(t)
+	file := filepath.Join(parent, "root-report.json")
+	run := filepath.Join(parent, "root-run")
+	for _, name := range []string{file, run} {
+		if _, err := os.Lstat(name); !os.IsNotExist(err) {
+			t.Fatalf("test output must be absent: %s (%v)", name, err)
+		}
+	}
+	t.Cleanup(func() {
+		for _, name := range []string{file, run} {
+			if err := os.RemoveAll(name); err != nil {
+				t.Error(err)
+			}
+		}
+	})
+	if err := CheckFileDestination(file); err != nil {
+		t.Fatal(err)
+	}
+	if err := Write(context.Background(), file, a); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Read(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Read(filepath.Join(parent, "user-input.json")); err != nil {
+		t.Fatal("root reading user-owned input", err)
+	}
+	if err := WriteRun(context.Background(), run, map[string]inventory.Artifact{"a.json": a}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Read(filepath.Join(run, "a.json")); err != nil {
+		t.Fatal(err)
+	}
+	if err := Write(context.Background(), file, a); !errors.Is(err, os.ErrExist) {
+		t.Fatal("overwrite allowed", err)
+	}
+	mode(t, file, FileMode)
+	mode(t, run, DirectoryMode)
+	assertClean(t, parent)
+	var after unix.Stat_t
+	if err := unix.Stat(parent, &after); err != nil || after.Uid != st.Uid || after.Mode != st.Mode {
+		t.Fatal("parent ownership or permissions changed", err)
+	}
+	// A directory inserted by the parent owner must not be chmodded or used by root.
+	substituted := filepath.Join(parent, "foreign-stage")
+	if err := os.Mkdir(substituted, 0700); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Remove(substituted); err != nil {
+			t.Error(err)
+		}
+	})
+	if err := os.Chown(substituted, int(st.Uid), int(st.Gid)); err != nil {
+		t.Fatal(err)
+	}
+	fd, err := unix.Open(parent, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer unix.Close(fd)
+	if stage, err := openPrivateStage(fd, "foreign-stage"); err == nil {
+		_ = unix.Close(stage)
+		t.Fatal("root accepted substituted ordinary-user staging directory")
+	}
+	mode(t, substituted, DirectoryMode)
+}
+
+func TestParentNameReplacementCannotSubstitutePublishedFile(t *testing.T) {
+	dir := t.TempDir()
+	ctx := &replaceStageName{Context: context.Background(), t: t, parent: dir, moved: filepath.Join(dir, "moved-stage")}
+	output := filepath.Join(dir, "report.json")
+	err := WriteBytes(ctx, output, []byte("original complete report"))
+	if err != nil && !errors.Is(err, unix.ENOTEMPTY) {
+		t.Fatal(err)
+	}
+	if got := contents(t, output); got != "original complete report" {
+		t.Fatalf("substituted file: %q", got)
+	}
+	mode(t, output, FileMode)
+}
+
+type insertExistingStageFile struct {
+	context.Context
+	t        *testing.T
+	parent   string
+	inserted string
+}
+
+func (c *insertExistingStageFile) Err() error {
+	if c.inserted != "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(c.parent, ".avera-*"))
+	if err != nil || len(matches) != 1 {
+		c.t.Fatal("stage not found", matches, err)
+	}
+	c.inserted = filepath.Join(matches[0], "artifact")
+	if err := os.WriteFile(c.inserted, []byte("pre-existing private data"), 0600); err != nil {
+		c.t.Fatal(err)
+	}
+	return nil
+}
+func TestFailedExclusiveCreateNeverDeletesPreexistingStageContents(t *testing.T) {
+	dir := t.TempDir()
+	ctx := &insertExistingStageFile{Context: context.Background(), t: t, parent: dir}
+	output := filepath.Join(dir, "report.json")
+	err := WriteBytes(ctx, output, []byte("new output"))
+	if !errors.Is(err, os.ErrExist) {
+		t.Fatal("exclusive create was bypassed", err)
+	}
+	if got := contents(t, ctx.inserted); got != "pre-existing private data" {
+		t.Fatal("unowned stage content changed", got)
+	}
+	if _, err := os.Stat(output); !os.IsNotExist(err) {
+		t.Fatal("failed publication exposed output", err)
 	}
 }

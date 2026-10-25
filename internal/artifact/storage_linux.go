@@ -92,14 +92,16 @@ func checkParent(dir int, name string) error {
 }
 
 func checkParentMetadata(st unix.Stat_t, name string, effectiveUID int) error {
-	// A pinned descriptor prevents ancestor substitution. Reject directories in
-	// which another principal could replace our private staging entry.
+	// Root may explicitly select an ordinary user's working directory. Protect
+	// the staging directory itself; parent ownership is not an authorization rule
+	// for privileged callers. Ordinary callers retain the existing private-parent policy.
+	if effectiveUID == 0 {
+		return nil
+	}
 	if st.Uid != uint32(effectiveUID) && st.Uid != 0 {
-		if effectiveUID == 0 {
-			return fmt.Errorf("parent directory %q is owned by UID %d; root execution requires a root-owned parent (UID 0). Create a NEW directory with sudo mkdir -m 700 NEW_DIRECTORY, then use --output NEW_DIRECTORY/report.json: %w", name, st.Uid, unix.EPERM)
-		}
 		return fmt.Errorf("parent directory %q is owned by UID %d; expected effective UID %d or root (UID 0). Choose a private directory owned by the user running AVERA: %w", name, st.Uid, effectiveUID, unix.EPERM)
 	}
+
 	if st.Mode&0022 != 0 && st.Mode&unix.S_ISVTX == 0 {
 		return fmt.Errorf("parent directory %q allows group/other writes without the sticky bit; choose a private directory with mode 0700: %w", name, unix.EPERM)
 	}
@@ -150,26 +152,27 @@ func ReadBytes(path string, limit int64) ([]byte, error) {
 	}
 	return data, nil
 }
-func writeFile(ctx context.Context, dir int, name string, data []byte) (err error) {
+func writeFile(ctx context.Context, dir int, name string, data []byte) (created bool, err error) {
 	if e := ctx.Err(); e != nil {
-		return e
+		return created, e
 	}
 	fd, e := unix.Openat(dir, name, unix.O_WRONLY|unix.O_CREAT|unix.O_EXCL|unix.O_NOFOLLOW|unix.O_CLOEXEC, FileMode)
 	if e != nil {
-		return e
+		return created, e
 	}
+	created = true
 	f := os.NewFile(uintptr(fd), name)
 	defer func() { err = errors.Join(err, f.Close()) }()
 	if e = f.Chmod(FileMode); e != nil {
-		return e
+		return created, e
 	}
 	if _, e = f.Write(data); e != nil {
-		return e
+		return created, e
 	}
 	if e = ctx.Err(); e != nil {
-		return e
+		return created, e
 	}
-	return f.Sync()
+	return created, f.Sync()
 }
 
 // Write publishes one complete artifact atomically using a hard link that cannot replace a name.
@@ -194,8 +197,15 @@ func WriteBytes(ctx context.Context, path string, data []byte) (err error) {
 		return e
 	}
 	defer unix.Close(stage)
-	defer func() { err = errors.Join(err, removeStage(dir, stage, temp, []string{"artifact"})) }()
-	if e = writeFile(ctx, stage, "artifact", data); e != nil {
+	created := false
+	defer func() {
+		names := []string{}
+		if created {
+			names = append(names, "artifact")
+		}
+		err = errors.Join(err, removeStage(dir, stage, temp, names))
+	}()
+	if created, e = writeFile(ctx, stage, "artifact", data); e != nil {
 		return e
 	}
 	if e = ctx.Err(); e != nil {
@@ -208,20 +218,44 @@ func WriteBytes(ctx context.Context, path string, data []byte) (err error) {
 }
 
 func createStage(dir int) (string, int, error) {
-	temp := ".avera-" + rand.Text()
-	if e := unix.Mkdirat(dir, temp, DirectoryMode); e != nil {
-		return "", -1, e
+	name := ".avera-" + rand.Text()
+	if err := unix.Mkdirat(dir, name, DirectoryMode); err != nil {
+		return "", -1, err
 	}
-	stage, e := unix.Openat(dir, temp, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
-	if e != nil {
-		return "", -1, errors.Join(e, unix.Unlinkat(dir, temp, unix.AT_REMOVEDIR))
+	stage, err := openPrivateStage(dir, name)
+	if err != nil {
+		return "", -1, errors.Join(err, unix.Unlinkat(dir, name, unix.AT_REMOVEDIR))
 	}
-	if e = unix.Fchmod(stage, DirectoryMode); e != nil {
-		_ = unix.Close(stage)
-		return "", -1, errors.Join(e, unix.Unlinkat(dir, temp, unix.AT_REMOVEDIR))
-	}
-	return temp, stage, nil
+	return name, stage, nil
 }
+
+// openPrivateStage checks the opened inode, not the replaceable entry in the
+// output parent. Never chmod or write into a substituted untrusted directory.
+func openPrivateStage(parent int, name string) (int, error) {
+	stage, err := unix.Openat(parent, name, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
+	if err != nil {
+		return -1, err
+	}
+	var st unix.Stat_t
+	if err = unix.Fstat(stage, &st); err == nil {
+		err = checkStageMetadata(st, os.Geteuid())
+	}
+	if err == nil {
+		err = unix.Fchmod(stage, DirectoryMode)
+	}
+	if err != nil {
+		_ = unix.Close(stage)
+		return -1, err
+	}
+	return stage, nil
+}
+func checkStageMetadata(st unix.Stat_t, effectiveUID int) error {
+	if st.Mode&unix.S_IFMT != unix.S_IFDIR || st.Uid != uint32(effectiveUID) || st.Mode&0077 != 0 {
+		return fmt.Errorf("private staging directory was replaced or is not owned exclusively by the effective user: %w", unix.EPERM)
+	}
+	return nil
+}
+
 func removeStage(dir, stage int, temp string, names []string) (err error) {
 	for _, name := range names {
 		e := unix.Unlinkat(stage, name, 0)
@@ -265,32 +299,45 @@ func WriteRun(ctx context.Context, path string, artifacts map[string]inventory.A
 		return e
 	}
 	defer unix.Close(stage)
+	const runName = "run"
+	if e = unix.Mkdirat(stage, runName, DirectoryMode); e != nil {
+		return errors.Join(e, removeStage(dir, stage, temp, nil))
+	}
+	run, e := openPrivateStage(stage, runName)
+	if e != nil {
+		return errors.Join(e, unix.Unlinkat(stage, runName, unix.AT_REMOVEDIR), removeStage(dir, stage, temp, nil))
+	}
+	defer unix.Close(run)
 	published := false
 	defer func() {
-		if published {
-			return
+		if !published {
+			for name := range encoded {
+				if e := unix.Unlinkat(run, name, 0); e != nil && !errors.Is(e, unix.ENOENT) {
+					err = errors.Join(err, e)
+				}
+			}
+			err = errors.Join(err, unix.Unlinkat(stage, runName, unix.AT_REMOVEDIR))
 		}
-		names := make([]string, 0, len(encoded))
-		for name := range encoded {
-			names = append(names, name)
-		}
-		err = errors.Join(err, removeStage(dir, stage, temp, names))
+		err = errors.Join(err, removeStage(dir, stage, temp, nil))
 	}()
 	for name, data := range encoded {
-		if e = writeFile(ctx, stage, name, data); e != nil {
+		if _, e = writeFile(ctx, run, name, data); e != nil {
 			return e
 		}
 	}
-	if e = unix.Fsync(stage); e != nil {
+	if e = unix.Fsync(run); e != nil {
 		return e
 	}
 	if e = ctx.Err(); e != nil {
 		return e
 	}
-	if e = unix.Renameat2(dir, temp, dir, base, unix.RENAME_NOREPLACE); e != nil {
+	// The parent owner may move/replace temp, but cannot substitute run inside
+	// our verified private stage. Publish from that pinned descriptor.
+	if e = unix.Renameat2(stage, runName, dir, base, unix.RENAME_NOREPLACE); e != nil {
 		return e
 	}
 	published = true
+
 	return unix.Fsync(dir)
 }
 

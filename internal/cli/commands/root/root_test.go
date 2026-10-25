@@ -180,3 +180,31 @@ func TestCollectOutputDiagnosticsBeforeSourceAccess(t *testing.T) {
 		t.Fatal("input changed", err)
 	}
 }
+
+// Executed separately under sudo; collection uses an injected source and never
+// inventories the developer's host. The destination fixture belongs to UID 1000.
+func TestSudoCollectIntoUserOwnedDirectory(t *testing.T) {
+	parent := os.Getenv("AVERA_TEST_USER_DIRECTORY")
+	if os.Geteuid() != 0 || parent == "" {
+		t.Skip("requires explicit sudo integration fixture")
+	}
+	output := filepath.Join(parent, "cli-report.json")
+	if _, err := os.Lstat(output); !os.IsNotExist(err) {
+		t.Fatal("integration destination must be new", err)
+	}
+	t.Cleanup(func() {
+		if err := os.Remove(output); err != nil {
+			t.Error(err)
+		}
+	})
+	called := false
+	svc := app.Service{EffectiveUID: os.Geteuid, Collectors: []app.Registration{{Name: i.Network, Collector: fakeCollector{status: i.Complete, called: &called}}}}
+	code, _, diag := execute(t, svc, "collect", "--output", output)
+	if code != 0 || !called {
+		t.Fatalf("sudo collect code=%d called=%t diagnostics=%s", code, called, diag)
+	}
+	file, err := os.Stat(output)
+	if err != nil || file.Mode().Perm() != 0600 {
+		t.Fatal("missing or non-private output", file, err)
+	}
+}
