@@ -53,6 +53,11 @@ func New(s, p *i.Snapshot, a, h *i.Assessments, binding string) (*File, error) {
 	if h == nil {
 		h = empty(s)
 	}
+	if s.ContractRevision == i.ContractRevision && h.ContractRevision != i.ContractRevision {
+		copy := *h
+		copy.ContractRevision = i.ContractRevision
+		h = &copy
+	}
 	f := &File{Binding: binding, Current: s, Previous: p, Assessments: &active, History: h}
 	if _, err = f.Encode(); err != nil {
 		return nil, err

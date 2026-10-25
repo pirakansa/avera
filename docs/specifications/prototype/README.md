@@ -82,3 +82,5 @@ Implemented baseline: the CLI builds, T01 has package-local model/storage tests,
 ## Copyable agent assignment
 
 > Implement task Txx from `docs/specifications/prototype/tasks/`. First read `AGENTS.md`, `docs/specifications/product-direction.md`, the prototype plan, and the specifications linked by the task. Check that prerequisites are implemented or that the agreed fixtures/interfaces are available. Treat prototype defaults as experiments, not release promises. Stay within the task's ownership boundary. Coordinate shared-file changes with the integration owner. Preserve collected facts and human assessments separately. Use fictional fixtures and temporary directories, run the required checks, and report the resulting behavior, limitations, and next handoff. Do not publish a release.
+
+Forwarding configuration collection and its compatibility boundaries are defined in the [forwarding collector specification](forwarding-collector.md).

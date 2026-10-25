@@ -57,14 +57,14 @@ func (f *File) RouteCurrent(r Route) bool {
 			internal = v
 		}
 	}
-	return entrance != nil && internal != nil && entrance.Kind == i.Endpoint && !assessment.IsReference(*entrance) && assessment.IsReference(*internal) && entrance.FactFingerprint == r.EntranceFingerprint && internal.FactFingerprint == r.InternalFingerprint
+	return entrance != nil && internal != nil && (entrance.Kind == i.Endpoint || entrance.Kind == i.Forwarding) && !assessment.IsReference(*entrance) && assessment.IsReference(*internal) && entrance.FactFingerprint == r.EntranceFingerprint && internal.FactFingerprint == r.InternalFingerprint
 }
 func (f *File) applyRoutes(edit Edit, found i.Finding, now time.Time) error {
 	// Missing field preserves links for callers that only update judgment text.
 	if edit.RelatedIDs == nil {
 		return nil
 	}
-	if found.Kind != i.Endpoint || assessment.IsReference(found) {
+	if (found.Kind != i.Endpoint && found.Kind != i.Forwarding) || assessment.IsReference(found) {
 		if len(edit.RelatedIDs) > 0 {
 			return fmt.Errorf("only network entrances can own routes")
 		}

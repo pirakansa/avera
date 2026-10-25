@@ -1,0 +1,18 @@
+# Fictional configuration; no machine was inspected.
+*filter
+:INPUT DROP [12:456]
+-A INPUT -i lo -j ACCEPT
+COMMIT
+*nat
+:PREROUTING ACCEPT [12:456]
+:OUTPUT ACCEPT [0:0]
+:INTERNAL - [0:0]
+-A PREROUTING -i eth0 -p tcp --dport 8443 -j INTERNAL
+-A INTERNAL -s 192.0.2.0/24 -p tcp -j DNAT --to-destination 127.0.0.1:9000
+-A OUTPUT -p tcp --dport 8080 -j REDIRECT --to-ports 9000
+-A PREROUTING -p tcp --dport 443 -j DNAT --to-destination 192.0.2.10:443
+COMMIT
+*mangle
+:PREROUTING ACCEPT [0:0]
+-A PREROUTING -p tcp --dport 8888 -j TPROXY --on-ip 127.0.0.1 --on-port 9000
+COMMIT

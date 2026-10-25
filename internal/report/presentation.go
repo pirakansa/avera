@@ -178,7 +178,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			sourceIndex = 1
 		}
 		if category == "reference" {
-			group = block{ID: "local-reference", Title: l.text("Local-only reference services", "ローカル限定の参考情報"), Note: l.text("Outside the main review scope, not automatically accepted. Forwarding paths must be explained at their network entrance; they are not discovered by this tool.", "通常は個別の判断を求めず、未確認件数にも含めません。安全と自動判定したものではありません。転送先として利用する場合は入口側で経路と保護策を説明してください。ツールは転送設定を検証していません。")}
+			group = block{ID: "local-reference", Title: l.text("Local-only reference services", "ローカル限定の参考情報"), Note: l.text("Outside the main review scope, not automatically accepted. Explain paths and safeguards at the entrance; collected translation candidates do not verify effective paths.", "通常は個別の判断を求めず、未確認件数にも含めません。安全と自動判定したものではありません。転送先として利用する場合は入口側で経路と保護策を説明してください。ツールは転送設定を検証していません。")}
 		}
 		d.Blocks = append(d.Blocks, group)
 		if presence == i.Historical && previous == nil {
@@ -201,7 +201,13 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			if id, ok := f.Identity.(i.EndpointIdentity); ok {
 				title += " · " + strings.ToUpper(id.Transport) + " " + id.LocalAddress + fmt.Sprintf(":%d", id.LocalPort)
 			}
+			if f.Kind == i.Forwarding {
+				title += l.text(" · Forwarding configuration", " · 転送設定")
+			}
 			b := block{FindingID: f.FindingID, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
+			if facts, ok := f.Facts.(i.ForwardingFacts); ok {
+				b.Fields = append(b.Fields, field{l.text("Observed forwarding rule", "観測した転送設定"), facts.Rule})
+			}
 			if assessment.IsReference(f) {
 				b.Fields = []field{{l.text("Finding ID", "観測項目 ID"), f.FindingID}, {l.text("Observed fact", "観測した事実"), l.text("Loopback-only endpoint; retained as reference, not a verified vulnerability or safety judgment.", "ループバック限定の接続口です。参考情報として保持し、脆弱性や安全性を判定したものではありません。")}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}}
 				b.Questions = nil

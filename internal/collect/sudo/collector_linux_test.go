@@ -259,7 +259,7 @@ func TestArtifactContractAndRawContext(t *testing.T) {
 		r := collect(t, root, Limits{})
 		ts := "2026-10-24T00:00:00Z"
 		snapshot := &inventory.Snapshot{
-			Envelope:   inventory.Envelope{SchemaVersion: inventory.SchemaVersion, ContractRevision: inventory.ContractRevision, Kind: "snapshot", TargetID: "fictional-host"},
+			Envelope:   inventory.Envelope{SchemaVersion: inventory.SchemaVersion, ContractRevision: inventory.LegacyContractRevision, Kind: "snapshot", TargetID: "fictional-host"},
 			SnapshotID: "fictional-sudo", CollectedAt: ts, FinishedAt: ts, ToolVersion: Version,
 			Environment: inventory.Environment{OSID: "fictional", OSVersion: "fixture", Architecture: "amd64", KernelRelease: "fixture", ExecutionScope: "fictional-policy-root"},
 			Coverage:    []inventory.Coverage{r.Coverage}, Findings: r.Findings, Evidence: r.Evidence,
@@ -335,7 +335,7 @@ func TestPresentationSnapshots(t *testing.T) {
 			r := collect(t, root, Limits{})
 			ts := "2026-10-24T00:00:00Z"
 			snapshot := &inventory.Snapshot{
-				Envelope:   inventory.Envelope{SchemaVersion: inventory.SchemaVersion, ContractRevision: inventory.ContractRevision, Kind: "snapshot", TargetID: "fictional-host"},
+				Envelope:   inventory.Envelope{SchemaVersion: inventory.SchemaVersion, ContractRevision: inventory.LegacyContractRevision, Kind: "snapshot", TargetID: "fictional-host"},
 				SnapshotID: "fictional-sudo-" + name, CollectedAt: ts, FinishedAt: ts, ToolVersion: Version,
 				Environment: inventory.Environment{OSID: "fictional", OSVersion: "fixture", Architecture: "amd64", KernelRelease: "fixture", ExecutionScope: "fictional-policy-root"},
 				Coverage:    []inventory.Coverage{r.Coverage}, Findings: r.Findings, Evidence: r.Evidence,

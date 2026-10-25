@@ -211,13 +211,15 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			switch Kind(kind) {
 			case Endpoint:
 				concrete = EndpointIdentity{}
-			case Rule, Unparsed:
+			case Rule, Unparsed, Forwarding:
 				concrete = SourceIdentity{}
 			}
 		case reflect.TypeFor[Facts]():
 			switch Kind(kind) {
 			case Endpoint:
 				concrete = NetworkFacts{}
+			case Forwarding:
+				concrete = ForwardingFacts{}
 			case Rule:
 				concrete = SudoFacts{}
 			case Unparsed:
@@ -234,7 +236,7 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			switch context["source_kind"] {
 			case "proc":
 				concrete = ProcessValues{}
-			case "local_file":
+			case "local_file", "command_output":
 				concrete = FileValues{}
 			}
 		}
@@ -268,6 +270,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			switch ctx["kind"] {
 			case string(Endpoint):
 				t = reflect.TypeFor[NetworkFacts]()
+			case string(Forwarding):
+				t = reflect.TypeFor[ForwardingFacts]()
 			case string(Rule):
 				t = reflect.TypeFor[SudoFacts]()
 			case string(Unparsed):

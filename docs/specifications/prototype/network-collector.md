@@ -202,3 +202,10 @@ thirteen in required modules.
 --- PASS: TestLiveUbuntuEndpoints (0.01s)
 PASS
 ```
+
+## Live CLI forwarding extension
+
+The socket-only collector described above is unchanged. The live CLI now wraps it
+with read-only [forwarding collection](forwarding-collector.md), sharing namespace
+scope and conservatively combining coverage. Socket-only fixtures retain the T00
+contract revision.

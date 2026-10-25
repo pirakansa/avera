@@ -21,7 +21,7 @@ Run in an explicitly opened root shell on the selected Linux/amd64 target. Choos
 ./avera collect --target-id my-server --output /root/avera-run-001.json
 ```
 
-The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. P1 collects network only; sudo remains explicitly uncollected. Distribution/kernel metadata not inspected by the prototype remains unknown.
+The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live network collection reads sockets and existing iptables/nftables configuration; sudo remains explicitly uncollected. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
 The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, wrong target, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
 
@@ -101,3 +101,39 @@ For diagnostic compatibility, `collect --legacy-output` still writes the earlier
 ## Trial feedback
 
 Check whether you can complete the collect → carry → edit → export → carry-back cycle without understanding JSON. Report confusing Japanese, unclear save/download behavior, difficulty finding old explanations, or uncertainty about which file to carry. The specification describes what the prototype implements; automated checks are not owner acceptance of this workflow.
+
+## Inspect forwarding configuration
+
+The same `collect` command now also reads destination translation candidates from
+iptables (including the explicit legacy backend), IPv6 iptables and nftables.
+No extra flag or firewall configuration change is needed. Existing system tools
+are used when available; missing tools, permission errors, malformed output and
+limits make network coverage incomplete (exit 2), with usable results still saved.
+A missing backend never means that no forwarding exists. Inspect the collection
+scope and diagnostics before making a decision.
+
+In the editor, expand a **転送設定** item. Its observed rule and linked source evidence
+retain ingress conditions and surrounding chain configuration. Select the related
+loopback service, explain the route, and record protection by upstream routers or
+cloud controls in the safeguards/reason fields. Then choose the human decision,
+including **追加対応不要** when justified. Upstream safeguards do not remove the
+observed setting from the inventory. Export HTML to include the rule, evidence,
+judgment and human relationship explanation.
+
+The collector retains destination translation candidates even when they are not
+literal loopback addresses: REDIRECT, maps and chain traversal can require human
+interpretation. A candidate is not proof that external traffic can reach a service.
+The tool does not simulate packet filtering, inspect upstream devices or collect
+reverse-proxy configuration. The iptables compatibility and native nftables views
+can duplicate a setting; they remain labeled by source rather than being merged
+on an unproven equivalence. Their counts describe review items, not unique holes.
+
+Counters do not trigger re-review. Configuration changes anywhere in a candidate's
+source context do, conservatively. Missing or changed linked services also require
+re-review. Live namespace incarnation is still not proven across runs, so existing
+conservative namespace re-review rules continue to apply.
+
+New collected artifacts use contract revision `netfilter-2026-10-25.1` inside the
+existing v2 portable container. Existing T00 artifacts and v1/v2 reports remain
+readable, including as previous collection input; original files are not modified.
+Older executables cannot read the new nested contract revision.

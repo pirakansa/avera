@@ -53,7 +53,7 @@ func validHash(s string) bool {
 	return true
 }
 func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
-	if !((c == Network && k == Endpoint) || (c == Sudo && (k == Rule || k == Unparsed))) {
+	if !((c == Network && (k == Endpoint || k == Forwarding)) || (c == Sudo && (k == Rule || k == Unparsed))) {
 		return fmt.Errorf("collector/kind mismatch")
 	}
 	n, e := NormalizeIdentity(k, id)
@@ -76,6 +76,12 @@ func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
 			return fmt.Errorf("network facts type mismatch")
 		}
 		return networkFacts(x)
+	case Forwarding:
+		x, ok := f.(ForwardingFacts)
+		if !ok || x.Rule == "" || !validHash(x.ContextDigest) || x.ScopeID == "" {
+			return fmt.Errorf("invalid forwarding facts")
+		}
+		return nil
 	case Rule:
 		x, ok := f.(SudoFacts)
 		if !ok {
@@ -144,11 +150,32 @@ func payloadSets(f Facts) error {
 }
 func validate(a Artifact) error {
 	env := a.envelope()
-	if env.SchemaVersion != SchemaVersion || env.ContractRevision != ContractRevision {
+	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, LegacyContractRevision) {
 		return fmt.Errorf("unsupported schema_version/contract_revision; require %s / %s", SchemaVersion, ContractRevision)
 	}
 	if env.TargetID == "" {
 		return fmt.Errorf("empty target_id")
+	}
+	if env.ContractRevision == LegacyContractRevision {
+		switch x := a.(type) {
+		case *Snapshot:
+			for _, f := range x.Findings {
+				if f.Kind == Forwarding {
+					return fmt.Errorf("forwarding requires netfilter contract revision")
+				}
+			}
+			for _, e := range x.Evidence {
+				if e.SourceKind == "command_output" {
+					return fmt.Errorf("command evidence requires netfilter contract revision")
+				}
+			}
+		case *Assessments:
+			for _, e := range x.Entries {
+				if e.Selector.Kind == Forwarding {
+					return fmt.Errorf("forwarding requires netfilter contract revision")
+				}
+			}
+		}
 	}
 	switch x := a.(type) {
 	case *Snapshot:
@@ -221,7 +248,7 @@ func validateSnapshot(s *Snapshot) error {
 				return fmt.Errorf("pid must be positive")
 			}
 		case FileValues:
-			if e.SourceKind != "local_file" {
+			if e.SourceKind != "local_file" && e.SourceKind != "command_output" {
 				return fmt.Errorf("evidence source/values mismatch")
 			}
 		default:

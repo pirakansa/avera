@@ -92,7 +92,7 @@ function renderItem(item) {
         r = item.review,
         g = item.guidance;
     const id = f.identity;
-    const title = f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
+    const title = f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
     const box = node('details');
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
@@ -111,6 +111,7 @@ function renderItem(item) {
     const qs = node('ul');
     for (const q of g.Questions) qs.append(node('li', q));
     box.append(qs);
+    if (f.kind === 'network.forwarding') box.append(node('h3', '観測した転送設定'), node('pre', f.facts.rule));
     const facts = node('details');
     facts.append(node('summary', '観測内容（編集できません）'), node('pre', JSON.stringify({
         identity: f.identity,
@@ -150,7 +151,7 @@ function renderItem(item) {
         form.append(wrapper);
     }
     const relatedControls = [];
-    if (f.kind === 'network.endpoint') {
+    if (f.kind === 'network.endpoint' || f.kind === 'network.forwarding') {
         const section = node('fieldset');
         section.append(node('legend', '転送先・関連するローカルサービス（人の申告）'));
         section.append(node('p', '入口から内部サービスまでの経路と保護策をここで説明します。チェックしても転送設定を検証したことにはなりません。'));
@@ -214,7 +215,7 @@ function renderItem(item) {
             reference,
             provenance: 'human_reported'
         }));
-        if (f.kind === 'network.endpoint') {
+        if (f.kind === 'network.endpoint' || f.kind === 'network.forwarding') {
             edit.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
             edit.route_explanation = controls.route_explanation.value;
         }

@@ -16,6 +16,8 @@ type Content struct {
 // For returns fresh content for every implemented finding kind.
 func For(kind i.Kind) Content {
 	switch kind {
+	case i.Forwarding:
+		return Content{"A destination translation or redirect rule was observed; effective reachability is not verified.", "Review the entrance and its internal destination. Upstream safeguards do not remove the observed configuration.", []string{"What traffic, interface and source conditions apply, and where does it go?", "Does this lead to a loopback service? Select the observed service and explain the relationship.", "Which upstream router or cloud restrictions protect this entrance? Record references, remaining risk and the reason for your decision."}}
 	case i.Endpoint:
 		return Content{"A local network endpoint was observed. This does not establish external reachability.", "Review who needs this service and how access is protected.", []string{
 			"What function does the service provide? Is it public static content or does it accept sensitive data?",

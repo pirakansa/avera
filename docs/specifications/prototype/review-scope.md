@@ -13,7 +13,7 @@ Status: owner-approved workflow refinement implemented for the prototype. The ow
 
 In an observed non-loopback network entrance's form, select current loopback services and explain the path and protections. Each relationship records entrance/internal finding IDs, both observed fact fingerprints, explanation, actor, timestamp and source snapshot ID. The tool generates bases/timestamps and rejects self-links, duplicate targets, missing explanation/actor and non-reference destinations.
 
-These relationships are human statements. The prototype does not inspect firewall/proxy forwarding, traverse a network path or infer reachability. Only observed main network endpoints can own links. An unobserved ingress on another firewall/router is outside this relationship model; absence of a main listener is not proof of no ingress. Local-only references and scope limitations remain visible.
+These relationships are human statements. The prototype collects firewall translation candidates as specified in [Forwarding collection](forwarding-collector.md), but does not inspect reverse-proxy configuration, traverse a network path or infer reachability. Observed main network endpoints and forwarding candidates can own links. An unobserved ingress on another firewall/router is outside this relationship model; absence of a main listener is not proof of no ingress. Local-only references and scope limitations remain visible.
 
 A relationship is observation-matched only while both endpoints and saved fact fingerprints still match the current observations. This does not verify forwarding. A changed/missing linked service gates the entrance's derived decision to unreviewed with re-review required, even if the entrance itself is unchanged. A conflict remains a conflict. Stored judgments are not modified. The portable view includes `related_service_changed_or_unavailable`; this contextual reason is not serialized as a raw T00 review artifact.
 
@@ -21,7 +21,7 @@ Explicitly saving the entrance reconfirms the selected relationship bases and it
 
 ## Portable file compatibility
 
-New saves use `avera.report.v2`, extending the outer container with optional `routes` and `route_history` arrays. Existing `avera.report.v1` inputs are accepted and migrated in memory; original files are unchanged and new output is private/no-clobber. Older tool versions cannot read v2. Nested snapshot/assessment contracts remain unchanged. The aggregate 16 MiB byte limit and strict JSON validation still apply; history is never silently trimmed.
+New saves use `avera.report.v2`, extending the outer container with optional `routes` and `route_history` arrays. Existing `avera.report.v1` inputs are accepted and migrated in memory; original files are unchanged and new output is private/no-clobber. Older tool versions cannot read v2. The initial reference-scope increment retained nested T00 contracts; the subsequent [forwarding increment](forwarding-collector.md) introduces a new nested contract revision while preserving T00 input compatibility. The aggregate 16 MiB byte limit and strict JSON validation still apply; history is never silently trimmed.
 
 Repeat collection preserves relationship metadata and history in the same target-bound portable JSON. Export, browser summary and browser preview use the same contextual review. Legacy split-file exports apply the reference-scope projection but have no path metadata to attach. A standalone exported HTML retains the human statements and local evidence/related-service links without scripts or fetched references.
 

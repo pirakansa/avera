@@ -24,7 +24,7 @@ A listening port or an elevated privilege is a review item, not automatically a 
 
 ## Project status
 
-AVERA is an early Linux prototype with network collection, saved-file review, assessment reuse, and English/Japanese Markdown and HTML reports with embedded guidance. The CLI collects one portable report JSON and provides a local browser editor with JSON/HTML export through `serve`; P1 live collection enables network only. Sudo collection integration and owner evaluation of the new browser workflow remain pending. See the [CLI reference](docs/specifications/prototype/cli-workflow.md) and [trial guide](docs/user-guides/prototype-trials.md).
+AVERA is an early Linux prototype with network collection, saved-file review, assessment reuse, and English/Japanese Markdown and HTML reports with embedded guidance. The CLI collects one portable report JSON and provides a local browser editor with JSON/HTML export through `serve`; Live network collection includes socket observations and read-only iptables/nftables forwarding candidates. Sudo collection integration and owner evaluation of the new browser workflow remain pending. See the [CLI reference](docs/specifications/prototype/cli-workflow.md) and [trial guide](docs/user-guides/prototype-trials.md).
 
 ## Development quick start
 

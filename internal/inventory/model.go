@@ -2,10 +2,11 @@
 package inventory
 
 const (
-	SchemaVersion    = "0.1"
-	ContractRevision = "t00-2026-10-24.1"
-	IdentityVersion  = "avera.identity.v1"
-	FactsVersion     = "avera.facts.v1"
+	SchemaVersion          = "0.1"
+	ContractRevision       = "netfilter-2026-10-25.1"
+	LegacyContractRevision = "t00-2026-10-24.1"
+	IdentityVersion        = "avera.identity.v1"
+	FactsVersion           = "avera.facts.v1"
 )
 
 type Collector string
@@ -18,9 +19,10 @@ const (
 type Kind string
 
 const (
-	Endpoint Kind = "network.endpoint"
-	Rule     Kind = "sudo.rule"
-	Unparsed Kind = "sudo.unparsed"
+	Endpoint   Kind = "network.endpoint"
+	Forwarding Kind = "network.forwarding"
+	Rule       Kind = "sudo.rule"
+	Unparsed   Kind = "sudo.unparsed"
 )
 
 type Status string
@@ -322,3 +324,13 @@ type CollectorResult struct {
 	Evidence []Evidence
 	Coverage Coverage
 }
+
+// ForwardingFacts records configuration text and its complete source context hash.
+// It does not establish packet reachability or effective forwarding.
+type ForwardingFacts struct {
+	Rule          string `json:"rule"`
+	ContextDigest string `json:"context_digest"`
+	ScopeID       string `json:"scope_id"`
+}
+
+func (ForwardingFacts) facts() {}

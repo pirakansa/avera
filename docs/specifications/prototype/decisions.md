@@ -98,3 +98,13 @@ The owner found manual JSON preparation/editing too complex, especially across t
 ## Entrance-focused review revision — 2026-10-25
 
 The owner agreed to keep loopback services as reference information and perform judgment at network entrances, linking internal forwarding targets as human-described context. The [scope/path specification](review-scope.md) and [current user guide](../../user-guides/report-workflow.md#network-entrances-and-local-reference-services) define this revision. Non-loopback/private-LAN listeners remain review items; reference does not mean automatically accepted. Changed/missing linked observations gate entrance judgment reuse. New portable saves are v2, v1 inputs migrate without overwriting originals, and raw T00 artifacts remain unchanged. Automated fixture/browser evidence is not owner acceptance of the revised layout.
+
+## Host forwarding inspection (2026-10-25)
+
+The owner requested collection of iptables/nftables settings, primarily to expose
+entrances forwarding to loopback references. Upstream firewall/router/cloud
+restrictions belong in human judgment reasons; they must not suppress observed
+configuration. Implemented as [destination translation candidates](forwarding-collector.md),
+with conservative incomplete coverage, full source context, Japanese guidance and
+human-selected relationships. No automatic reachability or upstream verification.
+New collection uses a versioned nested contract extension; T00 inputs remain readable.

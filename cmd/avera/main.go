@@ -16,7 +16,7 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	cmd := root.New(app.Service{EffectiveUID: os.Geteuid, Collectors: []app.Registration{{Name: "network", Collector: network.Collector{}}}})
+	cmd := root.New(app.Service{EffectiveUID: os.Geteuid, Collectors: []app.Registration{{Name: "network", Collector: network.WithForwarding{}}}})
 	err := cmd.ExecuteContext(ctx)
 	if err != nil && shared.Code(err) != 2 {
 		fmt.Fprintln(os.Stderr, "avera:", err)

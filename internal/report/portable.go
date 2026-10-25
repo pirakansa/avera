@@ -34,7 +34,7 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 			blocks[b.FindingID] = n
 		}
 	}
-	routes := block{ID: "routes", Title: l.text("Human-described forwarding paths", "人が記入した転送・関連付け"), Note: l.text("Human statements only. Firewall/proxy configuration and reachability were not inspected; matching observation bases do not verify a path.", "人による申告です。ファイアウォール・プロキシの転送設定や到達性は検証していません。観測内容の一致は経路の検証を意味しません。")}
+	routes := block{ID: "routes", Title: l.text("Human-described forwarding paths", "人が記入した転送・関連付け"), Note: l.text("Relationships are human statements; collected firewall rules are separate observations. Effective paths, reverse proxies and reachability are not verified.", "関連付けは人による申告です。収集した転送ルールとは区別します。実際の経路・プロキシ設定・到達性を検証したものではありません。")}
 	for _, route := range f.Routes {
 		status := l.text("Prior path context; confirm changed or missing observations", "過去の経路説明です。観測の変化や不足があるため再確認してください")
 		if f.RouteCurrent(route) {

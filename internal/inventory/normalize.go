@@ -202,7 +202,7 @@ func NormalizeIdentity(kind Kind, id Identity) (Identity, error) {
 		}
 		x.LocalAddress = s
 		return x, nil
-	case Rule, Unparsed:
+	case Rule, Unparsed, Forwarding:
 		x, ok := id.(SourceIdentity)
 		if !ok {
 			return nil, fmt.Errorf("source identity type mismatch")
