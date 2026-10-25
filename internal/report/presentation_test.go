@@ -89,7 +89,7 @@ func TestPresentationScenarios(t *testing.T) {
 					if lang == "ja" && !strings.Contains(out, "確認レポート") {
 						t.Fatal("missing Japanese title")
 					}
-					if lang == "ja" && tc.Name == "changed" && !strings.Contains(html.UnescapeString(out), "今回の受容を意味しません") {
+					if lang == "ja" && tc.Name == "changed" && !strings.Contains(html.UnescapeString(out), "今回「追加対応不要」と判断したことを意味しません") {
 						t.Fatal("stale acceptance not explained")
 					}
 				}
@@ -157,5 +157,52 @@ func TestHTMLTemplateRequiresEscapingForEveryInterpolation(t *testing.T) {
 		if !strings.HasSuffix(expression, "| escape") {
 			t.Fatalf("unescaped template interpolation: %s", expression)
 		}
+	}
+}
+
+func TestOutstandingSummaryEmphasis(t *testing.T) {
+	current := load(t, "snapshot-changed.json").(*i.Snapshot)
+	previous := load(t, "snapshot-first.json").(*i.Snapshot)
+	annotations := load(t, "assessments-reconfirmed.json").(*i.Assessments)
+	for _, lang := range []string{"ja", "en"} {
+		output, err := RenderWithOptions(current, previous, annotations, Options{Format: "html", Language: lang})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(output, `class="metric metric-action"`) || !strings.Contains(output, `class="metric metric-unreviewed"`) {
+			t.Fatal("outstanding counts are not highlighted")
+		}
+		for _, label := range []string{localizer{lang == "ja"}.text("Prioritize action", "優先して対応"), localizer{lang == "ja"}.text("Review needed", "判断が必要")} {
+			if !strings.Contains(output, label) {
+				t.Fatal("missing text cue", label)
+			}
+		}
+	}
+	empty := load(t, "snapshot-empty.json").(*i.Snapshot)
+	output, err := RenderWithOptions(empty, nil, nil, Options{Format: "html", Language: "ja"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(output, `class="metric metric-action"`) || strings.Contains(output, `class="metric metric-unreviewed"`) || strings.Contains(output, `class="metric-notice"`) {
+		t.Fatal("zero counts displayed as outstanding")
+	}
+}
+
+func TestJapaneseAcceptedLabel(t *testing.T) {
+	current := load(t, "snapshot-repeat.json").(*i.Snapshot)
+	previous := load(t, "snapshot-first.json").(*i.Snapshot)
+	annotations := load(t, "assessments-reviewed.json").(*i.Assessments)
+	for _, format := range []string{"html", "markdown"} {
+		output, err := RenderWithOptions(current, previous, annotations, Options{Format: format, Language: "ja"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		visible := html.UnescapeString(output)
+		if !strings.Contains(visible, "追加対応不要") || strings.Contains(visible, "受容済み") || strings.Contains(visible, "問題なし") {
+			t.Fatal("inconsistent Japanese judgment label")
+		}
+	}
+	if localizerState := (localizer{ja: true}).state("accepted"); localizerState != "追加対応不要" {
+		t.Fatal("wrong item judgment label")
 	}
 }

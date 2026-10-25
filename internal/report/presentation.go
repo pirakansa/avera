@@ -48,8 +48,9 @@ type block struct {
 	Links           []link
 }
 type metric struct {
-	Label string
-	Count int
+	Label        string
+	Count        int
+	Tone, Notice string
 }
 type document struct {
 	Language, Title, Warning, Summary, Contents, Details string
@@ -68,7 +69,7 @@ func (l localizer) state(s string) string {
 	if !l.ja {
 		return s
 	}
-	names := map[string]string{"accepted": "受容済み", "action_required": "対応が必要", "unreviewed": "未確認", "applicable": "適用可能", "needs_review": "再確認が必要", "conflict": "判断の競合", "none": "判断なし", "new": "新規", "unchanged": "変更なし", "changed": "変更あり", "unknown": "不明", "not_observed": "今回は未観測", "not_compared": "比較なし", "complete": "収集完了", "partial": "一部収集", "failed": "収集失敗", "not_collected": "未収集", "advance": "事前の判断", "reviewed_snapshot": "観測後の判断", "purpose": "目的", "exposure": "利用者・公開範囲", "safeguards": "保護策", "rationale": "判断理由", "supporting evidence references": "裏付ける証拠の参照"}
+	names := map[string]string{"accepted": "追加対応不要", "action_required": "対応が必要", "unreviewed": "未確認", "applicable": "適用可能", "needs_review": "再確認が必要", "conflict": "判断の競合", "none": "判断なし", "new": "新規", "unchanged": "変更なし", "changed": "変更あり", "unknown": "不明", "not_observed": "今回は未観測", "not_compared": "比較なし", "complete": "収集完了", "partial": "一部収集", "failed": "収集失敗", "not_collected": "未収集", "advance": "事前の判断", "reviewed_snapshot": "観測後の判断", "purpose": "目的", "exposure": "利用者・公開範囲", "safeguards": "保護策", "rationale": "判断理由", "supporting evidence references": "裏付ける証拠の参照"}
 	if v, ok := names[s]; ok {
 		return v
 	}
@@ -110,8 +111,23 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 	l := localizer{language == "ja"}
 	r := result.Review
 	s := r.Summary
-	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
-	d.Metrics = []metric{{l.text("Current items", "今回の項目"), s.Current}, {l.text("Accepted", "受容済み"), s.Accepted}, {l.text("Action required", "対応が必要"), s.ActionRequired}, {l.text("Unreviewed", "未確認"), s.Unreviewed}, {l.text("Needs re-review (subset)", "再確認が必要（内数）"), s.NeedsReview}, {l.text("Conflicts (subset)", "判断の競合（内数）"), s.Conflict}, {l.text("Historical items", "過去の項目"), s.Historical}, {l.text("Unmatched assessments", "対応する観測がない判断"), s.UnmatchedAssessments}}
+	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。「追加対応不要」は人による判断です。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
+	d.Metrics = []metric{
+		{Label: l.text("Current items", "今回の項目"), Count: s.Current},
+		{Label: l.text("Accepted", "追加対応不要"), Count: s.Accepted},
+		{Label: l.text("Action required", "対応が必要"), Count: s.ActionRequired, Tone: "metric-action", Notice: l.text("Prioritize action", "優先して対応")},
+		{Label: l.text("Unreviewed", "未確認"), Count: s.Unreviewed, Tone: "metric-unreviewed", Notice: l.text("Review needed", "判断が必要")},
+		{Label: l.text("Needs re-review (subset)", "再確認が必要（内数）"), Count: s.NeedsReview},
+		{Label: l.text("Conflicts (subset)", "判断の競合（内数）"), Count: s.Conflict},
+		{Label: l.text("Historical items", "過去の項目"), Count: s.Historical},
+		{Label: l.text("Unmatched assessments", "対応する観測がない判断"), Count: s.UnmatchedAssessments},
+	}
+	for n := range d.Metrics {
+		if d.Metrics[n].Count == 0 {
+			d.Metrics[n].Tone = ""
+			d.Metrics[n].Notice = ""
+		}
+	}
 	env, err := technical(current.Environment)
 	if err != nil {
 		return d, err
@@ -174,7 +190,7 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
 			}
 			for _, id := range item.AssessmentIDs {
-				context := l.text("Prior context only; does not establish current acceptance", "過去の説明です。今回の受容を意味しません")
+				context := l.text("Prior context only; does not establish current acceptance", "過去の説明です。今回「追加対応不要」と判断したことを意味しません")
 				if presence == i.Current && item.Applicability == i.Applicable {
 					context = l.text("Applicable human assessment; not a safety certification", "適用可能な人の判断です。安全性の認証ではありません")
 				}

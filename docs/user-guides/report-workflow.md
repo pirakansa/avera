@@ -34,6 +34,8 @@ mkdir -m 700 ./review-saves
 ./bin/avera serve --input ./avera-run-001.json --output-dir ./review-saves
 ```
 
+The overview emphasizes nonzero **action required** counts in red and **unreviewed** counts in amber, with larger numbers and explicit action/review text cues. The editor, preview and exported HTML share this treatment. Zero counts keep the neutral style. These are priorities for human follow-up, not a vulnerability severity score or proof that an unreviewed item is unsafe.
+
 Open the exact `http://127.0.0.1:PORT` URL printed in the terminal. No other machine can connect; use the exact printed address rather than substituting a hostname. Leave this terminal running and stop with Ctrl+C when finished. The listener uses a free local port by default; `--listen 127.0.0.1:8080` selects a specific loopback port. Public addresses are refused. This is a local single-user workspace, not an authenticated multi-user Web service; other local processes can access its loopback endpoint.
 
 1. Open a current item. Read the Japanese observation summary, questions, and earlier explanations. Technical observation fields are read-only.
@@ -41,6 +43,8 @@ Open the exact `http://127.0.0.1:PORT` URL printed in the terminal. No other mac
 3. Click the save button. The server creates a new `report-TIMESTAMP-RANDOM.json` in `review-saves` and shows its filename. The original input and earlier saves remain intact. Every save includes all previously saved judgments, not just that item. A failed save preserves the current session and leaves the form available for retry. Drafts in other items survive a successful save of one item; drafts are lost if the browser is closed/reloaded, with a navigation warning.
 4. Use the report-preview tab to inspect the saved state. Use **HTML output** to download a standalone Japanese report for a recipient. It requires no server or network when opened later.
 5. Use **Take JSON** to download the latest saved report as `avera-report.json`, or carry the newest filename displayed after saving. Downloads exclude unsaved fields and warn when drafts remain. If several tabs edit the same session, stale saves fail; retain your text and reload before retrying.
+
+The Japanese display label for the stored `accepted` decision is now "追加対応不要" (no additional action required according to the human reviewer). This wording is used consistently in summary cards, judgment selectors, saved/history displays and Japanese HTML/Markdown reports. It is a human judgment within the observed scope, not a tool certification of safety. JSON still stores `accepted`; existing saved files and matching rules are unchanged.
 
 Save explicitly reconfirms the judgment against the current facts and records the actor/time. Earlier human entries are archived verbatim; generated empty starters need not be archived. Saving accepted does not override incomplete collection or conflicting interpretation: the derived current decision can remain unreviewed. View the unmatched-judgment/history sections to inspect prior context. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON/editor history rather than becoming extra active judgments.
 

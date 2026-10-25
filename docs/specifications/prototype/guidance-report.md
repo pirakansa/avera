@@ -91,3 +91,7 @@ Both HTML languages and Japanese Markdown use the same presentation model derive
 See the [CLI reference](cli-workflow.md#p1-presentation-feedback-extension) for flags and boundaries and the [HTML trial](../../user-guides/prototype-trials.md#japanese-html-presentation-trial) for an executable example. Browser appearance and Japanese comprehension still require owner feedback; automated rendering tests do not establish usability.
 
 Validation note for the presentation revision: the first full check detected reachable standard-library findings GO-2026-6600 and GO-2026-6599 when using `html/template` on Go 1.25.14. The final renderer instead uses a fixed text template with explicit HTML escaping for every value, no script/style interpolation, and a test requiring escaping on every output action. The original toolchain and dependency versions are unchanged. Final quality-gate results are recorded with the feedback record.
+
+## Outstanding review-state emphasis
+
+Following owner feedback, nonzero action-required and unreviewed summary cards use red/amber backgrounds, stronger borders, larger counts and explicit localized text cues in both the browser workspace and exported HTML. Zero counts remain neutral. This presentation does not change decision rules, counts, Markdown defaults or claim verified vulnerability severity. Re-review/conflict counts remain applicability subsets rather than additional independent items.

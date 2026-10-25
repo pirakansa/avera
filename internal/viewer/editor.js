@@ -4,7 +4,7 @@ const drafts = new Map();
 let expanded = new Set();
 const $ = id => document.getElementById(id);
 const names = {
-    accepted: '受容済み',
+    accepted: '追加対応不要',
     action_required: '対応が必要',
     unreviewed: '未確認',
     applicable: '適用可能',
@@ -53,7 +53,7 @@ async function load() {
     $('metrics').replaceChildren();
     for (const [key, label] of [
             ['current', '今回の項目'],
-            ['accepted', '受容済み'],
+            ['accepted', '追加対応不要'],
             ['action_required', '対応が必要'],
             ['unreviewed', '未確認'],
             ['needs_review', '再確認が必要（内数）'],
@@ -63,6 +63,10 @@ async function load() {
         ]) {
         const card = node('div', undefined, 'metric');
         card.append(node('strong', state.Summary[key] || 0), node('span', label));
+        if (state.Summary[key] > 0 && (key === 'action_required' || key === 'unreviewed')) {
+            card.classList.add(key === 'action_required' ? 'metric-action' : 'metric-unreviewed');
+            card.append(node('span', key === 'action_required' ? '優先して対応' : '判断が必要', 'metric-notice'));
+        }
         $('metrics').append(card);
     }
     $('coverage').textContent = JSON.stringify(state.Coverage, null, 2);
@@ -100,7 +104,7 @@ function renderItem(item) {
         box.append(node('h3', '保存済みの説明・判断'));
         for (const a of savedJudgments) box.append(judgment(a));
     }
-    if (r.applicability === 'needs_review' || r.applicability === 'conflict') box.append(node('p', '以前の判断は今回の受容を意味しません。変化や不足する証拠を確認し、今回の判断を明示的に保存してください。', 'notice'));
+    if (r.applicability === 'needs_review' || r.applicability === 'conflict') box.append(node('p', '以前の判断は今回「追加対応不要」と判断したことを意味しません。変化や不足する証拠を確認し、今回の判断を明示的に保存してください。', 'notice'));
     const prior = item.judgments.length === 1 ? item.judgments[0] : {};
     const draft = drafts.get(f.finding_id);
     const a = draft ? {
