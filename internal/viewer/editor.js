@@ -197,15 +197,8 @@ function renderItem(item) {
     const label = node('label', '判断');
     label.append(select);
     form.append(label);
-    let reuse;
     if (f.kind === 'network.endpoint') {
-        const label = node('label', undefined, 'route-choice');
-        reuse = node('input');
-        reuse.type = 'checkbox';
-        reuse.name = 'reuse';
-        reuse.checked = draft ? draft.reuse : true;
-        label.append(reuse, node('span', '同じ構成のサーバーにも使う共通設定として保存'));
-        form.append(label, node('p', '同じプロトコル・ポート・IPv4/IPv6・待受範囲（全インターフェース／特定アドレス）に適用します。PCや実行プロセスの違いでは再確認を求めません。収集できない情報は別に表示します。'));
+        form.append(node('p', '保存した説明と判断は、同じプロトコル・ポート・IPv4/IPv6・待受範囲（全インターフェース／特定アドレス）のサービスに共通で使います。PCや実行プロセスの違いでは再確認を求めません。収集できない情報は別に表示します。'));
     }
     const button = node('button', '今回の判断を保存（新しい JSON を作成）');
     button.type = 'submit';
@@ -215,7 +208,6 @@ function renderItem(item) {
             decision: select.value
         };
         for (const key of Object.keys(controls)) draft[key] = controls[key].value;
-        if (reuse) draft.reuse = reuse.checked;
         draft.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
         drafts.set(f.finding_id, draft);
         window.onbeforeunload = () => true;
@@ -227,7 +219,6 @@ function renderItem(item) {
             finding_id: f.finding_id,
             decision: select.value
         };
-        if (reuse) edit.reuse = reuse.checked;
         for (const key of ['purpose', 'exposure', 'safeguards', 'rationale', 'actor']) edit[key] = controls[key].value;
         edit.evidence = [...new Set(controls.references.value.split('\n').map(x => x.trim()).filter(Boolean))].map(reference => ({
             reference,

@@ -41,7 +41,8 @@ try:
   assert '転送設定' in preview.inner_text('body') and '127.0.0.1:9000' in preview.inner_text('body')
   assert '設定に記載された転送先との一致' in preview.inner_text('body') and '<script>' not in preview.content()
   web=page.locator('#items > details').filter(has=page.locator(':scope > summary',has_text=':80 '));web.locator(':scope > summary').click()
-  assert web.locator('[name=reuse]').is_checked()
+  assert web.locator('[name=reuse]').count()==0
+  assert '保存した説明と判断は' in web.inner_text()
   web.locator('[name=actor]').fill('fictional-owner');web.locator('[name=rationale]').fill('Static public web service; upstream load balancer controls apply');web.locator('select').select_option('accepted');web.locator('button[type=submit]').click();page.locator('#status').filter(has_text='保存しました').wait_for();page.wait_for_timeout(200)
   body=page.request.get(url+'/download.json').json();assert len(body['policies'])==1 and body['policies'][0]['port']==80
   assert '共通設定の判断を適用しています' in page.inner_text('body')
@@ -51,7 +52,7 @@ try:
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
   assert not errors,errors
   browser.close()
- print('PASS: automatic literal destination hint, shared policy checkbox/save, v3 JSON, shared HTML explanation and mobile layout')
+ print('PASS: automatic literal destination hint, automatic shared policy save, v3 JSON, shared HTML explanation and mobile layout')
  print('Trial artifacts:',out)
 finally:
  server.send_signal(signal.SIGTERM);server.wait(timeout=10);assert server.returncode==0

@@ -118,3 +118,11 @@ explanation of known services. Implemented [shared service judgments](shared-ser
 and removed collection's identity prerequisite. Earlier machine-binding/adoption
 decisions are superseded. Literal configured destinations are shown directly;
 manual service selection remains optional for ambiguous paths.
+
+### Common saving is unconditional
+
+The owner removed the need to choose individual versus shared endpoint judgments.
+Every endpoint save now updates the common service policy; the editor has no
+reuse checkbox. Matching scope and human provenance remain visible. Older API
+clients may send `reuse`, but it no longer selects a mode. Existing policy-free
+files acquire a policy when their endpoint is saved.

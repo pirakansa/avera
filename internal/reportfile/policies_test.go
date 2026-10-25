@@ -12,8 +12,7 @@ import (
 func TestSharedServicePolicyAcrossNamespacesAndCoverage(t *testing.T) {
 	f := sample(t)
 	edit := httpEdit(t, f)
-	reuse := true
-	edit.Reuse = &reuse
+
 	edit.Decision = i.Accepted
 	shared, err := f.Apply(edit, time.Now())
 	if err != nil {
@@ -87,21 +86,21 @@ func TestSharedServicePolicyAcrossNamespacesAndCoverage(t *testing.T) {
 	if _, err := next.Encode(); err == nil {
 		t.Fatal("mismatched selector accepted")
 	}
-	reuse = false
+	reuse := false
 	edit.Reuse = &reuse
-	disabled, err := shared.Apply(edit, time.Now())
-	if err != nil || len(disabled.Policies) != 0 {
-		t.Fatal("cannot disable shared policy", err)
+	edit.Rationale = "Updated shared explanation"
+	updated, err := shared.Apply(edit, time.Now())
+	if err != nil || len(updated.Policies) != 1 || updated.Policies[0].Assessment.Rationale != edit.Rationale {
+		t.Fatal("legacy reuse=false must not disable shared saving", err)
 	}
-	if len(disabled.History.Entries) == 0 {
+	if len(updated.History.Entries) == 0 {
 		t.Fatal("old explanation lost")
 	}
 }
 func TestSharedPolicyRejectsOldFormatAndUnknownFields(t *testing.T) {
 	f := sample(t)
 	edit := httpEdit(t, f)
-	yes := true
-	edit.Reuse = &yes
+
 	f, err := f.Apply(edit, time.Now())
 	if err != nil {
 		t.Fatal(err)

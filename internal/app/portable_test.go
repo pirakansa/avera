@@ -106,8 +106,7 @@ func TestCarryEditedReportIntoNextCollection(t *testing.T) {
 			id = finding.FindingID
 		}
 	}
-	reuse := true
-	f, err = f.Apply(reportfile.Edit{Reuse: &reuse, FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation", RelatedIDs: []string{localID}, RouteExplanation: "Entrance forwards to the internal service (human statement)"}, time.Now())
+	f, err = f.Apply(reportfile.Edit{FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation", RelatedIDs: []string{localID}, RouteExplanation: "Entrance forwards to the internal service (human statement)"}, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}

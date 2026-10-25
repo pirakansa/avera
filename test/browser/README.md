@@ -18,5 +18,5 @@ rule's Japanese guidance, human judgment, loopback relationship, JSON/HTML expor
 escaping and mobile layout. It does not execute firewall commands.
 
 `python3 test/browser/shared_services.py` verifies literal DNAT destination hints
-without mandatory selection and saving a reusable endpoint policy, v3 JSON and
+without mandatory selection and automatically saving a reusable endpoint policy without a checkbox, v3 JSON and
 the shared-judgment explanation in HTML. It starts/stops its own fixture viewer.

@@ -86,16 +86,12 @@ func (f *File) validatePolicies() error {
 	}
 	return nil
 }
-func (f *File) applyPolicy(edit Edit, found i.Finding, a i.Assessment) error {
-	if edit.Reuse == nil {
-		return nil
-	}
+
+// applyPolicy makes every saved endpoint judgment reusable within its service class.
+func (f *File) applyPolicy(found i.Finding, a i.Assessment) {
 	p, ok := servicePolicy(found)
 	if !ok {
-		if *edit.Reuse {
-			return fmt.Errorf("shared policies currently support network endpoints only")
-		}
-		return nil
+		return
 	}
 	kept := []Policy{}
 	for _, old := range f.Policies {
@@ -103,12 +99,8 @@ func (f *File) applyPolicy(edit Edit, found i.Finding, a i.Assessment) error {
 			kept = append(kept, old)
 		}
 	}
-	if *edit.Reuse {
-		p.Assessment = a
-		kept = append(kept, p)
-	}
-	f.Policies = kept
-	return nil
+	p.Assessment = a
+	f.Policies = append(kept, p)
 }
 
 // PolicyJudgments includes shared explanations for presentation without changing
@@ -156,10 +148,6 @@ func (f *File) applyPolicies(result *assessment.Result) {
 	for _, p := range f.Policies {
 		policies[p.key()] = p
 	}
-	byID := map[string]i.Assessment{}
-	for _, a := range f.Assessments.Entries {
-		byID[a.AssessmentID] = a
-	}
 	for n := range result.Review.Items {
 		item := &result.Review.Items[n]
 		if item.Presence != i.Current || item.Applicability == i.Conflict {
@@ -171,17 +159,6 @@ func (f *File) applyPolicies(result *assessment.Result) {
 		}
 		p, ok := policies[key.key()]
 		if !ok {
-			continue
-		}
-		separate := false
-		for _, id := range item.AssessmentIDs {
-			a := byID[id]
-			if a.AssessmentID != p.Assessment.AssessmentID && a.Actor != "" {
-				separate = true
-				break
-			}
-		}
-		if separate {
 			continue
 		}
 		item.CurrentDecision = p.Assessment.Decision

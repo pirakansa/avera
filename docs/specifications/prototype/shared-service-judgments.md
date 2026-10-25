@@ -15,9 +15,9 @@ label. `--adopt-target` remains a compatibility no-op with input. New collection
 emits an empty legacy `machine_binding`; old binding hashes remain readable but
 are not enforcement. No machine ID is synthesized or written to the system.
 
-In a network endpoint's editor, the human can save its explanation and decision
-as a common service policy. The checkbox is initially selected, with its matching
-scope shown alongside it; unselect it for an individual judgment. Reusable policy
+Saving a network endpoint always saves its explanation and decision as a common
+service policy. There is no checkbox or individual/shared mode selection; matching
+scope is shown as explanatory text. Reusable policy
 keys are protocol, address family, local port and binding class: all interfaces
 versus a specific non-loopback address. Specific address values, namespace,
 installation, executable and UID are intentionally not matching conditions.
@@ -33,18 +33,19 @@ remain visible even when a shared judgment applies. Its meaning is a configured
 human policy, not a host verification or a declaration that missing sources are
 safe. Starting collection without input creates an inventory without shared rules.
 
-A separate individual human judgment on the same finding takes precedence; raw
-assessment conflicts are not silently resolved. Individual judgments and their
-fact bases remain unchanged. Existing judgments are not silently promoted to
-shared policies: save with the common-setting checkbox to opt in. Raw T00
+The saved common policy applies to its matching service class, including when an
+older individual explanation exists; raw assessment conflicts are still not
+silently resolved. Individual observation bases remain unchanged. For older files
+without policies, saving the endpoint creates its common policy. Raw T00
 assessment reuse semantics remain unchanged. Portable review adds the contextual
 reason `shared_service_judgment`; this is not a raw T00 review artifact reason.
 Explicit human relationship-change gating still applies to saved manual links.
 
 Shared explanations retain original author/time/selector/basis. Shared-policy
 sources do not appear as unmatched judgments just because another namespace was
-collected. Saving a replacement preserves existing human history; disabling the
-checkbox removes the matching shared policy while recording the individual save.
+collected. Saving a replacement updates the matching common policy and preserves existing
+human history. The legacy API `reuse` field is accepted but ignored, including
+`false`; it cannot disable common saving.
 
 ## Portable contract
 
@@ -76,7 +77,7 @@ supplemental context. Upstream protections belong in safeguards and rationale.
 ## Validation
 
 Unit/integration tests cover ignored machine identity, unbound/bound reuse,
-policy save/disable/history, strict JSON roundtrip, changed process/namespace with
+automatic policy save/replacement/history, strict JSON roundtrip, changed process/namespace with
 incomplete coverage, nonmatching service classes, and old-format rejection.
 Literal destination tests cover TCP/UDP separation, missing ports/protocols,
 REDIRECT and quoted text. Browser checks cover automatic destination display,

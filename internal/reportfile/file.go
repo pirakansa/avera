@@ -218,6 +218,7 @@ func (f *File) Write(ctx context.Context, path string) error {
 
 // Edit contains only human-owned fields. Identity, provenance and timestamp are server-owned.
 type Edit struct {
+	// Reuse is accepted for older clients but ignored: saved endpoints are always shared.
 	Reuse            *bool                 `json:"reuse,omitempty"`
 	FindingID        string                `json:"finding_id"`
 	Decision         i.Decision            `json:"decision"`
@@ -269,9 +270,7 @@ func (f *File) Apply(edit Edit, now time.Time) (*File, error) {
 	}
 	entries = append(entries, i.Assessment{AssessmentID: "human-" + rand.Text(), Origin: i.ReviewedSnapshot, Selector: i.Selector{Collector: found.Collector, Kind: found.Kind, Identity: found.Identity}, Basis: i.ReviewedBasis{SnapshotID: out.Current.SnapshotID, FactFingerprint: found.FactFingerprint}, Decision: edit.Decision, Purpose: edit.Purpose, Exposure: edit.Exposure, Safeguards: edit.Safeguards, Rationale: edit.Rationale, Actor: edit.Actor, AssessedAt: now.UTC().Format(time.RFC3339), EvidenceRefs: refs})
 	out.Assessments.Entries = entries
-	if err := out.applyPolicy(edit, *found, entries[len(entries)-1]); err != nil {
-		return nil, err
-	}
+	out.applyPolicy(*found, entries[len(entries)-1])
 	if err = out.applyRoutes(edit, *found, now); err != nil {
 		return nil, err
 	}
