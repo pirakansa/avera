@@ -71,10 +71,20 @@ func destination(path string) error {
 		return fmt.Errorf("--output is required; choose a new path with an existing parent")
 	}
 	if err := artifact.CheckDestination(path); err != nil {
-		return fmt.Errorf("--output: choose an unused path with an accessible, trusted parent and no symlink components")
+		return fmt.Errorf("--output: %w", err)
 	}
 	return nil
 }
+func fileDestination(path string) error {
+	if path == "" {
+		return fmt.Errorf("--output is required; specify a new filename in an existing private directory")
+	}
+	if err := artifact.CheckFileDestination(path); err != nil {
+		return fmt.Errorf("--output: %w", err)
+	}
+	return nil
+}
+
 func evaluate(s, p *i.Snapshot, a *i.Assessments) (*assessment.Result, error) {
 	r, err := assessment.Evaluate(s, p, a)
 	if err != nil {
@@ -94,7 +104,7 @@ func (svc Service) Offline(ctx context.Context, o Options, renderReport bool) er
 		if !renderReport || o.Snapshot != "" || o.Previous != "" || o.Assessments != "" {
 			return fmt.Errorf("--input cannot be combined with legacy context flags")
 		}
-		if err := destination(o.Output); err != nil {
+		if err := fileDestination(o.Output); err != nil {
 			return err
 		}
 		f, err := reportfile.Read(o.Input)

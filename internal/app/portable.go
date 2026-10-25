@@ -17,9 +17,10 @@ func (svc Service) CollectReport(ctx context.Context, o Options) (int, error) {
 	if o.Snapshot != "" || o.Previous != "" || o.Assessments != "" {
 		return 1, fmt.Errorf("single-report collection uses --input; use --legacy-output for split inputs")
 	}
-	if err := destination(o.Output); err != nil {
+	if err := fileDestination(o.Output); err != nil {
 		return 1, err
 	}
+
 	var prior *reportfile.File
 	var p *i.Snapshot
 	var a, h *i.Assessments
@@ -62,7 +63,7 @@ func (svc Service) CollectReport(ctx context.Context, o Options) (int, error) {
 		f.RouteHistory = prior.RouteHistory
 	}
 	if err = f.Write(ctx, o.Output); err != nil {
-		return 1, fmt.Errorf("cannot publish report; input remains unchanged, choose a new output path")
+		return 1, fmt.Errorf("cannot publish report to %q; input remains unchanged: %w", o.Output, err)
 	}
 	return code, nil
 }
@@ -72,9 +73,10 @@ func (svc Service) ImportReport(ctx context.Context, o Options) error {
 	if o.Input != "" || o.Snapshot == "" {
 		return fmt.Errorf("import requires --snapshot and optional --previous/--assessments")
 	}
-	if err := destination(o.Output); err != nil {
+	if err := fileDestination(o.Output); err != nil {
 		return err
 	}
+
 	v, err := load(o.Snapshot, "snapshot", "--snapshot")
 	if err != nil {
 		return err

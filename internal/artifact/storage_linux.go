@@ -22,48 +22,88 @@ const (
 	DirectoryMode = 0700
 )
 
-// openParent walks every directory component using pinned descriptors and O_NOFOLLOW.
-// No ancestor may be a symlink, including paths used by a root caller.
-func openParent(path string) (int, string, error) {
-	abs, e := filepath.Abs(path)
-	if e != nil {
-		return -1, "", e
+// openParent pins each parent component and enforces the publication trust policy.
+func openParent(name string) (int, string, error) {
+	dir, base, err := walkParent(name)
+	if err != nil {
+		return -1, "", err
+	}
+	if err := checkParent(dir, filepath.Dir(name)); err != nil {
+		_ = unix.Close(dir)
+		return -1, "", err
+	}
+	return dir, base, nil
+}
+
+// walkParent never follows symlinks. It only opens directories; it does not
+// create entries or inspect file contents before the parent policy is checked.
+func walkParent(name string) (int, string, error) {
+	abs, err := filepath.Abs(name)
+	if err != nil {
+		return -1, "", fmt.Errorf("cannot resolve destination path: %w", err)
 	}
 	base := filepath.Base(abs)
 	if base == "/" || base == "." || base == ".." {
-		return -1, "", fmt.Errorf("invalid destination")
+		return -1, "", fmt.Errorf("destination must name a new file or run directory")
 	}
-	fd, e := unix.Open("/", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
-	if e != nil {
-		return -1, "", e
+	fd, err := unix.Open("/", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
+	if err != nil {
+		return -1, "", fmt.Errorf("cannot open destination root: %w", err)
 	}
+	component := "/"
 	for _, part := range strings.Split(strings.TrimPrefix(filepath.Dir(abs), "/"), "/") {
 		if part == "" {
 			continue
 		}
-		next, e := unix.Openat(fd, part, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
-		closeErr := unix.Close(fd)
-		if e != nil {
-			return -1, "", e
+		component = filepath.Join(component, part)
+		next, openErr := unix.Openat(fd, part, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
+		if openErr != nil {
+			var st unix.Stat_t
+			statErr := unix.Fstatat(fd, part, &st, unix.AT_SYMLINK_NOFOLLOW)
+			_ = unix.Close(fd)
+			switch {
+			case statErr == nil && st.Mode&unix.S_IFMT == unix.S_IFLNK:
+				return -1, "", fmt.Errorf("parent component %q is a symbolic link; use a path without symbolic-link components: %w", component, openErr)
+			case errors.Is(openErr, unix.ENOENT):
+				return -1, "", fmt.Errorf("parent directory %q does not exist; create it before choosing a new output filename: %w", component, openErr)
+			case errors.Is(openErr, unix.ENOTDIR):
+				return -1, "", fmt.Errorf("parent component %q is not a directory; choose an existing directory: %w", component, openErr)
+			case errors.Is(openErr, unix.EACCES) || errors.Is(openErr, unix.EPERM):
+				return -1, "", fmt.Errorf("cannot access parent directory %q; check directory access permissions: %w", component, openErr)
+			default:
+				return -1, "", fmt.Errorf("cannot open parent directory %q: %w", component, openErr)
+			}
 		}
-		if closeErr != nil {
+		if err := unix.Close(fd); err != nil {
 			_ = unix.Close(next)
-			return -1, "", closeErr
+			return -1, "", err
 		}
 		fd = next
 	}
+	return fd, base, nil
+}
+
+func checkParent(dir int, name string) error {
 	var st unix.Stat_t
-	if e := unix.Fstat(fd, &st); e != nil {
-		_ = unix.Close(fd)
-		return -1, "", e
+	if err := unix.Fstat(dir, &st); err != nil {
+		return fmt.Errorf("cannot inspect parent directory %q: %w", name, err)
 	}
+	return checkParentMetadata(st, name, os.Geteuid())
+}
+
+func checkParentMetadata(st unix.Stat_t, name string, effectiveUID int) error {
 	// A pinned descriptor prevents ancestor substitution. Reject directories in
 	// which another principal could replace our private staging entry.
-	if (st.Uid != uint32(os.Geteuid()) && st.Uid != 0) || (st.Mode&0022 != 0 && st.Mode&unix.S_ISVTX == 0) {
-		_ = unix.Close(fd)
-		return -1, "", fmt.Errorf("parent must be owned by the effective user or root and must not allow unprotected group/other writes")
+	if st.Uid != uint32(effectiveUID) && st.Uid != 0 {
+		if effectiveUID == 0 {
+			return fmt.Errorf("parent directory %q is owned by UID %d; root execution requires a root-owned parent (UID 0). Create a NEW directory with sudo mkdir -m 700 NEW_DIRECTORY, then use --output NEW_DIRECTORY/report.json: %w", name, st.Uid, unix.EPERM)
+		}
+		return fmt.Errorf("parent directory %q is owned by UID %d; expected effective UID %d or root (UID 0). Choose a private directory owned by the user running AVERA: %w", name, st.Uid, effectiveUID, unix.EPERM)
 	}
-	return fd, base, nil
+	if st.Mode&0022 != 0 && st.Mode&unix.S_ISVTX == 0 {
+		return fmt.Errorf("parent directory %q allows group/other writes without the sticky bit; choose a private directory with mode 0700: %w", name, unix.EPERM)
+	}
+	return nil
 }
 
 // Read rejects symlinks, non-regular files, and oversized data before domain decoding.
@@ -254,10 +294,19 @@ func WriteRun(ctx context.Context, path string, artifacts map[string]inventory.A
 	return unix.Fsync(dir)
 }
 
-// CheckDestination validates the parent and rejects existing names before collection.
+// CheckDestination validates a new file or legacy run-directory destination.
 // Publication independently enforces no replacement to handle concurrent creators.
-func CheckDestination(path string) error {
-	dir, base, err := openParent(path)
+func CheckDestination(name string) error { return checkDestination(name, false) }
+
+// CheckFileDestination also rejects directory syntax and identifies existing
+// directories before evaluating the output parent's ownership policy.
+func CheckFileDestination(name string) error { return checkDestination(name, true) }
+
+func checkDestination(name string, fileOnly bool) error {
+	if fileOnly && (strings.HasSuffix(name, string(filepath.Separator)) || filepath.Base(name) == "." || filepath.Base(name) == "..") {
+		return fmt.Errorf("output must name a new file, not a directory; include a filename such as report.json")
+	}
+	dir, base, err := walkParent(name)
 	if err != nil {
 		return err
 	}
@@ -265,15 +314,25 @@ func CheckDestination(path string) error {
 	var st unix.Stat_t
 	err = unix.Fstatat(dir, base, &st, unix.AT_SYMLINK_NOFOLLOW)
 	if err == nil {
-		return fmt.Errorf("destination exists; choose a new output path")
+		if st.Mode&unix.S_IFMT == unix.S_IFLNK {
+			return fmt.Errorf("destination %q is a symbolic link; choose a new path without symbolic links: %w", name, os.ErrExist)
+		}
+		if fileOnly && st.Mode&unix.S_IFMT == unix.S_IFDIR {
+			return fmt.Errorf("output %q is a directory; include a new filename such as report.json inside it: %w", name, os.ErrExist)
+		}
+		return fmt.Errorf("destination %q already exists; choose a new output name (existing files are never overwritten): %w", name, os.ErrExist)
 	}
 	if !errors.Is(err, unix.ENOENT) {
+		return fmt.Errorf("cannot inspect destination %q: %w", name, err)
+	}
+	if err := checkParent(dir, filepath.Dir(name)); err != nil {
 		return err
 	}
-	// Verify that staging is possible before any privileged source reads.
+	// Verify staging before any privileged source reads. This empty directory is
+	// removed immediately and contains no collected data.
 	temp, stage, err := createStage(dir)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot create a private temporary directory in %q; check write permissions, available space and whether the filesystem is read-only: %w", filepath.Dir(name), err)
 	}
 	return errors.Join(unix.Close(stage), unix.Unlinkat(dir, temp, unix.AT_REMOVEDIR))
 }

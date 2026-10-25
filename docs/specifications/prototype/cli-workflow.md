@@ -42,7 +42,16 @@ Report writes a single new Markdown or HTML file. The default remains English Ma
 
 ## Validation and publication
 
-Non-root collection fails without invoking a collector or sudo. Supplied artifacts are strictly validated, including version, kind, target compatibility and assessment basis, before privileged sources are read. All commands check destinations before work, including whether private staging can be created in the destination parent. Parents must exist, be owned by the effective user or root, have trusted write permissions, and have no symlink components. A root collector therefore rejects an ordinary-user-owned parent even if Unix permissions permit writing. Create the collection directory as root; use a separate ordinary-user-owned directory for host review. Existing destinations, including input collisions, are refused. Publication separately enforces no replacement against concurrent creators.
+Non-root collection fails without invoking a collector or sudo. Supplied artifacts are strictly validated, including version, kind, target compatibility and assessment basis, before privileged sources are read. All commands check destinations before work, including whether private staging can be created in the destination parent. Parents must exist, be owned by the effective user or root, have trusted write permissions, and have no symlink components. A root collector therefore rejects an ordinary-user-owned parent even if Unix permissions permit writing. Create the collection directory as root; use a separate ordinary-user-owned directory for host review. Single-report `collect` and portable import require a new file path and reject
+directory syntax with a filename hint. Preflight distinguishes existing files,
+existing directories, missing/non-directory parent components, symlink components,
+wrong owner UID, unsafe write permissions and staging failures. Existing terminal
+entries are inspected without following links before the parent policy is applied;
+no source reads or staging writes occur for those rejected entries. Ownership
+errors identify the parent, actual/required UID and a private-directory creation
+example; application errors preserve the cause instead of replacing it with a
+generic message. The [user workflow](../../user-guides/report-workflow.md#first-collection-on-the-target)
+includes a complete `sudo mkdir` / `sudo collect` example. Existing destinations, including input collisions, are refused. Publication separately enforces no replacement against concurrent creators.
 
 Files use `0600`, directories `0700`. Complete artifact sets are staged privately and published atomically using Linux `renameat2(RENAME_NOREPLACE)`; reports use no-replacement hard-link publication. Unsupported filesystems fail rather than falling back to overwrite. Cancellation is propagated through collection and checked before publication. Fatal errors do not advertise a complete result. A post-publication sync failure can leave complete output present; inspect it and choose a new path for retries.
 

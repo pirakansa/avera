@@ -23,6 +23,7 @@ func New(svc app.Service) *cobra.Command {
 			cmd.Flags().StringVar(&o.Input, "input", "", "Previous portable report JSON (optional on first collection)")
 			cmd.Flags().BoolVar(&o.AdoptTarget, "adopt-target", false, "Compatibility flag; report reuse no longer requires machine binding")
 			cmd.Flags().BoolVar(&legacyOutput, "legacy-output", false, "Use the older split-artifact run directory")
+			cmd.Flags().Lookup("output").Usage = "New report JSON filename in an existing private directory owned by root (with --legacy-output: new run directory)"
 			cmd.Flags().StringVar(&o.TargetID, "target-id", "", "Explicit logical target ID")
 			cmd.RunE = func(cmd *cobra.Command, _ []string) error {
 				var code int

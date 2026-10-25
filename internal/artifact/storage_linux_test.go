@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -334,7 +335,76 @@ func TestDestinationPreflightRequiresWritableParent(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if err := CheckDestination(filepath.Join(dir, "run")); err == nil {
-		t.Fatal("unwritable parent accepted")
+	if err := CheckDestination(filepath.Join(dir, "run")); err == nil || !strings.Contains(err.Error(), "cannot create a private temporary directory") || !errors.Is(err, os.ErrPermission) {
+		t.Fatalf("unwritable parent diagnostic: %v", err)
+	}
+}
+
+func TestFileDestinationDiagnostics(t *testing.T) {
+	dir := t.TempDir()
+	existing := filepath.Join(dir, "existing.json")
+	if err := os.WriteFile(existing, []byte("keep this file"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	symlink := filepath.Join(dir, "link")
+	if err := os.Symlink(dir, symlink); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name, path, message string
+		cause               error
+	}{
+		{"directory syntax", dir + "/", "include a filename", nil},
+		{"existing directory", dir, "is a directory", os.ErrExist},
+		{"existing file", existing, "already exists", os.ErrExist},
+		{"missing parent", filepath.Join(dir, "missing", "report.json"), "does not exist", os.ErrNotExist},
+		{"symlink parent", filepath.Join(symlink, "report.json"), "symbolic link", nil},
+		{"symlink destination", symlink, "symbolic link", os.ErrExist},
+		{"file as parent", filepath.Join(existing, "report.json"), "not a directory", unix.ENOTDIR},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := CheckFileDestination(test.path)
+			if err == nil || !strings.Contains(err.Error(), test.message) {
+				t.Fatalf("expected %q, got %v", test.message, err)
+			}
+			if test.cause != nil && !errors.Is(err, test.cause) {
+				t.Fatalf("lost original error: %v", err)
+			}
+		})
+	}
+	if contents(t, existing) != "keep this file" {
+		t.Fatal("preflight changed existing file")
+	}
+	assertClean(t, dir)
+}
+
+func TestParentPolicyDiagnostics(t *testing.T) {
+	const ordinaryUID = 1000
+	for _, test := range []struct {
+		name        string
+		owner       uint32
+		effective   int
+		permissions uint32
+		message     string
+	}{
+		{"sudo user-owned directory", ordinaryUID, 0, 0700, "sudo mkdir -m 700 NEW_DIRECTORY"},
+		{"different ordinary owner", ordinaryUID + 1, ordinaryUID, 0700, "expected effective UID 1000"},
+		{"writable by other users", ordinaryUID, ordinaryUID, 0777, "allows group/other writes"},
+		{"root private directory", 0, 0, 0700, ""},
+		{"own private directory", ordinaryUID, ordinaryUID, 0700, ""},
+		{"root-owned sticky tmp", 0, ordinaryUID, unix.S_ISVTX | 0777, ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := checkParentMetadata(unix.Stat_t{Uid: test.owner, Mode: test.permissions}, "./fuga", test.effective)
+			if test.message == "" {
+				if err != nil {
+					t.Fatal(err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), test.message) || !strings.Contains(err.Error(), "./fuga") || !errors.Is(err, unix.EPERM) {
+				t.Fatalf("policy diagnostic: %v", err)
+			}
+		})
 	}
 }

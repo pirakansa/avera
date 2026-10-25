@@ -266,3 +266,15 @@ remain context; new input facts require fresh review. PID/FD/event numbering is
 not a stable judgment key. No keystrokes or input events are read; kbd does not
 identify a particular tty/shell, and open descriptors do not establish delivery
 to the intended application. Permissions, races and limits remain explicit.
+
+
+## Output-path diagnostics fix
+
+Single-report collection now identifies directory arguments, existing output,
+missing parents, non-directory/symlink path components, owner UID mismatches,
+unsafe permissions and staging failures before collection. The owner restriction
+remains: root collection requires a root-owned output parent. Errors include the
+specific reason and corrective hints; the collect help and primary workflow show
+a JSON filename and a new root-owned private directory. Existing files and
+permissions are not changed automatically. Artifact and CLI tests cover rejection
+without source access and preserve private atomic/no-overwrite publication.

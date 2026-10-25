@@ -148,3 +148,35 @@ func TestSingleReportImportExportFlags(t *testing.T) {
 		}
 	}
 }
+
+func TestCollectOutputDiagnosticsBeforeSourceAccess(t *testing.T) {
+	dir := t.TempDir()
+	existing := filepath.Join(dir, "existing.json")
+	if err := os.WriteFile(existing, []byte("unchanged"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "linked")
+	if err := os.Symlink(dir, link); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct{ name, output, message string }{
+		{"directory with slash", dir + "/", "include a filename"},
+		{"existing directory", dir, "is a directory"},
+		{"existing file", existing, "already exists"},
+		{"missing parent", filepath.Join(dir, "missing", "fuga.json"), "does not exist"},
+		{"symbolic link", filepath.Join(link, "fuga.json"), "symbolic link"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			called := false
+			svc := app.Service{EffectiveUID: func() int { return 0 }, Collectors: []app.Registration{{Name: i.Network, Collector: fakeCollector{status: i.Complete, called: &called}}}}
+			code, _, diag := execute(t, svc, "collect", "--output", test.output)
+			if code != 1 || called || !strings.Contains(diag, "--output:") || !strings.Contains(diag, test.message) {
+				t.Fatalf("code=%d called=%t diagnostic=%q", code, called, diag)
+			}
+		})
+	}
+	data, err := os.ReadFile(existing)
+	if err != nil || string(data) != "unchanged" {
+		t.Fatal("input changed", err)
+	}
+}

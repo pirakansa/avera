@@ -23,6 +23,38 @@ Run in an explicitly opened root shell on the selected Linux/amd64 target. Choos
 
 For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
 
+For `sudo` from an ordinary shell, create a **new** root-owned output directory
+and include a JSON filename (choose another directory name if it already exists):
+
+```sh
+sudo mkdir -m 700 ./avera-output
+sudo ./bin/avera collect --output ./avera-output/report.json
+```
+
+`--output` is the new report **file**, not its directory. `./fuga/` is a directory
+argument; `./fuga/report.json` is a file argument but still requires an existing,
+trusted parent. A directory created with ordinary `mkdir` remains owned by that
+ordinary user even when `collect` is later run with `sudo`. Do not change existing
+project-directory ownership just to store a report; create a separate directory.
+The private root-generated file remains root-owned with mode `0600`; transfer it
+for ordinary-user review through your chosen method below.
+
+Output errors now identify the failing condition before source collection:
+
+| Diagnostic | Action |
+| --- | --- |
+| Output is a directory / include a filename | Add a new filename such as `report.json`. |
+| Destination already exists | Choose an unused filename; AVERA never overwrites it. |
+| Parent directory does not exist | Create the parent as the user running AVERA. |
+| Parent is owned by another UID | Use a private directory owned by the effective user or root. Root collection requires a root-owned parent. |
+| Parent allows group/other writes | Use a private directory, normally mode `0700`. |
+| Parent component is a symbolic link | Use an existing path without symlink components. |
+| Cannot access the parent / cannot create temporary directory | Check access/write permissions, read-only filesystems and available space. |
+
+Ownership errors include the parent path, actual UID, required owner and an
+example of creating a new private directory. Diagnostics remain English. The
+trust checks, private staging and no-overwrite behavior remain in force.
+
 The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, bounded local sudo configuration, and connected USB/removable non-root storage metadata, and current USB device/interface metadata. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
 The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, a conflicting logical group label, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
