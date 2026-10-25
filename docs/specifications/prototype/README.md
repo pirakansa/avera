@@ -1,6 +1,6 @@
 # Prototype implementation plan
 
-Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md). T01 implements the shared domain model, strict validation, normalization, and artifact storage; see the [API handoff](model-storage.md). Optional P0 feedback remains pending and does not block subsequent implementation. T06 provides tested `collect`, `review`, and `report` commands with T04 assessment reuse and T05 guidance; see the [CLI handoff](cli-workflow.md) and [combined T05/T06 rehearsal](../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). Owner P1 is pending; T07 delivery verification is a separate follow-up.
+Status: proposed execution plan for an unreleased prototype. T00 has an agent-prepared [contract baseline](data-contracts.md#t00-baseline-t00-2026-10-241) and [fictional walkthrough](examples/fictional-report.md). T01 implements the shared domain model, strict validation, normalization, and artifact storage; see the [API handoff](model-storage.md). Optional P0 feedback remains pending and does not block subsequent implementation. T06 provides tested `collect`, `review`, and `report` commands with T04 assessment reuse and T05 guidance; see the [CLI handoff](cli-workflow.md) and [combined T05/T06 rehearsal](../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). Owner P1 feedback/revisions are in progress (see the [current handoff](../../user-guides/prototype-trials/current-status.md)); final acceptance is pending; T07 delivery verification is a separate follow-up.
 
 The owner subsequently requested a simpler single-report browser workflow. Use the [current guide](../../user-guides/report-workflow.md) and [container/server contract](report-workflow.md); the task sequence and original split-file examples below provide historical/domain context.
 
@@ -77,7 +77,7 @@ No task requires parallel execution. If work overlaps, appoint one integration o
 5. The handoff lists changed files, commands run, observed results, deferred work, and any shared-contract changes.
 6. No release, publication, or real third-party report submission occurs as part of task completion.
 
-Implemented baseline: the CLI builds, T01 has package-local model/storage tests, and the vulnerability scan finds no reachable vulnerabilities but reports findings in dependency packages/modules. Record new results accurately; do not silently classify this baseline as a newly introduced defect or as a completely clean dependency scan.
+Current validated baseline: the CLI builds, package/race tests pass, and vulnerability scanning with the required Go toolchain reports no vulnerabilities. Earlier dependency/toolchain findings remain in dated historical records. Record the actual result of each new validation run rather than carrying an old scan outcome forward.
 
 ## Copyable agent assignment
 

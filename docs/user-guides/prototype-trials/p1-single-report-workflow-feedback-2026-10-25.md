@@ -1,5 +1,9 @@
 # P1 single-report workflow feedback — 2026-10-25
 
+Historical feedback record for its original increment. Later decisions supersede
+some behavior below; use the [current trial handoff](current-status.md) for the
+implemented workflow and ongoing owner feedback status.
+
 Status: actual owner feedback received in conversation; implementation revision follows the owner's explicit request. Owner acceptance of the new editor remains pending.
 
 - Owner feedback (English paraphrase): preparing/editing the JSON is too complex, particularly when handling targets. Simplify to one report JSON including judgments: target-side collection consumes the previous report and emits the next; host-side browser viewing/editing consumes that report and exports HTML.

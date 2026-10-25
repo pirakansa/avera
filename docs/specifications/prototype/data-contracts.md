@@ -2,6 +2,13 @@
 
 Status: experimental T00 baseline `t00-2026-10-24.1`, prepared by an agent and available for T01 implementation. Optional owner P0 feedback is pending and does not block that work. T01 implements this baseline; see the [model/storage API handoff](model-storage.md) for concrete limits and storage behavior. The baseline section below freezes serialization details for implementation handoff. Semantic changes require a contract revision and updated examples/tests.
 
+The raw T00 contract below remains a regression baseline. The primary workflow
+now uses a [portable v3 container](report-workflow.md), the [forwarding extension](forwarding-collector.md)
+and [common service judgments](shared-service-judgments.md). In that workflow,
+`target_id` labels a reusable service group across PCs; it does not enforce physical
+machine identity. Do not apply the original per-run matching discussion as a
+requirement to retype shared explanations or restore machine-ID binding.
+
 ## Separate roles, not necessarily permanent file formats
 
 | Artifact | Role | Mutability |

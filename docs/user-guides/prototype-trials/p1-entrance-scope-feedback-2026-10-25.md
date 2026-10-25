@@ -1,5 +1,9 @@
 # P1 entrance scope feedback — 2026-10-25
 
+Historical feedback record for its original increment. Later decisions supersede
+some behavior below; use the [current trial handoff](current-status.md) for the
+implemented workflow and ongoing owner feedback status.
+
 Status: actual owner discussion and implementation request; evaluation of the revised UI remains pending.
 
 The owner questioned why a loopback-only service required judgment in a security-concern inventory. They agreed to focus normal review on network entrances, keep local-only services as reference, and explain forwarding/protections at the entrance to avoid duplicated judgments. The owner explicitly requested this revision after discussion; no claim is made that loopback services are inherently safe or that LAN services are unreachable.

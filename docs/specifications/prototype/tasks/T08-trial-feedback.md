@@ -1,6 +1,6 @@
 # T08 — Run the prototype learning cycle
 
-Status: not started. Prerequisites: T00 for the paper walkthrough; T07 for live executable trials. Read [trial cycles and feedback](../../../user-guides/prototype-trials.md).
+Status: recurring owner-feedback/revision cycle in progress for T05/T06; final P1 acceptance and T07 delivery verification remain pending. See the [current handoff](../../../user-guides/prototype-trials/current-status.md). Prerequisites: T00 for the paper walkthrough; implemented T05/T06 for local fictional/development feedback; T07 for distributed-build live validation. Local feedback does not wait for T07. Read [trial cycles and feedback](../../../user-guides/prototype-trials.md).
 
 ## Outcome
 

@@ -2,6 +2,10 @@
 
 Status: initial planning register. Entries marked proposed have not been selected through user trials. Task owners update outcomes and reasons as evidence becomes available; do not retroactively label an experiment as a product requirement.
 
+Dated entries retain their original evidence and can be superseded by later
+entries. Use the [current trial handoff](../../user-guides/prototype-trials/current-status.md)
+for the implemented behavior and pending work before acting on an older proposal.
+
 ## Agreed constraints
 
 | ID | Decision | Source / consequence |

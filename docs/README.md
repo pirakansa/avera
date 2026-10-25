@@ -1,6 +1,6 @@
 # Documentation
 
-AVERA provides experimental `collect`, `review`, and `report` commands, with network collection, assessment reuse, and bundled guidance. Owner P1 feedback and T07 build delivery verification remain separate follow-ups.
+AVERA provides experimental `collect`, `serve`, `review` and `report` commands, with network/forwarding collection, shared service judgments and graphical Japanese HTML reports. T05/T06 owner feedback is in progress; final acceptance and T07 delivery verification remain pending. Start with the [current session handoff](user-guides/prototype-trials/current-status.md).
 
 ## Product direction
 
@@ -15,7 +15,7 @@ Start with the [prototype plan and task index](specifications/prototype/README.m
 - [Data contracts and assessment reuse](specifications/prototype/data-contracts.md)
 - [Implemented model and storage APIs](specifications/prototype/model-storage.md): T01 handoff, limits, permissions, and portability
 - [Network collector implementation](specifications/prototype/network-collector.md): T02 API, synthetic fixtures, scope, limits, and recorded Ubuntu comparison
-- [Guidance and Markdown report API](specifications/prototype/guidance-report.md): T05 content, rendering, escaping, examples, and pending owner trial
+- [Guidance and HTML/Markdown report API](specifications/prototype/guidance-report.md): T05 content, rendering, escaping, examples, and ongoing owner feedback
 - [Collection scope and evidence](specifications/prototype/collection.md)
 - [Decision register](specifications/prototype/decisions.md)
 

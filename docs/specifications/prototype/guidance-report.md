@@ -5,7 +5,7 @@ T05 provides bundled English and Japanese guidance in `internal/guidance` and de
 ## API and semantics
 
 `guidance.For(kind)` returns observed-fact wording, review motivation, and contextual
-questions for `network.endpoint`, `sudo.rule`, and `sudo.unparsed`. Each call owns
+questions for `network.endpoint`, `network.forwarding`, `sudo.rule`, and `sudo.unparsed`. Each call owns
 its question slice. Public static content can explain why authentication is
 inapplicable; unsupported sudo text asks for interpretation instead of inferring
 privileges. `guidance.Missing(assessment)` reports blank explanatory fields and
@@ -101,3 +101,13 @@ Following owner feedback, nonzero action-required and unreviewed summary cards u
 The [review-scope specification](review-scope.md) supersedes all-observation summary counts in rendered reports. Loopback-only services move to a read-only reference section outside current decision totals; LAN/private and wildcard listeners remain in scope. The browser and both report languages/formats share the same scope projection. Raw T00 review artifacts remain unchanged for compatibility.
 
 Portable-file rendering also displays human-described entrance-to-local-service relationships, their observation-match/re-review status and provenance. Changed or missing linked services invalidate derived entrance acceptance pending explicit reconfirmation. The relationships never prove forwarding or external reachability.
+
+## Current portable presentation
+
+`report.RenderFile(file, options)` is the primary portable entry point. It uses
+`reportfile.File.Review` for shared endpoint judgments and contextual human-link
+gating, then applies the same scope projection as the browser. This is distinct
+from raw T00 comparison via `Render`; templates do not implement these rules.
+Current accepted items stay visible, with human provenance. Superseded archives
+are JSON-only. HTML includes the [network diagram](network-overview.md); Markdown
+is textual. See the [current trial handoff](../../user-guides/prototype-trials/current-status.md).

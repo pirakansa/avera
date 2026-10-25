@@ -1,5 +1,9 @@
 # P1 presentation feedback — 2026-10-24
 
+Historical feedback record for its original increment. Later decisions supersede
+some behavior below; use the [current trial handoff](current-status.md) for the
+implemented workflow and ongoing owner feedback status.
+
 Status: actual owner feedback received in conversation after the T05/T06 handoff. This is not a completed live trial or acceptance of the new presentation.
 
 - Increment: T05 guidance/reporting and T06 CLI, followed by presentation revision.

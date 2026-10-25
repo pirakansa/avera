@@ -15,15 +15,17 @@ Go 1.26.10 is the minimum because the local Web server makes standard-library vu
 
 ## First collection on the target
 
-Run in an explicitly opened root shell on the selected Linux/amd64 target. Choose an existing private output directory and a new JSON filename:
+Run in an explicitly opened root shell on the selected Linux/amd64 target. Choose an existing private output directory owned by root and a new JSON filename:
 
 ```sh
 ./avera collect --target-id my-server --output /root/avera-run-001.json
 ```
 
+For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
+
 The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live network collection reads sockets and existing iptables/nftables configuration; sudo remains explicitly uncollected. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
-The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, wrong target, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
+The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, a conflicting logical group label, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
 
 ## Review on the host PC
 
@@ -46,7 +48,7 @@ Open the exact `http://127.0.0.1:PORT` URL printed in the terminal. No other mac
 
 The Japanese display label for the stored `accepted` decision is now "追加対応不要" (no additional action required according to the human reviewer). This wording is used consistently in summary cards, judgment selectors, saved judgment displays and Japanese HTML/Markdown reports. It is a human judgment within the observed scope, not a tool certification of safety. JSON still stores `accepted`; existing saved files and matching rules are unchanged.
 
-Save explicitly reconfirms the judgment against the current facts and records the actor/time. Earlier human entries are archived verbatim; generated empty starters need not be archived. Saving accepted does not override incomplete collection or conflicting interpretation: the derived current decision can remain unreviewed. Use the unmatched-judgment section to inspect explanations without a current observation. Replaced judgment history is not displayed. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON rather than becoming extra active judgments.
+Save records the current observation basis, actor/time and, for network endpoints, updates the common service judgment. Earlier human entries are archived verbatim; generated empty starters need not be archived. Common endpoint judgments can apply even when network collection is incomplete; coverage and diagnostic information remain visible independently. Raw fact-based decisions, conflicts or stale manual relationships can still require review. A configured judgment is not verification of missing evidence. Use the unmatched-judgment section to inspect explanations without a current observation. Replaced judgment history is not displayed. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON rather than becoming extra active judgments.
 
 `--lang en` selects English report questions and export content; editor controls remain Japanese in this prototype.
 
@@ -68,7 +70,7 @@ Bring the latest judgment-containing JSON back to the same target. Run as root a
 ./avera collect --input ./avera-report.json --output ./avera-run-002.json
 ```
 
-You do not need to re-enter the target ID or provide separate snapshot/assessment files. Then bring `avera-run-002.json` back to the host and open it with `serve` again. Old acceptance is not automatically reconfirmed after changed facts or incomplete collection.
+You do not need to re-enter the target ID or provide separate snapshot/assessment files. Then bring `avera-run-002.json` back to the host and open it with `serve` again. Shared endpoint judgments apply by service class across PC/process differences, independently of collection completeness. Raw fact-based context and stale manual relationships retain their review rules. Inspect coverage alongside the current human judgment.
 
 The input report can be reused across servers with the same role, including a load-balanced group. AVERA no longer reads or requires `machine-id`; existing binding fields are ignored for reuse. Omit `--target-id` to inherit the logical group name. `--adopt-target` is no longer required.
 

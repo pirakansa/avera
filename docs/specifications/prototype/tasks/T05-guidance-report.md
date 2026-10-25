@@ -1,6 +1,6 @@
 # T05 — Guidance and the three-level report
 
-Status: implementation complete; owner P1 walkthrough pending and scheduled together with T06 after its completion. See the [combined trial procedure](../../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). See the [API handoff](../guidance-report.md). Prerequisites: T01 model and the T04 result contract. Development can begin against T00/T04 fixtures. Read [product direction](../../product-direction.md).
+Status: baseline implementation complete; combined T05/T06 owner feedback and revision cycle in progress, with final acceptance pending. See the [current session handoff](../../../user-guides/prototype-trials/current-status.md). See the [combined trial procedure](../../../user-guides/prototype-trials.md#executable-t05--t06-rehearsal). See the [API handoff](../guidance-report.md). Prerequisites: T01 model and the T04 result contract. Development can begin against T00/T04 fixtures. Read [product direction](../../product-direction.md).
 
 ## Outcome
 
@@ -39,6 +39,14 @@ Render untrusted values safely: control characters, Markdown tables/fences, embe
 - Malicious-looking annotation text remains data and cannot break table/fence structure or inject active markup.
 - Rendering the same model is deterministic apart from explicitly supplied metadata; generating a report never changes input decisions.
 - The owner can identify the next needed explanation during the P1 walkthrough; record this as trial evidence, not a claim made by the implementation agent.
+
+## Current follow-ups
+
+The original work below describes the baseline. Current owner revisions include
+Japanese/HTML output, focused loopback reference scope, reusable endpoint judgments,
+JSON-only replaced history and a GUI/HTML network diagram. See the [current trial
+status](../../../user-guides/prototype-trials/current-status.md) for decisions and
+remaining validation; these are not a completed release acceptance.
 
 ## Handoff
 

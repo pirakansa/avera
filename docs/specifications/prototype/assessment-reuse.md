@@ -4,6 +4,11 @@ T04 implements baseline `t00-2026-10-24.1` in `internal/assessment`.
 The package performs no host access, file I/O, external lookups, or human
 acceptance. The authoritative matching rules remain in [data contracts](data-contracts.md).
 
+This document describes raw T04 comparison, not the complete current portable
+review. `reportfile.File.Review` additionally applies [common endpoint judgments](shared-service-judgments.md)
+and human-link context; common judgments can apply despite process/namespace
+changes or incomplete collection, with diagnostics retained separately.
+
 ## Pure transformation
 
 `assessment.Evaluate(current, previous, assessments)` accepts a required

@@ -1,6 +1,6 @@
 # T06 — CLI and application workflow
 
-Status: implementation and validation complete; owner P1 pending. Owner P1 will cover T05 and T06 together after completion. Prerequisites for P1 integration: T01, T02, T04, T05. Add T03 after the first trial. Read [architecture](../architecture.md).
+Status: baseline implementation and validation complete; combined T05/T06 owner feedback and revisions are in progress, with final acceptance pending. See the [current session handoff](../../../user-guides/prototype-trials/current-status.md). Prerequisites for P1 integration: T01, T02, T04, T05. Add T03 after the first trial. Read [architecture](../architecture.md).
 
 ## Outcome
 
@@ -39,6 +39,15 @@ Make the agreed fictional workflow executable: collect as root, supply prior con
 ## Handoff
 
 Provide implemented command examples, exit/output behavior, fixture-based end-to-end evidence, and any changes to proposed flags. Update draft examples and decision entries to match the implemented prototype while preserving their experimental status.
+
+## Current workflow
+
+`collect` emits one portable v3 JSON, `serve` provides the Japanese editor and HTML
+export, and `report --input` renders saved portable data. Live network collection
+includes socket and iptables/nftables observations; sudo integration remains
+pending. Reports can carry shared endpoint judgments across equivalent PCs with
+no machine-ID requirement. See the [primary guide](../../../user-guides/report-workflow.md).
+The dated handoff below is historical baseline evidence, not the current full scope.
 
 ## Implemented handoff — 2026-10-24
 

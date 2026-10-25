@@ -1,6 +1,8 @@
 # Prototype trial cycles
 
-Status: T06 commands and the fictional rehearsal have passed implementation validation. The owner plans to try T05 guidance/reporting together with the T06 workflow after implementation. P1 feedback remains pending. See the [CLI reference](../specifications/prototype/cli-workflow.md) for the implemented contract.
+Status: T05/T06 implementation is validated and the owner feedback/revision cycle
+is in progress; final acceptance is pending. Start with the [current status and
+session handoff](prototype-trials/current-status.md) and the [single-report guide](report-workflow.md).
 
 The [single-report and browser-editor guide](report-workflow.md) is now the primary trial entry point, following owner feedback about manual JSON editing. The split-file exercises below remain diagnostic scenarios and migration examples; collection examples need `--legacy-output` when requesting a run directory.
 
@@ -26,6 +28,15 @@ P0 is optional and does not block T01. The technical handoff consists of the pre
 
 ## P1 — Try the complete port workflow
 
+For the current owner cycle, use the browser to explain a service once, save its
+common judgment, carry that JSON to the intended equivalent server(s), and inspect
+the current judgment, coverage, diagram and exported report. Check that current
+accepted items remain visible and replaced archives do not clutter the UI.
+
+The following table is the original raw-comparison/live-validation checklist,
+retained for diagnostic coverage. It does not require the owner to repeat the
+same explanation for every PC when common service settings apply.
+
 Preparation: a known disposable Ubuntu target, the T07-verified local binary, a separate output directory per run, and fictional or explicitly selected prior/advance inputs. Record the target release/architecture and implemented collection scope. Use root for collection. Use existing access or a local console; do not install SSH or change firewall rules to make the tool usable.
 
 | Scenario | Owner action | What to observe |
@@ -39,9 +50,13 @@ Preparation: a known disposable Ubuntu target, the T07-verified local binary, a 
 
 Do not introduce production changes merely to create a changed-item scenario. Scripted fixtures are a valid way to test comparison semantics; record them as simulated rather than live evidence.
 
-After P1, decide whether to keep separate files/commands for the next cycle. Consider a simpler editing surface only if the trial demonstrates that JSON or artifact movement is a problem. The owner has now requested Japanese content and a graphical HTML report. The presentation trial below evaluates that requested extension; an editing GUI remains undecided.
+Owner feedback selected one portable JSON and the Japanese local browser editor. Use that implemented workflow for current trials. The split-file and initial presentation exercises below remain diagnostic baseline scenarios; they do not represent an undecided GUI or the current common-setting workflow.
 
 ## Executable T05 + T06 rehearsal
+
+Legacy diagnostic rehearsal: use the [current workflow](report-workflow.md) for
+normal owner trials. These explicit-file cases test the original raw comparison
+contract, which remains separate from portable common-setting reuse.
 
 Run from the repository root after `vorbere run setup` and `vorbere run build`. The following rehearsal uses only fictional files and needs no root, host collection, external commands inside AVERA, or network. It can be performed before a T07 distributed build is available.
 
@@ -150,7 +165,7 @@ printf 'Open the HTML files in a browser: %s\n' "$html_trial"
 
 Open the files directly in a browser; no local server or network is required. Start with the overview cards, follow the current-item navigation, read the Japanese questions and decision context, then follow an evidence link and expand the technical details. Compare the unchanged and changed reports: stale acceptance must remain prior context. Repeat with a narrow browser window to assess readability. Evidence/source text and fictional human statements may remain English because their original content is preserved.
 
-Use `--format markdown --lang ja` for Japanese Markdown or `--format html --lang en` for English HTML. Omitting both flags preserves the original English Markdown. CLI help/errors and JSON editing remain in English; this increment localizes the report rather than introducing translated artifact fields or a browser editor.
+Use `--format markdown --lang ja` for Japanese Markdown or `--format html --lang en` for English HTML. Omitting both flags preserves the original English Markdown. CLI help/errors and artifact fields remain English. This saved-file exercise tests report localization; the current primary workflow also has a Japanese browser editor.
 
 Feedback to gather: does Japanese wording clarify what to do next; are the cards and item headings understandable; can the owner distinguish observations from human statements and current acceptance from prior context; are the layout, density, mobile view and technical-detail expansion useful? Record actual feedback separately from automated checks. The first request is recorded in [the presentation feedback record](prototype-trials/p1-report-presentation-feedback-2026-10-24.md); acceptance of this new layout is still pending.
 

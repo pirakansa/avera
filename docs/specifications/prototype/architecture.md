@@ -8,7 +8,7 @@ Build a Go executable for each supported Linux architecture with target-side run
 
 Collection runs locally as root. Check effective privilege before opening host information sources. A non-root attempt fails with an actionable message; do not launch `sudo` automatically. Root does not imply unrestricted visibility in every namespace or mount environment.
 
-Collectors read OS information directly. Do not shell out to `ss`, `netstat`, `sudo`, `visudo`, `getent`, or package managers as required production dependencies. Test/reference tools may be used in a disposable validation environment when explicitly available; they are not distributed-runtime requirements.
+Socket and sudo collectors read OS information directly. The [forwarding collector](forwarding-collector.md) uses bounded, read-only invocations of existing system iptables/nftables tools, resolved from fixed system directories. Missing tools are reported as incomplete coverage; AVERA does not install them. Do not shell out to `ss`, `netstat`, `sudo`, `visudo`, `getent`, or package managers as required production dependencies. Test/reference tools may be used in a disposable validation environment when explicitly available; they are not distributed-runtime requirements.
 
 Collection opens no listening socket and performs no remote discovery, package installation, configuration change, or external lookup. Internal kernel queries, if selected later, must be distinguished from network traffic. Plan for cancellation and bounded work. The prototype is an observation at a point in time, not a continuous monitor or an atomic snapshot of the entire machine.
 
@@ -25,14 +25,17 @@ Propose `CGO_ENABLED=0` for the distributed build and verify the resulting binar
 | `internal/inventory` | Versioned domain types and domain validation | Filesystem access or Cobra imports |
 | `internal/artifact` | Strict serialization, bounded reads, safe output creation | Deciding whether a risk is acceptable |
 | `internal/collect/network` | Network source parsing and evidence | Human assessments |
+| `internal/collect/forwarding` | Bounded read-only iptables/nftables source collection and translation candidates | Firewall changes or reachability inference |
 | `internal/collect/sudo` | Sudo configuration traversal and supported parsing | Executing sudo or evaluating every policy backend |
 | `internal/assessment` | Identity matching, changes, prior-assessment eligibility | Host access or UI |
 | `internal/guidance` | Explanations, prompts, applicability guidance | Automatic safety certification |
-| `internal/report` | Three-level Markdown rendering from a review model | Recollection or hidden decision changes |
+| `internal/reportfile` | Portable container, common service judgments, human links and retained archives | Live OS collection or UI templates |
+| `internal/viewer` | Loopback browser session, revision-controlled edits and exports | Collection or arbitrary client-selected output paths |
+| `internal/report` | HTML/Markdown rendering and shared network-diagram presentation | Recollection or hidden decision changes |
 
 Dependency direction: CLI → application → domain/collectors/artifacts/assessment/guidance/report. Collectors and pure processing packages may depend on domain types. Nothing outside the CLI command tree imports command packages. Do not create `internal/cli/manifest` unless a real manifest-specific responsibility appears; artifact handling belongs in `internal/artifact`. Do not create public `pkg/` APIs for this prototype without a concrete external consumer.
 
-The integration owner adds and pins Cobra when CLI work begins, following repository dependency policy. Exact versions are implementation-time choices checked against the supported Go version. A compiled Go library dependency does not require the target user to install that library separately.
+Cobra is pinned in `go.mod`; dependency changes follow repository policy and the supported Go version. A compiled Go library dependency does not require the target user to install that library separately.
 
 ## Original split-file command walkthrough
 
