@@ -21,7 +21,7 @@ func New(svc app.Service) *cobra.Command {
 		if name == "collect" {
 			cmd.Short = "Collect facts into one portable report JSON as root"
 			cmd.Flags().StringVar(&o.Input, "input", "", "Previous portable report JSON (optional on first collection)")
-			cmd.Flags().BoolVar(&o.AdoptTarget, "adopt-target", false, "Bind an imported unbound report to this installation")
+			cmd.Flags().BoolVar(&o.AdoptTarget, "adopt-target", false, "Compatibility flag; report reuse no longer requires machine binding")
 			cmd.Flags().BoolVar(&legacyOutput, "legacy-output", false, "Use the older split-artifact run directory")
 			cmd.Flags().StringVar(&o.TargetID, "target-id", "", "Explicit logical target ID")
 			cmd.RunE = func(cmd *cobra.Command, _ []string) error {

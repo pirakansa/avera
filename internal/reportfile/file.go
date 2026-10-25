@@ -15,7 +15,8 @@ import (
 	i "github.com/pirakansa/avera/internal/inventory"
 )
 
-const Version = "avera.report.v2"
+const Version = "avera.report.v3"
+const previousVersion = "avera.report.v2"
 const legacyVersion = "avera.report.v1"
 const MaxBytes = i.MaxArtifactBytes
 
@@ -24,8 +25,10 @@ type File struct {
 	Current, Previous    *i.Snapshot
 	Assessments, History *i.Assessments
 	Routes, RouteHistory []Route
+	Policies             []Policy
 }
 type wire struct {
+	Policies     []Policy        `json:"policies,omitempty"`
 	Format       string          `json:"format"`
 	Binding      string          `json:"machine_binding"`
 	Current      json.RawMessage `json:"current"`
@@ -104,6 +107,9 @@ func (f *File) Validate() error {
 		}
 		pairs[key] = true
 	}
+	if err := f.validatePolicies(); err != nil {
+		return err
+	}
 	if err := validateRoutes(f.Routes); err != nil {
 		return err
 	}
@@ -116,7 +122,7 @@ func (f *File) Encode() ([]byte, error) {
 	if err := f.Validate(); err != nil {
 		return nil, err
 	}
-	w := wire{Format: Version, Binding: f.Binding, Routes: f.Routes, RouteHistory: f.RouteHistory}
+	w := wire{Format: Version, Policies: f.Policies, Binding: f.Binding, Routes: f.Routes, RouteHistory: f.RouteHistory}
 	var err error
 	if w.Current, err = i.Encode(f.Current); err != nil {
 		return nil, err
@@ -151,13 +157,16 @@ func Decode(data []byte) (*File, error) {
 	var w wire
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&w); err != nil || (w.Format != Version && w.Format != legacyVersion) {
+	if err := dec.Decode(&w); err != nil || (w.Format != Version && w.Format != previousVersion && w.Format != legacyVersion) {
 		return nil, fmt.Errorf("unsupported report format or fields; require %s", Version)
+	}
+	if w.Format != Version && len(w.Policies) > 0 {
+		return nil, fmt.Errorf("shared policies require report v3")
 	}
 	if w.Format == legacyVersion && (len(w.Routes) > 0 || len(w.RouteHistory) > 0) {
 		return nil, fmt.Errorf("route metadata requires report v2")
 	}
-	f := &File{Binding: w.Binding, Routes: w.Routes, RouteHistory: w.RouteHistory}
+	f := &File{Policies: w.Policies, Binding: w.Binding, Routes: w.Routes, RouteHistory: w.RouteHistory}
 	decode := func(data []byte, kind string) (i.Artifact, error) {
 		a, err := i.Decode(data)
 		if err != nil || a.Header().Kind != kind {
@@ -209,6 +218,7 @@ func (f *File) Write(ctx context.Context, path string) error {
 
 // Edit contains only human-owned fields. Identity, provenance and timestamp are server-owned.
 type Edit struct {
+	Reuse            *bool                 `json:"reuse,omitempty"`
 	FindingID        string                `json:"finding_id"`
 	Decision         i.Decision            `json:"decision"`
 	Purpose          string                `json:"purpose"`
@@ -259,6 +269,9 @@ func (f *File) Apply(edit Edit, now time.Time) (*File, error) {
 	}
 	entries = append(entries, i.Assessment{AssessmentID: "human-" + rand.Text(), Origin: i.ReviewedSnapshot, Selector: i.Selector{Collector: found.Collector, Kind: found.Kind, Identity: found.Identity}, Basis: i.ReviewedBasis{SnapshotID: out.Current.SnapshotID, FactFingerprint: found.FactFingerprint}, Decision: edit.Decision, Purpose: edit.Purpose, Exposure: edit.Exposure, Safeguards: edit.Safeguards, Rationale: edit.Rationale, Actor: edit.Actor, AssessedAt: now.UTC().Format(time.RFC3339), EvidenceRefs: refs})
 	out.Assessments.Entries = entries
+	if err := out.applyPolicy(edit, *found, entries[len(entries)-1]); err != nil {
+		return nil, err
+	}
 	if err = out.applyRoutes(edit, *found, now); err != nil {
 		return nil, err
 	}

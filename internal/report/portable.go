@@ -16,14 +16,14 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 		return "", err
 	}
 	o = o.normalized()
-	if len(f.Routes) == 0 && len(f.RouteHistory) == 0 {
+	if len(f.Routes) == 0 && len(f.RouteHistory) == 0 && len(f.Policies) == 0 && !hasDetectedTargets(f) {
 		return RenderWithOptions(f.Current, f.Previous, f.Assessments, o)
 	}
 	result, err := f.Review()
 	if err != nil {
 		return "", err
 	}
-	d, err := documentFromReview(f.Current, f.Previous, f.Assessments, o.Language, result)
+	d, err := documentFromReview(f.Current, f.Previous, f.PolicyJudgments(), o.Language, result)
 	if err != nil {
 		return "", err
 	}
@@ -57,10 +57,38 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 	for _, route := range f.RouteHistory {
 		routes.Fields = append(routes.Fields, field{l.text("Superseded path statement (history only)", "置き換え前の経路説明（履歴）"), strings.Join([]string{route.Explanation, route.Actor, route.RecordedAt}, " / ")})
 	}
-	d.Blocks = append(d.Blocks, routes)
+	if len(f.Routes) > 0 || len(f.RouteHistory) > 0 {
+		d.Blocks = append(d.Blocks, routes)
+	}
+	for _, finding := range f.Current.Findings {
+		targets := f.DetectedTargets(finding)
+		if len(targets) == 0 {
+			continue
+		}
+		n, ok := blocks[finding.FindingID]
+		if !ok {
+			continue
+		}
+		b := &d.Blocks[n]
+		b.Fields = append(b.Fields, field{l.text("Configured destination match", "設定に記載された転送先との一致"), l.text("Literal DNAT destination matched to observed local services; effective reachability is not verified.", "DNAT のアドレス・ポートと観測サービスを照合しました。実際の到達性は検証していません。")})
+		for _, target := range targets {
+			if n, ok := blocks[target.FindingID]; ok {
+				b.Links = append(b.Links, link{d.Blocks[n].ID, d.Blocks[n].Title})
+			}
+		}
+	}
 	text, err := renderDocument(d, o)
 	if err != nil {
 		return "", fmt.Errorf("render portable report: %w", err)
 	}
 	return text, nil
+}
+
+func hasDetectedTargets(f *reportfile.File) bool {
+	for _, v := range f.Current.Findings {
+		if len(f.DetectedTargets(v)) > 0 {
+			return true
+		}
+	}
+	return false
 }

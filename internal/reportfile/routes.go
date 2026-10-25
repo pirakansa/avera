@@ -111,6 +111,7 @@ func (f *File) Review() (*assessment.Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	f.applyPolicies(result)
 	stale := map[string]bool{}
 	for _, route := range f.Routes {
 		if !f.RouteCurrent(route) {

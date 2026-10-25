@@ -34,7 +34,7 @@ try:
   http.locator('button[type=submit]').click();page.locator('#status').filter(has_text='保存しました').wait_for();page.wait_for_timeout(200)
   state=page.request.get(url+'/api/state').json();assert len(state['Routes'])==1 and state['Summary']['accepted']==1
   assert page.evaluate('window.injected') is None
-  body=page.request.get(url+'/download.json').json();assert body['format']=='avera.report.v2' and len(body['routes'])==1
+  body=page.request.get(url+'/download.json').json();assert body['format']=='avera.report.v3' and len(body['routes'])==1
   preview=browser.new_page();preview.goto(url+'/preview');assert preview.locator('#local-reference').count()==1 and preview.locator('#routes').count()==1
   assert '転送設定' in preview.inner_text('body') and '127.0.0.1:9000' in preview.inner_text('body')
   assert '転送経路は未検証' in preview.inner_text('body') and '<script>' not in preview.content()

@@ -28,3 +28,9 @@ Repeat collection preserves relationship metadata and history in the same target
 ## Evidence
 
 Tests cover loopback/private/wildcard/unknown-address classification, count exclusion without decision mutation, v1 migration, related-state roundtrip, invalid destinations, stale-related-service gating, explicit reconfirmation and unlink history. Existing raw T00 tests remain unchanged. Browser tests exercise read-only reference grouping, entrance selection, saved portable JSON, escaped linked HTML, draft preservation and narrow layouts. Repository quality gates are required; owner evaluation of the refined workflow remains pending.
+
+## Subsequent reusable-service revision
+
+[Shared service judgments](shared-service-judgments.md) supersede machine-bound
+collection and the v2 save default. They add v3 policies and configured-destination
+hints; manual relationship statements remain distinct and optional.

@@ -59,7 +59,7 @@ New collected artifacts use revision `netfilter-2026-10-25.1` with schema versio
 fixtures retain their semantics. The new kind/evidence are rejected under the old
 revision. New executables can carry old reports into new collection, preserving
 judgments/history and migrating their envelope when needed. Old executables reject
-the new revision. The outer portable format remains `avera.report.v2`.
+the new revision. The forwarding increment initially used `avera.report.v2`; current saves use [v3 shared service policies](shared-service-judgments.md).
 
 - Collector: `network`; kind: `network.forwarding`.
 - Identity: existing source identity `{source_path, line, ordinal}`. Source paths

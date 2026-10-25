@@ -56,9 +56,9 @@ The main review list focuses on non-loopback network entrances and other review 
 
 To describe forwarding, open the observed network entrance, select the relevant local service(s), and fill the forwarding/protection explanation. Save the entrance judgment. The tool records the association as a human statement, not a verified firewall/proxy route. Follow its related-service link in the report to inspect the observed local endpoint. If the linked service's facts change or it disappears, the entrance requests re-review even if its own listener is unchanged. Reconfirm after checking the path, or clear the selection if it no longer applies; earlier relationships stay in history.
 
-Only observed entrances can own these links. The collector does not discover ingress on a separate firewall/router or inspect forwarding rules. No main listener observed does not mean no external ingress. Reference and coverage sections preserve that distinction.
+Only observed entrances can own these links. The collector reads local forwarding candidates but does not discover ingress on a separate firewall/router. No main listener observed does not mean no external ingress. Reference and coverage sections preserve that distinction.
 
-New saves use portable report v2; old v1 reports still open, and the next new saved file is v2. Keep original files; older AVERA binaries cannot read v2. The raw split-artifact review JSON retains its all-observation counts for compatibility, while the browser and rendered reports show the focused counts described here.
+New saves use portable report v3; old v1/v2 reports still open. Keep original files; older AVERA binaries cannot read v3. The raw split-artifact review JSON retains its all-observation counts for compatibility, while the browser and rendered reports show the focused counts described here.
 
 ## Repeat on the same target
 
@@ -70,9 +70,15 @@ Bring the latest judgment-containing JSON back to the same target. Run as root a
 
 You do not need to re-enter the target ID or provide separate snapshot/assessment files. Then bring `avera-run-002.json` back to the host and open it with `serve` again. Old acceptance is not automatically reconfirmed after changed facts or incomplete collection.
 
-The report binds to a hash of `/etc/machine-id`, never the raw ID. A different installation fails before collector access; start a separate report for another target. Cloned systems sharing a machine ID cannot be distinguished by this check. Missing/invalid machine ID fails explicitly. A reinstall changes installation identity. There is no automatic migration or override for a bound mismatch.
+The input report can be reused across servers with the same role, including a load-balanced group. AVERA no longer reads or requires `machine-id`; existing binding fields are ignored for reuse. Omit `--target-id` to inherit the logical group name. `--adopt-target` is no longer required.
 
-Network namespace incarnation is still conservatively assigned per live run. Apparently unchanged live ports can therefore require new review and leave earlier explanations under unmatched context. This limitation is unchanged by the simpler file workflow; use fictional fixtures to explore exact-match unchanged reuse.
+## Prepare common explanations before collection
+
+In a network endpoint's form, **同じ構成のサーバーにも使う共通設定として保存** saves its purpose, safeguards and decision for matching services. The checkbox is initially selected. Unselect it to save only an individual judgment. Matching uses protocol, IPv4/IPv6, port and all-interface versus specific-address binding. It intentionally ignores the particular PC, specific non-loopback address, executable and UID. Only reuse the input report for the service group for which those explanations apply.
+
+For example, open a report containing TCP/IPv4 port 80 on all interfaces (the fictional sample includes this), describe the static Web service and upstream controls, select **追加対応不要**, and save with the checkbox selected. Carry that JSON into `collect --input` on the intended server(s). Matching HTTP endpoints receive the common human judgment rather than asking for the same explanation again. Different ports or waiting/binding classes remain separate. Existing saved judgments become shared only when explicitly saved with the checkbox. The current common-setting editor supports network endpoints.
+
+The editor and exported report identify a common-setting judgment as such; collection omissions remain visible independently. This is a human policy, not verification of safety on each server. Starting without `--input` begins with no shared settings. New saved files use v3, with v1/v2 inputs accepted.
 
 ## Try without root or a target
 
@@ -87,7 +93,7 @@ trial_dir=$(mktemp -d /tmp/avera-single-report.XXXXXX)
 
 No manual JSON preparation or combination of snapshot files is required for this rehearsal. The portable fixture contains a changed observation and an older human explanation so you can try explicit reconfirmation. For migration of your existing legacy files only, use `review --single-report --snapshot CURRENT --previous PREVIOUS --assessments HUMAN_CONTEXT --output NEW_REPORT.json`.
 
-These imported fixtures are fictional and unbound. They are for offline trial, not evidence about your computer. To import a real legacy report into live use, verify the selected installation and explicitly pass `--adopt-target` once with `collect --input`; it only binds unbound reports and cannot override a different existing machine binding.
+These imported fixtures are fictional and unbound. They are for offline trial, not evidence about your computer. To reuse a real legacy report, pass it to `collect --input`; no installation binding or adoption step is required. Save common service judgments in the editor when explanations should apply across service instances.
 
 Export saved reports without starting the viewer:
 
@@ -113,8 +119,10 @@ A missing backend never means that no forwarding exists. Inspect the collection
 scope and diagnostics before making a decision.
 
 In the editor, expand a **転送設定** item. Its observed rule and linked source evidence
-retain ingress conditions and surrounding chain configuration. Select the related
-loopback service, explain the route, and record protection by upstream routers or
+retain ingress conditions and surrounding chain configuration. Literal DNAT destinations are matched to observed loopback services when their
+address, port and protocol are explicit. These matches need no manual checkbox.
+For ambiguous or indirect paths, optionally select the related service and explain
+the relationship. Record protection by upstream routers or
 cloud controls in the safeguards/reason fields. Then choose the human decision,
 including **追加対応不要** when justified. Upstream safeguards do not remove the
 observed setting from the inventory. Export HTML to include the rule, evidence,
@@ -134,6 +142,6 @@ re-review. Live namespace incarnation is still not proven across runs, so existi
 conservative namespace re-review rules continue to apply.
 
 New collected artifacts use contract revision `netfilter-2026-10-25.1` inside the
-existing v2 portable container. Existing T00 artifacts and v1/v2 reports remain
+v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.

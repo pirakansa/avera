@@ -242,6 +242,7 @@ func reasonText(codes []string) string {
 	out := make([]string, 0, len(codes))
 	for _, code := range codes {
 		wording := map[string]string{
+			reportfile.SharedJudgment:        "An explicit shared service judgment applies; it is not a fresh host safety verification",
 			reportfile.RelatedContextChanged: "A linked local service changed or is unavailable; review the entrance judgment and path explanation",
 			assessment.FactsChanged:          "Observed facts changed; ask the decision owner to review the earlier explanation",
 			assessment.CoverageIncomplete:    "Collection or attribution is incomplete; clarify the missing context before reusing a decision",

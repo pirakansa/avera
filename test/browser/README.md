@@ -16,3 +16,7 @@ Use a fresh first-snapshot report session. The script edits two items, saves HTT
 new temporary directory, imports it through the CLI, and verifies the forwarding
 rule's Japanese guidance, human judgment, loopback relationship, JSON/HTML exports,
 escaping and mobile layout. It does not execute firewall commands.
+
+`python3 test/browser/shared_services.py` verifies literal DNAT destination hints
+without mandatory selection and saving a reusable endpoint policy, v3 JSON and
+the shared-judgment explanation in HTML. It starts/stops its own fixture viewer.

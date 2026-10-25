@@ -115,11 +115,13 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type item struct {
-	Finding   i.Finding        `json:"finding"`
-	Review    i.ReviewItem     `json:"review"`
-	Guidance  guidance.Content `json:"guidance"`
-	Judgments []i.Assessment   `json:"judgments"`
-	Reference bool             `json:"reference"`
+	DetectedTargets []i.Finding      `json:"detected_targets,omitempty"`
+	Finding         i.Finding        `json:"finding"`
+	Review          i.ReviewItem     `json:"review"`
+	Guidance        guidance.Content `json:"guidance"`
+	Judgments       []i.Assessment   `json:"judgments"`
+	Reference       bool             `json:"reference"`
+	Reusable        bool             `json:"reusable"`
 }
 type state struct {
 	Revision             int `json:"revision"`
@@ -145,7 +147,7 @@ func (s *Session) state(w http.ResponseWriter) {
 	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, RouteHistory: s.file.RouteHistory, Coverage: s.file.Current.Coverage, Items: []item{}, History: s.file.History, Unmatched: result.Unmatched, Language: s.language}
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
-	for _, a := range s.file.Assessments.Entries {
+	for _, a := range s.file.PolicyJudgments().Entries {
 		byID[a.AssessmentID] = a
 	}
 	byFinding := map[string]i.ReviewItem{}
@@ -154,7 +156,12 @@ func (s *Session) state(w http.ResponseWriter) {
 	}
 	for _, f := range s.file.Current.Findings {
 		v := byFinding[f.FindingID]
-		it := item{Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
+		it := item{DetectedTargets: s.file.DetectedTargets(f), Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
+		for _, code := range v.ReasonCodes {
+			if code == reportfile.SharedJudgment {
+				it.Reusable = true
+			}
+		}
 		for _, id := range v.AssessmentIDs {
 			it.Judgments = append(it.Judgments, byID[id])
 		}

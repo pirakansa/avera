@@ -29,6 +29,7 @@ type Service struct {
 	EffectiveUID func() int
 	Now          func() time.Time
 	Collectors   []Registration
+	// HostIdentity is retained for compatibility and is no longer consulted.
 	HostIdentity func() (string, error)
 }
 type Options struct {

@@ -111,6 +111,12 @@ function renderItem(item) {
     const qs = node('ul');
     for (const q of g.Questions) qs.append(node('li', q));
     box.append(qs);
+    if (item.reusable) box.append(node('p', '共通設定の判断を適用しています。同じプロトコル・ポート・待受範囲に対する人の判断です。', 'notice'));
+    if ((item.detected_targets || []).length) {
+        box.append(node('h3', '設定に記載された転送先と一致するサービス'));
+        for (const target of item.detected_targets) box.append(node('p', String(target.identity.transport).toUpperCase() + ' ' + target.identity.local_address + ':' + target.identity.local_port));
+        box.append(node('p', '転送ルールのアドレス・ポートから照合しました。選び直す必要はありません。実際の到達性や保護策は、下の説明・判断に記載してください。'));
+    }
     if (f.kind === 'network.forwarding') box.append(node('h3', '観測した転送設定'), node('pre', f.facts.rule));
     const facts = node('details');
     facts.append(node('summary', '観測内容（編集できません）'), node('pre', JSON.stringify({
@@ -151,10 +157,10 @@ function renderItem(item) {
         form.append(wrapper);
     }
     const relatedControls = [];
-    if (f.kind === 'network.endpoint' || f.kind === 'network.forwarding') {
+    if ((f.kind === 'network.endpoint' || f.kind === 'network.forwarding') && !(item.detected_targets || []).length) {
         const section = node('fieldset');
-        section.append(node('legend', '転送先・関連するローカルサービス（人の申告）'));
-        section.append(node('p', '入口から内部サービスまでの経路と保護策をここで説明します。チェックしても転送設定を検証したことにはなりません。'));
+        section.append(node('legend', '関連するローカルサービスを補足する（任意・人の申告）'));
+        section.append(node('p', '設定だけでは転送先を特定できない場合や、プロキシ経由の関係を補足する場合に選んでください。保護策は下の判断欄にも記載できます。'));
         const savedRoutes = routes.filter(route => route.entrance_id === f.finding_id);
         const selected = draft ? draft.related_ids : savedRoutes.map(route => route.internal_id);
         for (const target of currentItems.filter(item => item.reference)) {
@@ -191,6 +197,16 @@ function renderItem(item) {
     const label = node('label', '判断');
     label.append(select);
     form.append(label);
+    let reuse;
+    if (f.kind === 'network.endpoint') {
+        const label = node('label', undefined, 'route-choice');
+        reuse = node('input');
+        reuse.type = 'checkbox';
+        reuse.name = 'reuse';
+        reuse.checked = draft ? draft.reuse : true;
+        label.append(reuse, node('span', '同じ構成のサーバーにも使う共通設定として保存'));
+        form.append(label, node('p', '同じプロトコル・ポート・IPv4/IPv6・待受範囲（全インターフェース／特定アドレス）に適用します。PCや実行プロセスの違いでは再確認を求めません。収集できない情報は別に表示します。'));
+    }
     const button = node('button', '今回の判断を保存（新しい JSON を作成）');
     button.type = 'submit';
     form.append(button);
@@ -199,6 +215,7 @@ function renderItem(item) {
             decision: select.value
         };
         for (const key of Object.keys(controls)) draft[key] = controls[key].value;
+        if (reuse) draft.reuse = reuse.checked;
         draft.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
         drafts.set(f.finding_id, draft);
         window.onbeforeunload = () => true;
@@ -210,12 +227,13 @@ function renderItem(item) {
             finding_id: f.finding_id,
             decision: select.value
         };
+        if (reuse) edit.reuse = reuse.checked;
         for (const key of ['purpose', 'exposure', 'safeguards', 'rationale', 'actor']) edit[key] = controls[key].value;
         edit.evidence = [...new Set(controls.references.value.split('\n').map(x => x.trim()).filter(Boolean))].map(reference => ({
             reference,
             provenance: 'human_reported'
         }));
-        if (f.kind === 'network.endpoint' || f.kind === 'network.forwarding') {
+        if ((f.kind === 'network.endpoint' || f.kind === 'network.forwarding') && !(item.detected_targets || []).length) {
             edit.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
             edit.route_explanation = controls.route_explanation.value;
         }

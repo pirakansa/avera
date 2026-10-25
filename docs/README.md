@@ -25,7 +25,9 @@ These are proposed prototype defaults. They do not turn unresolved product choic
 
 - [Single-report workflow](user-guides/report-workflow.md): primary collect/carry/browser-edit/export workflow
 - [Review scope and related services](specifications/prototype/review-scope.md): reference grouping, entrance-owned human path statements, and v2 compatibility
-- [Portable report contract](specifications/prototype/report-workflow.md): container, target binding, save and browser boundaries
+- [Portable report contract](specifications/prototype/report-workflow.md): container, reusable service judgments, save and browser boundaries
 
 - [Trial cycles and feedback](user-guides/prototype-trials.md): how the project owner will try each increment and decide what to change.
 - [Disposable network collector validation](user-guides/network-collector-validation.md): Ubuntu comparison procedure and interpretation of its results.
+
+- [Shared service judgments](specifications/prototype/shared-service-judgments.md): cross-PC reuse, common explanations, v3 policies and configured destination hints

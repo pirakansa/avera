@@ -108,3 +108,13 @@ configuration. Implemented as [destination translation candidates](forwarding-co
 with conservative incomplete coverage, full source context, Japanese guidance and
 human-selected relationships. No automatic reachability or upstream verification.
 New collection uses a versioned nested contract extension; T00 inputs remain readable.
+
+## Common service explanations over installation binding (2026-10-25)
+
+The owner clarified that explanations should be prepared before inventory and
+reused across equivalent servers, including a load-balanced group. Machine ID is
+not an important boundary; strict per-run comparison must not force repeated
+explanation of known services. Implemented [shared service judgments](shared-service-judgments.md)
+and removed collection's identity prerequisite. Earlier machine-binding/adoption
+decisions are superseded. Literal configured destinations are shown directly;
+manual service selection remains optional for ambiguous paths.

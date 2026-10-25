@@ -2,10 +2,8 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"github.com/pirakansa/avera/internal/assessment"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,7 +27,7 @@ func TestPortableCollectRepeatAndTargetBoundaries(t *testing.T) {
 		t.Fatal("first failed", code, err)
 	}
 	first, err := reportfile.Read(o.Output)
-	if err != nil || first.Binding != fakeBinding || first.Previous != nil {
+	if err != nil || first.Binding != "" || first.Previous != nil {
 		t.Fatal("bad first report", err)
 	}
 	o.Input = o.Output
@@ -43,11 +41,10 @@ func TestPortableCollectRepeatAndTargetBoundaries(t *testing.T) {
 	if err != nil || second.Current.TargetID != "fictional-target" || second.Previous.SnapshotID != first.Current.SnapshotID {
 		t.Fatal("repeat lost context", err)
 	}
-	initial := called
-	o.Output = filepath.Join(dir, "mismatch.json")
-	svc.HostIdentity = func() (string, error) { return strings.Replace(fakeBinding, "a", "b", -1), nil }
-	if _, err = svc.CollectReport(context.Background(), o); err == nil || called != initial {
-		t.Fatal("cross-host report collected")
+	o.Output = filepath.Join(dir, "other-host.json")
+	svc.HostIdentity = func() (string, error) { t.Fatal("machine-id must not be read"); return "", nil }
+	if _, err = svc.CollectReport(context.Background(), o); err != nil {
+		t.Fatal("shared report rejected", err)
 	}
 	o.TargetID = "different"
 	svc.HostIdentity = func() (string, error) { t.Fatal("identity read before input validation"); return "", nil }
@@ -58,7 +55,7 @@ func TestPortableCollectRepeatAndTargetBoundaries(t *testing.T) {
 	if _, err = svc.CollectReport(context.Background(), Options{Output: filepath.Join(dir, "nonroot")}); err == nil {
 		t.Fatal("non-root collection accepted")
 	}
-	if identityCalls != 2 {
+	if identityCalls != 0 {
 		t.Fatal("unexpected identity reads")
 	}
 }
@@ -77,16 +74,16 @@ func TestPortableImportAndExport(t *testing.T) {
 	if err = svc.Offline(context.Background(), o, true); err != nil {
 		t.Fatal(err)
 	}
-	called := false
-	svc = Service{EffectiveUID: func() int { return 0 }, HostIdentity: func() (string, error) { called = true; return "", fmt.Errorf("injected") }}
+	svc = Service{EffectiveUID: func() int { return 0 }, HostIdentity: func() (string, error) { t.Fatal("machine-id read"); return "", nil }, Collectors: []Registration{{Name: i.Network, Collector: collectorFunc(func(context.Context, string) (i.CollectorResult, error) {
+		return i.CollectorResult{Coverage: i.Coverage{Collector: i.Network, Status: i.Partial, Scope: "fixture", AttemptedSources: []string{}, DiagnosticCodes: []string{"fixture"}, Limitations: []string{}}, Findings: []i.Finding{}, Evidence: []i.Evidence{}}, nil
+	})}}}
 	o.Output = filepath.Join(t.TempDir(), "next.json")
-	if _, err = svc.CollectReport(context.Background(), o); err == nil || called {
-		t.Fatal("unbound report read host without explicit adoption")
+	o.Format = ""
+	o.Language = ""
+	if _, err = svc.CollectReport(context.Background(), o); err != nil {
+		t.Fatal("unbound reusable report rejected", err)
 	}
-	o.AdoptTarget = true
-	if _, err = svc.CollectReport(context.Background(), o); err == nil || !called {
-		t.Fatal("explicit adoption not attempted")
-	}
+
 }
 
 func TestCarryEditedReportIntoNextCollection(t *testing.T) {
@@ -109,7 +106,8 @@ func TestCarryEditedReportIntoNextCollection(t *testing.T) {
 			id = finding.FindingID
 		}
 	}
-	f, err = f.Apply(reportfile.Edit{FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation", RelatedIDs: []string{localID}, RouteExplanation: "Entrance forwards to the internal service (human statement)"}, time.Now())
+	reuse := true
+	f, err = f.Apply(reportfile.Edit{Reuse: &reuse, FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation", RelatedIDs: []string{localID}, RouteExplanation: "Entrance forwards to the internal service (human statement)"}, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,6 +145,9 @@ func TestCarryEditedReportIntoNextCollection(t *testing.T) {
 	result, err := assessment.Evaluate(next.Current, next.Previous, next.Assessments)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if next.Binding != "" || len(next.Policies) != 1 {
+		t.Fatal("portable policies not carried or machine binding enforced")
 	}
 	if len(next.Routes) != 1 || !next.RouteCurrent(next.Routes[0]) {
 		t.Fatal("carry-back lost relationship metadata")

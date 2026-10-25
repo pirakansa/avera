@@ -45,7 +45,7 @@ async def main():
   page.on('dialog',lambda dialog:dialog.accept())
   async with page.expect_download() as info:await page.locator('#json-download').click()
   download=await info.value
-  path=await download.path();report=json.loads(pathlib.Path(path).read_text());assert report['format']=='avera.report.v2'
+  path=await download.path();report=json.loads(pathlib.Path(path).read_text());assert report['format']=='avera.report.v3'
   async with page.expect_download() as info:await page.locator('#html-export').click()
   path=await (await info.value).path();html=pathlib.Path(path).read_text();assert '確認レポート' in html and '&lt;script&gt;' in html
   await page.locator('#preview-tab').click()

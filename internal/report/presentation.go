@@ -81,7 +81,7 @@ func (l localizer) reasons(codes []string) string {
 	if !l.ja {
 		return reasonText(codes)
 	}
-	names := map[string]string{reportfile.RelatedContextChanged: "関連するローカルサービスが変化したか未観測です。入口側の判断と経路の説明を再確認してください", assessment.FactsChanged: "観測内容が変わりました。以前の説明を判断者と再確認してください", assessment.CoverageIncomplete: "収集や帰属の特定が不完全です。判断の再利用前に不足する情報を確認してください", assessment.MultipleAssessments: "複数の判断が競合しています。どの判断を適用するか担当者と確認してください", assessment.ExpectationMismatch: "事前の想定が不完全、または観測内容と異なります。作成者と確認してください", assessment.NotObserved: "比較可能な今回の収集では未観測です。対処済みとは限りません"}
+	names := map[string]string{reportfile.SharedJudgment: "同じサービス構成に対する共通設定の判断を適用しています（このPC固有の安全性の検証ではありません）", reportfile.RelatedContextChanged: "関連するローカルサービスが変化したか未観測です。入口側の判断と経路の説明を再確認してください", assessment.FactsChanged: "観測内容が変わりました。以前の説明を判断者と再確認してください", assessment.CoverageIncomplete: "収集や帰属の特定が不完全です。判断の再利用前に不足する情報を確認してください", assessment.MultipleAssessments: "複数の判断が競合しています。どの判断を適用するか担当者と確認してください", assessment.ExpectationMismatch: "事前の想定が不完全、または観測内容と異なります。作成者と確認してください", assessment.NotObserved: "比較可能な今回の収集では未観測です。対処済みとは限りません"}
 	out := []string{}
 	for _, c := range codes {
 		v, ok := names[c]
@@ -222,6 +222,11 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				}
 				if !assessment.IsReference(f) && presence == i.Current && item.Applicability == i.Applicable {
 					context = l.text("Applicable human assessment; not a safety certification", "適用可能な人の判断です。安全性の認証ではありません")
+				}
+				for _, code := range item.ReasonCodes {
+					if code == reportfile.SharedJudgment {
+						context = l.text("Shared human service policy; not a fresh host inspection judgment", "同じ構成に対する共通設定の判断です。このPCで新たに判断したことを意味しません")
+					}
 				}
 				l.annotation(&b, byID[id], context)
 			}
