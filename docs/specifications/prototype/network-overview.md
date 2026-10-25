@@ -12,8 +12,10 @@ configured destination matches and active human-described relationships.
 
 - The host boundary uses the report's logical target/group label. It represents
   the currently observed PC, not all hosts in that group.
-- An upstream placeholder states that routers, load balancers and cloud controls
-  were not inspected. No actual upstream device, Internet path or protection is
+- An upstream note invites reviewers to include router, load-balancer and cloud
+  safeguards in the judgment rationale. The introduction identifies the diagram
+  as settings observed within the PC; upstream inspection is outside tool scope,
+  not an outstanding collection task. No actual upstream device, Internet path or protection is
   invented from a wildcard/LAN listener or a human safeguard statement.
 - Network endpoint cards show transport, bind address, port, observed executable
   attribution when available, current decision and abbreviated purpose/safeguards.

@@ -34,8 +34,8 @@ type NetworkCard struct {
 func NetworkMapFor(f *reportfile.File, review *i.Review, language string) NetworkMap {
 	l := localizer{language == "ja"}
 	m := NetworkMap{Title: l.text("Network configuration overview", "ネットワーク構成の概要"), Host: f.Current.TargetID,
-		Note:            l.text("Observed settings on this PC, not verified external reachability. Open an item for full evidence and judgment. Long labels are abbreviated in this overview.", "このPCで観測した設定の関係図です。外部からの到達性を検証した図ではありません。項目を開くと証拠と判断の詳細を確認できます。長い説明は図では省略します。"),
-		Outside:         l.text("Upstream routers / load balancers / cloud controls: not inspected", "上位ルーター・ロードバランサー・クラウド側の設定：未調査"),
+		Note:            l.text("This diagram shows settings observed within the PC. Upstream access controls can also support the judgment rationale. External reachability is not verified. Open an item for full evidence and judgment; long labels are abbreviated here.", "この図はPC内で観測した設定の関係を示します。上位のアクセス制限も判断の根拠として記載できます。外部からの到達性を検証した図ではありません。項目を開くと証拠と判断の詳細を確認できます。長い説明は図では省略します。"),
+		Outside:         l.text("Include safeguards provided by upstream routers, load balancers and cloud services in the judgment rationale.", "上位ルーター・ロードバランサー・クラウド側の保護策は、判断理由に補足してください"),
 		Legend:          l.text("Solid arrow: literal configured destination match. Dashed arrow: human-described relationship. No arrow: no relationship determined; not proof of no forwarding.", "実線の矢印：設定に記載された転送先との一致 ／ 破線の矢印：人が記入した関連付け ／ 矢印なし：関連先を特定していない状態（転送がないことの証明ではありません）"),
 		ReferencesLabel: l.text("Observed loopback services (reference)", "観測したループバックサービス（参考情報）"), Empty: l.text("No current network observations; inspect collection coverage. This does not prove absence.", "今回のネットワーク観測はありません。収集状況を確認してください。不在を証明するものではありません。"),
 		Rows: []NetworkRow{}, References: []NetworkCard{}, Coverage: []string{},

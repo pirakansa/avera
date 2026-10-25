@@ -26,7 +26,8 @@ try:
   browser=p.chromium.launch(headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':1280,'height':960});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('#items > details').first.wait_for()
   assert page.locator('#items > details').count()==4
   assert page.locator('#network-map .map-row.observed').count()==1
-  assert '未調査' in page.locator('#network-map .map-outside').inner_text()
+  assert '判断理由に補足してください' in page.locator('#network-map .map-outside').inner_text()
+  assert '未調査' not in page.locator('#network-map .map-outside').inner_text()
   assert page.locator('#network-map .map-reference-grid .map-card').count()==1
   assert page.locator('#reference-items > details').count()==1 and page.locator('#reference-items form').count()==0
   state=page.request.get(url+'/api/state').json();assert state['Summary']['current']==4 and state['Summary']['unreviewed']==4 and state['ReferenceCount']==1
@@ -58,6 +59,7 @@ try:
 
   preview.reload();assert '共通設定' in preview.inner_text('body')
   assert preview.locator('#network-map .map-row.observed').count()==1
+  assert '判断理由に補足してください' in preview.locator('#network-map .map-outside').inner_text()
   assert preview.locator('#network-map a[href^="#item-"]').count()>0
   assert 'CurrentStaticWebExplanation' in preview.inner_text('body') and 'Static public web service; upstream load balancer controls apply' not in preview.inner_text('body')
   preview.screenshot(path=str(out/'report.png'),full_page=True)

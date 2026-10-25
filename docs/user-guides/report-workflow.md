@@ -156,8 +156,10 @@ The editor and exported HTML include **ネットワーク構成の概要**. It s
 listeners/forwarding rules and their related local services within the currently
 observed PC. Solid arrows identify literal configured destination matches; dashed
 arrows identify human-described relationships. An unspecified relationship is not
-proof that no forwarding exists. Upstream routers, load balancers and cloud
-controls are explicitly uninspected.
+proof that no forwarding exists. The diagram covers settings within the PC. Its upstream note invites you to
+supplement the judgment rationale with safeguards provided by routers, load
+balancers or cloud services. Those controls support your explanation; the note
+does not indicate unfinished work for the tool.
 
 Cards show current judgment state and available purpose/safeguards, with human
 provenance. Select a card's title to open its full item; the editor expands the

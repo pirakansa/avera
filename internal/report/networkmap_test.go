@@ -61,7 +61,7 @@ func TestNetworkMapObservedAndHumanRelations(t *testing.T) {
 			}
 		}
 	}
-	if observed != 1 || human != 1 || len(diagram.References) != 1 || !strings.Contains(diagram.Outside, "未調査") {
+	if observed != 1 || human != 1 || len(diagram.References) != 1 || !strings.Contains(diagram.Outside, "判断理由に補足") || strings.Contains(diagram.Outside, "未調査") {
 		t.Fatalf("bad diagram: %+v", diagram)
 	}
 	html, err := RenderFile(f, Options{Format: "html", Language: "ja"})
