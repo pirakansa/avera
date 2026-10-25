@@ -1,0 +1,614 @@
+{
+  "format": "avera.report.v1",
+  "machine_binding": "",
+  "current": {
+    "collected_at": "2026-10-03T09:00:00Z",
+    "contract_revision": "t00-2026-10-24.1",
+    "coverage": [
+      {
+        "attempted_sources": [
+          "/proc/*/fd",
+          "/proc/net/tcp",
+          "/proc/net/tcp6",
+          "/proc/net/udp",
+          "/proc/net/udp6"
+        ],
+        "collector": "network",
+        "collector_version": "fictional-v1",
+        "diagnostic_codes": [],
+        "limitations": [
+          "No external reachability or firewall observation"
+        ],
+        "scope": "fictional-boot-a/net-initial",
+        "status": "complete"
+      },
+      {
+        "attempted_sources": [
+          "/etc/group",
+          "/etc/passwd",
+          "/etc/sudoers",
+          "/etc/sudoers.d/fictional-web"
+        ],
+        "collector": "sudo",
+        "collector_version": "fictional-v1",
+        "diagnostic_codes": [
+          "unsupported_defaults"
+        ],
+        "limitations": [
+          "Defaults may affect supported rules; no effective-grant claim"
+        ],
+        "scope": "local policy inventory only",
+        "status": "partial"
+      }
+    ],
+    "environment": {
+      "architecture": "amd64",
+      "effective_uid": 0,
+      "execution_scope": "fictional host; current network namespace only",
+      "kernel_release": "fictional",
+      "os_id": "ubuntu",
+      "os_version": "24.04"
+    },
+    "evidence": [
+      {
+        "collected_at": "2026-10-03T09:00:00Z",
+        "evidence_id": "e1",
+        "location": "/proc/net/tcp",
+        "method": "fictional fixture, no host read",
+        "source_kind": "proc",
+        "values": {
+          "observed": {
+            "attribution_complete": true,
+            "owners": [
+              {
+                "executable": "/usr/sbin/fictional-httpd",
+                "uid": 0
+              }
+            ]
+          },
+          "pid": 402
+        }
+      },
+      {
+        "collected_at": "2026-10-03T09:00:00Z",
+        "evidence_id": "e2",
+        "location": "/proc/net/tcp",
+        "method": "fictional fixture, no host read",
+        "source_kind": "proc",
+        "values": {
+          "observed": {
+            "attribution_complete": true,
+            "owners": [
+              {
+                "executable": "/opt/fictional-admin",
+                "uid": 1001
+              }
+            ]
+          },
+          "pid": 403
+        }
+      },
+      {
+        "collected_at": "2026-10-03T09:00:00Z",
+        "evidence_id": "e3",
+        "location": "/etc/sudoers.d/fictional-web:1",
+        "method": "fictional fixture, no host read",
+        "source_kind": "local_file",
+        "values": {
+          "excerpt": "%webops ALL=(root) PASSWD: /usr/bin/id"
+        }
+      },
+      {
+        "collected_at": "2026-10-03T09:00:00Z",
+        "evidence_id": "e4",
+        "location": "/etc/sudoers.d/fictional-web:2",
+        "method": "fictional fixture, no host read",
+        "source_kind": "local_file",
+        "values": {
+          "excerpt": "Defaults env_reset"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "collector": "sudo",
+        "evidence_ids": [
+          "e4"
+        ],
+        "fact_fingerprint": "sha256:1c4a56a8a597d929070aaa1463d0613b6a215e46255dd43545853d4ffccc7324",
+        "facts": {
+          "diagnostic_code": "unsupported_defaults",
+          "raw": "Defaults env_reset"
+        },
+        "finding_id": "sha256:1495f62e1f39487021e9d55a0b14b0c00bced80ff8417899dcd085bc72586e76",
+        "identity": {
+          "line": 2,
+          "ordinal": 0,
+          "source_path": "/etc/sudoers.d/fictional-web"
+        },
+        "kind": "sudo.unparsed"
+      },
+      {
+        "collector": "network",
+        "evidence_ids": [
+          "e1"
+        ],
+        "fact_fingerprint": "sha256:03db4ef99441915dbbb8ff2d64cc5589df86bdc7d1f1468c7d4c9c50739748e6",
+        "facts": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/usr/sbin/fictional-httpd",
+              "uid": 0
+            }
+          ]
+        },
+        "finding_id": "sha256:46435c628b7e871dac6ae527f1aae5439fd02219496c5ff593e485e24b120164",
+        "identity": {
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener",
+          "transport": "tcp",
+          "zone": ""
+        },
+        "kind": "network.endpoint"
+      },
+      {
+        "collector": "network",
+        "evidence_ids": [
+          "e2"
+        ],
+        "fact_fingerprint": "sha256:33f8a0708feb3bc0766c2fb48a7608bc8e9954ee5baf78db97c998fe9b375cd4",
+        "facts": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-admin",
+              "uid": 1001
+            }
+          ]
+        },
+        "finding_id": "sha256:5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524",
+        "identity": {
+          "family": "ipv4",
+          "local_address": "127.0.0.1",
+          "local_port": 9000,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener",
+          "transport": "tcp",
+          "zone": ""
+        },
+        "kind": "network.endpoint"
+      },
+      {
+        "collector": "sudo",
+        "evidence_ids": [
+          "e3"
+        ],
+        "fact_fingerprint": "sha256:289badbb29ea831593adc93d6005b3ebea79c3fca752676b318d730b3ce4e244",
+        "facts": {
+          "commands": [
+            {
+              "arguments": "",
+              "path": "/usr/bin/id",
+              "tags": [
+                "PASSWD"
+              ]
+            }
+          ],
+          "host": "ALL",
+          "interpretation_complete": false,
+          "local_context_complete": true,
+          "local_members": [
+            {
+              "membership": "supplementary",
+              "name": "alex",
+              "uid": 1001
+            },
+            {
+              "membership": "primary",
+              "name": "sam",
+              "uid": 1002
+            }
+          ],
+          "policy_context": [
+            "%webops ALL=(root) PASSWD: /usr/bin/id",
+            "Defaults env_reset"
+          ],
+          "principal": {
+            "name": "webops",
+            "type": "group"
+          },
+          "run_as_groups": [],
+          "run_as_users": [
+            "root"
+          ]
+        },
+        "finding_id": "sha256:681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48",
+        "identity": {
+          "line": 1,
+          "ordinal": 0,
+          "source_path": "/etc/sudoers.d/fictional-web"
+        },
+        "kind": "sudo.rule"
+      }
+    ],
+    "finished_at": "2026-10-03T09:00:00Z",
+    "kind": "snapshot",
+    "schema_version": "0.1",
+    "snapshot_id": "fictional-s3",
+    "target_id": "fictional-web-01",
+    "tool_version": "fictional-not-implemented"
+  },
+  "previous": {
+    "collected_at": "2026-10-01T09:00:00Z",
+    "contract_revision": "t00-2026-10-24.1",
+    "coverage": [
+      {
+        "attempted_sources": [
+          "/proc/*/fd",
+          "/proc/net/tcp",
+          "/proc/net/tcp6",
+          "/proc/net/udp",
+          "/proc/net/udp6"
+        ],
+        "collector": "network",
+        "collector_version": "fictional-v1",
+        "diagnostic_codes": [],
+        "limitations": [
+          "No external reachability or firewall observation"
+        ],
+        "scope": "fictional-boot-a/net-initial",
+        "status": "complete"
+      },
+      {
+        "attempted_sources": [
+          "/etc/group",
+          "/etc/passwd",
+          "/etc/sudoers",
+          "/etc/sudoers.d/fictional-web"
+        ],
+        "collector": "sudo",
+        "collector_version": "fictional-v1",
+        "diagnostic_codes": [
+          "unsupported_defaults"
+        ],
+        "limitations": [
+          "Defaults may affect supported rules; no effective-grant claim"
+        ],
+        "scope": "local policy inventory only",
+        "status": "partial"
+      }
+    ],
+    "environment": {
+      "architecture": "amd64",
+      "effective_uid": 0,
+      "execution_scope": "fictional host; current network namespace only",
+      "kernel_release": "fictional",
+      "os_id": "ubuntu",
+      "os_version": "24.04"
+    },
+    "evidence": [
+      {
+        "collected_at": "2026-10-01T09:00:00Z",
+        "evidence_id": "e1",
+        "location": "/proc/net/tcp",
+        "method": "fictional fixture, no host read",
+        "source_kind": "proc",
+        "values": {
+          "observed": {
+            "attribution_complete": true,
+            "owners": [
+              {
+                "executable": "/usr/sbin/fictional-httpd",
+                "uid": 33
+              }
+            ]
+          },
+          "pid": 402
+        }
+      },
+      {
+        "collected_at": "2026-10-01T09:00:00Z",
+        "evidence_id": "e2",
+        "location": "/proc/net/tcp",
+        "method": "fictional fixture, no host read",
+        "source_kind": "proc",
+        "values": {
+          "observed": {
+            "attribution_complete": true,
+            "owners": [
+              {
+                "executable": "/opt/fictional-admin",
+                "uid": 1001
+              }
+            ]
+          },
+          "pid": 403
+        }
+      },
+      {
+        "collected_at": "2026-10-01T09:00:00Z",
+        "evidence_id": "e3",
+        "location": "/etc/sudoers.d/fictional-web:1",
+        "method": "fictional fixture, no host read",
+        "source_kind": "local_file",
+        "values": {
+          "excerpt": "%webops ALL=(root) PASSWD: /usr/bin/id"
+        }
+      },
+      {
+        "collected_at": "2026-10-01T09:00:00Z",
+        "evidence_id": "e4",
+        "location": "/etc/sudoers.d/fictional-web:2",
+        "method": "fictional fixture, no host read",
+        "source_kind": "local_file",
+        "values": {
+          "excerpt": "Defaults env_reset"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "collector": "sudo",
+        "evidence_ids": [
+          "e4"
+        ],
+        "fact_fingerprint": "sha256:1c4a56a8a597d929070aaa1463d0613b6a215e46255dd43545853d4ffccc7324",
+        "facts": {
+          "diagnostic_code": "unsupported_defaults",
+          "raw": "Defaults env_reset"
+        },
+        "finding_id": "sha256:1495f62e1f39487021e9d55a0b14b0c00bced80ff8417899dcd085bc72586e76",
+        "identity": {
+          "line": 2,
+          "ordinal": 0,
+          "source_path": "/etc/sudoers.d/fictional-web"
+        },
+        "kind": "sudo.unparsed"
+      },
+      {
+        "collector": "network",
+        "evidence_ids": [
+          "e1"
+        ],
+        "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10",
+        "facts": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/usr/sbin/fictional-httpd",
+              "uid": 33
+            }
+          ]
+        },
+        "finding_id": "sha256:46435c628b7e871dac6ae527f1aae5439fd02219496c5ff593e485e24b120164",
+        "identity": {
+          "family": "ipv4",
+          "local_address": "0.0.0.0",
+          "local_port": 80,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener",
+          "transport": "tcp",
+          "zone": ""
+        },
+        "kind": "network.endpoint"
+      },
+      {
+        "collector": "network",
+        "evidence_ids": [
+          "e2"
+        ],
+        "fact_fingerprint": "sha256:33f8a0708feb3bc0766c2fb48a7608bc8e9954ee5baf78db97c998fe9b375cd4",
+        "facts": {
+          "attribution_complete": true,
+          "owners": [
+            {
+              "executable": "/opt/fictional-admin",
+              "uid": 1001
+            }
+          ]
+        },
+        "finding_id": "sha256:5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524",
+        "identity": {
+          "family": "ipv4",
+          "local_address": "127.0.0.1",
+          "local_port": 9000,
+          "scope_id": "fictional-boot-a/net-initial",
+          "socket_category": "listener",
+          "transport": "tcp",
+          "zone": ""
+        },
+        "kind": "network.endpoint"
+      },
+      {
+        "collector": "sudo",
+        "evidence_ids": [
+          "e3"
+        ],
+        "fact_fingerprint": "sha256:bf1bc4a89f4c542d564b122fc88aee55d2a6bc765e7848245550e6136c311c00",
+        "facts": {
+          "commands": [
+            {
+              "arguments": "",
+              "path": "/usr/bin/id",
+              "tags": [
+                "PASSWD"
+              ]
+            }
+          ],
+          "host": "ALL",
+          "interpretation_complete": false,
+          "local_context_complete": true,
+          "local_members": [
+            {
+              "membership": "supplementary",
+              "name": "alex",
+              "uid": 1001
+            }
+          ],
+          "policy_context": [
+            "%webops ALL=(root) PASSWD: /usr/bin/id",
+            "Defaults env_reset"
+          ],
+          "principal": {
+            "name": "webops",
+            "type": "group"
+          },
+          "run_as_groups": [],
+          "run_as_users": [
+            "root"
+          ]
+        },
+        "finding_id": "sha256:681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48",
+        "identity": {
+          "line": 1,
+          "ordinal": 0,
+          "source_path": "/etc/sudoers.d/fictional-web"
+        },
+        "kind": "sudo.rule"
+      }
+    ],
+    "finished_at": "2026-10-01T09:00:00Z",
+    "kind": "snapshot",
+    "schema_version": "0.1",
+    "snapshot_id": "fictional-s1",
+    "target_id": "fictional-web-01",
+    "tool_version": "fictional-not-implemented"
+  },
+  "assessments": {
+    "contract_revision": "t00-2026-10-24.1",
+    "entries": [
+      {
+        "actor": "fictional-owner",
+        "assessed_at": "2026-10-01T10:00:00Z",
+        "assessment_id": "a-http",
+        "basis": {
+          "fact_fingerprint": "sha256:b4dff8dca923f459473919fb57d63f921ed51f055dc99898a37cd02fd8420a10",
+          "snapshot_id": "fictional-s1"
+        },
+        "decision": "accepted",
+        "evidence_refs": [
+          {
+            "provenance": "human_reported",
+            "reference": "https://example.invalid/fictional-design"
+          }
+        ],
+        "exposure": "Intended public readers; actual upstream access not observed",
+        "origin": "reviewed_snapshot",
+        "purpose": "Publish fictional public static documentation",
+        "rationale": "Accept remaining plaintext and service risks for public static material; verify claimed network restriction separately",
+        "safeguards": "Operator reports upstream network restrictions; not verified",
+        "selector": {
+          "collector": "network",
+          "identity": {
+            "family": "ipv4",
+            "local_address": "0.0.0.0",
+            "local_port": 80,
+            "scope_id": "fictional-boot-a/net-initial",
+            "socket_category": "listener",
+            "transport": "tcp",
+            "zone": ""
+          },
+          "kind": "network.endpoint"
+        }
+      },
+      {
+        "actor": "fictional-owner",
+        "assessed_at": "2026-10-01T10:00:00Z",
+        "assessment_id": "a-sudo",
+        "basis": {
+          "fact_fingerprint": "sha256:bf1bc4a89f4c542d564b122fc88aee55d2a6bc765e7848245550e6136c311c00",
+          "snapshot_id": "fictional-s1"
+        },
+        "decision": "action_required",
+        "evidence_refs": [
+          {
+            "provenance": "human_reported",
+            "reference": "https://example.invalid/fictional-design"
+          }
+        ],
+        "exposure": "Local webops accounts only",
+        "origin": "reviewed_snapshot",
+        "purpose": "Allow webops to inspect execution identity",
+        "rationale": "Review unsupported Defaults before relying on configured privilege",
+        "safeguards": "Password required; local membership reviewed by operator",
+        "selector": {
+          "collector": "sudo",
+          "identity": {
+            "line": 1,
+            "ordinal": 0,
+            "source_path": "/etc/sudoers.d/fictional-web"
+          },
+          "kind": "sudo.rule"
+        }
+      },
+      {
+        "actor": "",
+        "assessed_at": "",
+        "assessment_id": "starter-sha256:1495f62e1f39487021e9d55a0b14b0c00bced80ff8417899dcd085bc72586e76",
+        "basis": {
+          "fact_fingerprint": "sha256:1c4a56a8a597d929070aaa1463d0613b6a215e46255dd43545853d4ffccc7324",
+          "snapshot_id": "fictional-s3"
+        },
+        "decision": "unreviewed",
+        "evidence_refs": [],
+        "exposure": "",
+        "origin": "reviewed_snapshot",
+        "purpose": "",
+        "rationale": "",
+        "safeguards": "",
+        "selector": {
+          "collector": "sudo",
+          "identity": {
+            "line": 2,
+            "ordinal": 0,
+            "source_path": "/etc/sudoers.d/fictional-web"
+          },
+          "kind": "sudo.unparsed"
+        }
+      },
+      {
+        "actor": "",
+        "assessed_at": "",
+        "assessment_id": "starter-sha256:5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524",
+        "basis": {
+          "fact_fingerprint": "sha256:33f8a0708feb3bc0766c2fb48a7608bc8e9954ee5baf78db97c998fe9b375cd4",
+          "snapshot_id": "fictional-s3"
+        },
+        "decision": "unreviewed",
+        "evidence_refs": [],
+        "exposure": "",
+        "origin": "reviewed_snapshot",
+        "purpose": "",
+        "rationale": "",
+        "safeguards": "",
+        "selector": {
+          "collector": "network",
+          "identity": {
+            "family": "ipv4",
+            "local_address": "127.0.0.1",
+            "local_port": 9000,
+            "scope_id": "fictional-boot-a/net-initial",
+            "socket_category": "listener",
+            "transport": "tcp",
+            "zone": ""
+          },
+          "kind": "network.endpoint"
+        }
+      }
+    ],
+    "kind": "assessments",
+    "schema_version": "0.1",
+    "target_id": "fictional-web-01"
+  },
+  "assessment_history": {
+    "contract_revision": "t00-2026-10-24.1",
+    "entries": [],
+    "kind": "assessments",
+    "schema_version": "0.1",
+    "target_id": "fictional-web-01"
+  }
+}

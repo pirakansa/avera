@@ -1,6 +1,6 @@
 module github.com/pirakansa/avera
 
-go 1.25.14
+go 1.26.10
 
 tool (
 	golang.org/x/vuln/cmd/govulncheck

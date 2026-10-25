@@ -62,7 +62,7 @@ func TestCommandContract(t *testing.T) {
 			args := append([]string{}, tc.args...)
 			output := filepath.Join(t.TempDir(), "run")
 			if args[0] == "collect" {
-				args = append(args, "--output", output)
+				args = append(args, "--legacy-output", "--output", output)
 			}
 			code, out, diag := execute(t, svc, args...)
 			if code != tc.want || called != tc.called {
@@ -126,5 +126,25 @@ func TestReportPresentationFlags(t *testing.T) {
 	}
 	if code, _, _ := execute(t, app.Service{}, "review", "--lang", "ja"); code != 1 {
 		t.Fatal("report-only flag accepted by review")
+	}
+}
+
+func TestSingleReportImportExportFlags(t *testing.T) {
+	current, err := filepath.Abs("../../../../test/fixtures/prototype/contracts/snapshot-first.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	portable := filepath.Join(t.TempDir(), "portable.json")
+	if code, _, diag := execute(t, app.Service{}, "review", "--single-report", "--snapshot", current, "--output", portable); code != 0 {
+		t.Fatal(diag)
+	}
+	output := filepath.Join(t.TempDir(), "out.html")
+	if code, _, diag := execute(t, app.Service{}, "report", "--input", portable, "--format", "html", "--lang", "ja", "--output", output); code != 0 {
+		t.Fatal(diag)
+	}
+	for _, args := range [][]string{{"serve"}, {"collect", "--legacy-output", "--input", portable}, {"report", "--input", portable, "--snapshot", current, "--output", filepath.Join(t.TempDir(), "bad")}} {
+		if code, _, _ := execute(t, app.Service{}, args...); code != 1 {
+			t.Fatalf("invalid flags accepted: %v", args)
+		}
 	}
 }

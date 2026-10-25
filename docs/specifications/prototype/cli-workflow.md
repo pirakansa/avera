@@ -2,6 +2,8 @@
 
 Status: T06 implemented and validated prototype; owner P1 feedback remains pending. E01–E10 remain experimental. See the [trial guide](../../user-guides/prototype-trials.md) for executable instructions.
 
+The [single-report revision](report-workflow.md) supersedes split files as the primary workflow. The commands described below retain diagnostic compatibility; add `--legacy-output` to collect into a run directory. `serve`, `collect --input`, `review --single-report` and `report --input` implement the simpler workflow.
+
 ## Commands and flags
 
 - `collect --target-id ID --output NEW_DIRECTORY [--previous SNAPSHOT] [--assessments ASSESSMENTS]`: root-only live network collection in the current observable namespace. Sudo is explicitly `not_collected` for P1. Other domains are outside this increment.

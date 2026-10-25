@@ -361,3 +361,9 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 	}
 	return nil
 }
+
+// ValidateJSON checks bounded JSON structure, duplicate keys and UTF-8 without decoding an artifact.
+func ValidateJSON(data []byte) error {
+	_, err := parseJSON(data)
+	return err
+}

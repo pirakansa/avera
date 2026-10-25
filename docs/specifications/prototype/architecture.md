@@ -34,13 +34,15 @@ Dependency direction: CLI → application → domain/collectors/artifacts/assess
 
 The integration owner adds and pins Cobra when CLI work begins, following repository dependency policy. Exact versions are implementation-time choices checked against the supported Go version. A compiled Go library dependency does not require the target user to install that library separately.
 
-## Proposed command walkthrough
+## Original split-file command walkthrough
+
+The [single-report workflow](report-workflow.md) supersedes the following walkthrough as the primary user flow. These examples document the older diagnostic mode; collection explicitly selects `--legacy-output`.
 
 The commands and flags below are implemented for the T06 prototype and remain experimental pending P1 feedback. The T00 [fictional artifacts](../../../test/fixtures/prototype/contracts/README.md) and [report](examples/fictional-report.md) define the expected data relationships. `fictional-web-01` is an invented logical target, not a host to contact.
 
 ```sh
 # First collection; run this command as root on the target.
-avera collect --target-id fictional-web-01 --output ./run-001
+avera collect --legacy-output --target-id fictional-web-01 --output ./run-001
 
 # Produce an editable assessment starter and a review report on a workstation.
 avera review --snapshot ./run-001/snapshot.json --output ./review-001
@@ -50,7 +52,7 @@ avera report --snapshot ./run-001/snapshot.json \
   --assessments ./review-001/assessments.json --output ./report-001.md
 
 # Next collection uses both previous observations and previous human context.
-avera collect --target-id fictional-web-01 \
+avera collect --legacy-output --target-id fictional-web-01 \
   --previous ./run-001/snapshot.json \
   --assessments ./review-001/assessments.json --output ./run-002
 
@@ -60,7 +62,7 @@ avera report --snapshot ./run-002/snapshot.json \
   --assessments ./run-002/assessments.json --output ./report-002.md
 
 # Advance assessments can also be supplied without a previous snapshot.
-avera collect --target-id fictional-web-01 \
+avera collect --legacy-output --target-id fictional-web-01 \
   --assessments ./prepared-assessments.json --output ./run-003
 ```
 

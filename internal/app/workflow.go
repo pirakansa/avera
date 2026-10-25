@@ -12,6 +12,7 @@ import (
 	"github.com/pirakansa/avera/internal/assessment"
 	i "github.com/pirakansa/avera/internal/inventory"
 	"github.com/pirakansa/avera/internal/report"
+	"github.com/pirakansa/avera/internal/reportfile"
 )
 
 // Collector is the registration boundary for future collection domains.
@@ -28,8 +29,12 @@ type Service struct {
 	EffectiveUID func() int
 	Now          func() time.Time
 	Collectors   []Registration
+	HostIdentity func() (string, error)
 }
-type Options struct{ TargetID, Snapshot, Previous, Assessments, Output, Format, Language string }
+type Options struct {
+	TargetID, Snapshot, Previous, Assessments, Output, Format, Language, Input string
+	AdoptTarget                                                                bool
+}
 
 func load(path, kind, flag string) (i.Artifact, error) {
 	a, err := artifact.Read(path)
@@ -84,6 +89,23 @@ func (svc Service) Offline(ctx context.Context, o Options, renderReport bool) er
 			return err
 		}
 	}
+	if o.Input != "" {
+		if !renderReport || o.Snapshot != "" || o.Previous != "" || o.Assessments != "" {
+			return fmt.Errorf("--input cannot be combined with legacy context flags")
+		}
+		if err := destination(o.Output); err != nil {
+			return err
+		}
+		f, err := reportfile.Read(o.Input)
+		if err != nil {
+			return err
+		}
+		text, err := report.RenderWithOptions(f.Current, f.Previous, f.Assessments, report.Options{Format: o.Format, Language: o.Language})
+		if err != nil {
+			return err
+		}
+		return artifact.WriteBytes(ctx, o.Output, []byte(text))
+	}
 	if o.Snapshot == "" {
 		return fmt.Errorf("--snapshot is required")
 	}
@@ -130,11 +152,11 @@ func publish(ctx context.Context, path string, s *i.Snapshot, r *assessment.Resu
 
 // Collect validates supplied context and destination before any collector is invoked.
 func (svc Service) Collect(ctx context.Context, o Options) (int, error) {
+	if err := svc.requireRoot(); err != nil {
+		return 1, err
+	}
 	if o.TargetID == "" {
 		return 1, fmt.Errorf("--target-id is required")
-	}
-	if svc.EffectiveUID == nil || svc.EffectiveUID() != 0 {
-		return 1, fmt.Errorf("collection requires root; run explicitly as root on the selected target")
 	}
 	if err := destination(o.Output); err != nil {
 		return 1, err
@@ -143,6 +165,23 @@ func (svc Service) Collect(ctx context.Context, o Options) (int, error) {
 	if err != nil {
 		return 1, err
 	}
+	s, r, code, err := svc.observe(ctx, o, p, a)
+	if err != nil {
+		return 1, err
+	}
+	if err = publish(ctx, o.Output, s, r); err != nil {
+		return 1, err
+	}
+	return code, nil
+}
+func (svc Service) requireRoot() error {
+	if svc.EffectiveUID == nil || svc.EffectiveUID() != 0 {
+		return fmt.Errorf("collection requires root; run explicitly as root on the selected target")
+	}
+	return nil
+}
+func (svc Service) observe(ctx context.Context, o Options, p *i.Snapshot, a *i.Assessments) (*i.Snapshot, *assessment.Result, int, error) {
+	var err error
 	now := svc.Now
 	if now == nil {
 		now = time.Now
@@ -150,29 +189,29 @@ func (svc Service) Collect(ctx context.Context, o Options) (int, error) {
 	timestamp := now().UTC().Format(time.RFC3339)
 	s := &i.Snapshot{Envelope: i.Envelope{SchemaVersion: i.SchemaVersion, ContractRevision: i.ContractRevision, Kind: "snapshot", TargetID: o.TargetID}, SnapshotID: "run-" + rand.Text(), CollectedAt: timestamp, FinishedAt: timestamp, ToolVersion: "prototype-t06", Environment: i.Environment{OSID: "unknown", OSVersion: "unknown", Architecture: runtime.GOARCH, KernelRelease: "unknown", ExecutionScope: "current observable namespace; distribution and kernel release not inspected", EffectiveUID: 0}, Coverage: []i.Coverage{}, Findings: []i.Finding{}, Evidence: []i.Evidence{}}
 	if _, err = evaluate(s, p, a); err != nil {
-		return 1, err
+		return nil, nil, 1, err
 	}
 	if len(svc.Collectors) == 0 {
-		return 1, fmt.Errorf("no collectors registered")
+		return nil, nil, 1, fmt.Errorf("no collectors registered")
 	}
 	seen := map[i.Collector]bool{}
 	for _, reg := range svc.Collectors {
 		if reg.Collector == nil || (reg.Name != i.Network && reg.Name != i.Sudo) || seen[reg.Name] {
-			return 1, fmt.Errorf("invalid collector registration")
+			return nil, nil, 1, fmt.Errorf("invalid collector registration")
 		}
 		seen[reg.Name] = true
 	}
 	code := 0
 	for _, reg := range svc.Collectors {
 		if err = ctx.Err(); err != nil {
-			return 1, err
+			return nil, nil, 1, err
 		}
 		result, e := reg.Collector.Collect(ctx, o.TargetID)
 		if e != nil {
-			return 1, fmt.Errorf("collection interrupted or failed fatally; no complete output published")
+			return nil, nil, 1, fmt.Errorf("collection interrupted or failed fatally; no complete output published")
 		}
 		if result.Coverage.Collector != reg.Name || result.Coverage.Status == i.NotCollected {
-			return 1, fmt.Errorf("invalid collector result")
+			return nil, nil, 1, fmt.Errorf("invalid collector result")
 		}
 		if result.Coverage.Status == i.Partial || result.Coverage.Status == i.Failed {
 			code = 2
@@ -189,10 +228,7 @@ func (svc Service) Collect(ctx context.Context, o Options) (int, error) {
 	s.FinishedAt = now().UTC().Format(time.RFC3339)
 	r, err := evaluate(s, p, a)
 	if err != nil {
-		return 1, err
+		return nil, nil, 1, err
 	}
-	if err = publish(ctx, o.Output, s, r); err != nil {
-		return 1, err
-	}
-	return code, nil
+	return s, r, code, nil
 }

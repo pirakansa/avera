@@ -2,6 +2,8 @@
 
 Status: T06 commands and the fictional rehearsal have passed implementation validation. The owner plans to try T05 guidance/reporting together with the T06 workflow after implementation. P1 feedback remains pending. See the [CLI reference](../specifications/prototype/cli-workflow.md) for the implemented contract.
 
+The [single-report and browser-editor guide](report-workflow.md) is now the primary trial entry point, following owner feedback about manual JSON editing. The split-file exercises below remain diagnostic scenarios and migration examples; collection examples need `--legacy-output` when requesting a run directory.
+
 ## Purpose
 
 The project owner is the first test user. The goal is to learn how a person inventories concerns, supplies explanations, reuses prior work, and reports results. The trial is not a declaration of product safety or release readiness.
@@ -102,7 +104,7 @@ For a live P1 trial, first select a disposable Linux/amd64 Ubuntu target and rec
 
 ```sh
 live_dir=$(mktemp -d /tmp/avera-live.XXXXXX)
-./bin/avera collect --target-id trial-target-01 --output "$live_dir/run-001"
+./bin/avera collect --legacy-output --target-id trial-target-01 --output "$live_dir/run-001"
 # If exit is 2, inspect coverage and diagnostics; usable results are still saved.
 ./bin/avera review --snapshot "$live_dir/run-001/snapshot.json" \
   --output "$live_dir/review-001"
@@ -110,7 +112,7 @@ live_dir=$(mktemp -d /tmp/avera-live.XXXXXX)
 ./bin/avera report --snapshot "$live_dir/run-001/snapshot.json" \
   --assessments "$live_dir/review-001/assessments.json" \
   --output "$live_dir/report-001.md"
-./bin/avera collect --target-id trial-target-01 \
+./bin/avera collect --legacy-output --target-id trial-target-01 \
   --previous "$live_dir/run-001/snapshot.json" \
   --assessments "$live_dir/review-001/assessments.json" \
   --output "$live_dir/run-002"

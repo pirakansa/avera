@@ -68,6 +68,18 @@ func openParent(path string) (int, string, error) {
 
 // Read rejects symlinks, non-regular files, and oversized data before domain decoding.
 func Read(path string) (inventory.Artifact, error) {
+	data, err := ReadBytes(path, inventory.MaxArtifactBytes)
+	if err != nil {
+		return nil, err
+	}
+	return inventory.Decode(data)
+}
+
+// ReadBytes applies the same bounded regular-file and no-symlink rules to portable reports.
+func ReadBytes(path string, limit int64) ([]byte, error) {
+	if limit <= 0 {
+		return nil, fmt.Errorf("invalid byte limit")
+	}
 	fd, base, e := openParent(path)
 	if e != nil {
 		return nil, e
@@ -86,14 +98,17 @@ func Read(path string) (inventory.Artifact, error) {
 	if !info.Mode().IsRegular() {
 		return nil, fmt.Errorf("input must be a regular file")
 	}
-	if info.Size() > inventory.MaxArtifactBytes {
+	if info.Size() > limit {
 		return nil, fmt.Errorf("artifact byte limit exceeded")
 	}
-	data, e := io.ReadAll(io.LimitReader(f, inventory.MaxArtifactBytes+1))
+	data, e := io.ReadAll(io.LimitReader(f, limit+1))
 	if e != nil {
 		return nil, e
 	}
-	return inventory.Decode(data)
+	if int64(len(data)) > limit {
+		return nil, fmt.Errorf("file byte limit exceeded")
+	}
+	return data, nil
 }
 func writeFile(ctx context.Context, dir int, name string, data []byte) (err error) {
 	if e := ctx.Err(); e != nil {
