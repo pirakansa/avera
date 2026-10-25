@@ -82,3 +82,12 @@ account judgments to local passwd/group settings, separately from configured sud
 rules. It adds process effective GID/supplementary groups only for observed socket
 holders. External identities, actual SSH login access and other privilege paths
 remain a textual exclusion, not additional findings or required follow-up.
+
+## Connected storage
+
+The implemented [external-storage backend](external-storage.md) inventories
+USB/removable non-root backing block devices through bounded sysfs and mountinfo
+metadata. Mounted and unmounted candidates receive the same purpose/reason
+judgment flow. It performs no device contents read, mount operation, configuration
+change or general file-permission analysis. Incomplete root backing is reported
+rather than treated as successful absence.

@@ -53,7 +53,7 @@ func validHash(s string) bool {
 	return true
 }
 func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
-	if !((c == Network && (k == Endpoint || k == Forwarding)) || (c == Sudo && (k == Rule || k == Unparsed)) || (c == Accounts && k == Account)) {
+	if !((c == Network && (k == Endpoint || k == Forwarding)) || (c == Sudo && (k == Rule || k == Unparsed)) || (c == Accounts && k == Account) || (c == Storage && k == ExternalStorage)) {
 		return fmt.Errorf("collector/kind mismatch")
 	}
 	n, e := NormalizeIdentity(k, id)
@@ -70,6 +70,27 @@ func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
 		return nil
 	}
 	switch k {
+	case ExternalStorage:
+		x, ok := f.(StorageFacts)
+		if !ok || !oneOf(x.Connection, "usb", "removable") || x.SizeBytes < 0 || x.SizeBytes > MaxInteger {
+			return fmt.Errorf("invalid external storage facts")
+		}
+		parts := map[int64]bool{}
+		for _, volume := range x.Volumes {
+			if volume.Partition < 0 || parts[volume.Partition] {
+				return fmt.Errorf("invalid/duplicate storage partition")
+			}
+			parts[volume.Partition] = true
+			if err := unique(volume.Mounts, "storage mount"); err != nil {
+				return err
+			}
+			for _, mount := range volume.Mounts {
+				if !strings.HasPrefix(mount.Path, "/") || mount.Filesystem == "" {
+					return fmt.Errorf("invalid storage mount")
+				}
+			}
+		}
+		return nil
 	case Account:
 		x, ok := f.(AccountFacts)
 		if !ok {
@@ -173,7 +194,7 @@ func payloadSets(f Facts) error {
 }
 func validate(a Artifact) error {
 	env := a.envelope()
-	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, ServicesContractRevision, ForwardingContractRevision, LegacyContractRevision) {
+	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, AccountsContractRevision, ServicesContractRevision, ForwardingContractRevision, LegacyContractRevision) {
 		return fmt.Errorf("unsupported schema_version/contract_revision; require %s / %s", SchemaVersion, ContractRevision)
 	}
 	if env.TargetID == "" {
@@ -200,7 +221,7 @@ func validate(a Artifact) error {
 			}
 		}
 	}
-	if env.ContractRevision != ContractRevision {
+	if !oneOf(env.ContractRevision, ContractRevision, AccountsContractRevision) {
 		switch value := a.(type) {
 		case *Snapshot:
 			for _, f := range value.Findings {
@@ -222,6 +243,31 @@ func validate(a Artifact) error {
 		case *Review:
 			if _, ok := value.CoverageStatuses[Accounts]; ok {
 				return fmt.Errorf("account review requires accounts contract")
+			}
+		}
+	}
+	if env.ContractRevision != ContractRevision {
+		switch v := a.(type) {
+		case *Snapshot:
+			for _, f := range v.Findings {
+				if f.Kind == ExternalStorage {
+					return fmt.Errorf("storage requires storage contract")
+				}
+			}
+			for _, c := range v.Coverage {
+				if c.Collector == Storage {
+					return fmt.Errorf("storage coverage requires storage contract")
+				}
+			}
+		case *Assessments:
+			for _, entry := range v.Entries {
+				if entry.Selector.Kind == ExternalStorage {
+					return fmt.Errorf("storage judgments require storage contract")
+				}
+			}
+		case *Review:
+			if _, ok := v.CoverageStatuses[Storage]; ok {
+				return fmt.Errorf("storage review requires storage contract")
 			}
 		}
 	}
@@ -259,7 +305,7 @@ func validateSnapshot(s *Snapshot) error {
 	}
 	coverage := map[Collector]bool{}
 	for _, c := range s.Coverage {
-		if !oneOf(c.Collector, Network, Sudo, Accounts) || coverage[c.Collector] {
+		if !oneOf(c.Collector, Network, Sudo, Accounts, Storage) || coverage[c.Collector] {
 			return fmt.Errorf("invalid/duplicate coverage collector %q", c.Collector)
 		}
 		coverage[c.Collector] = true
@@ -293,10 +339,10 @@ func validateSnapshot(s *Snapshot) error {
 				return err
 			}
 			if v.Service != nil {
-				if !oneOf(s.ContractRevision, ContractRevision, ServicesContractRevision) || v.PID == nil {
+				if !oneOf(s.ContractRevision, ContractRevision, AccountsContractRevision, ServicesContractRevision) || v.PID == nil {
 					return fmt.Errorf("service evidence requires services revision and PID")
 				}
-				if (v.Service.EffectiveGID != nil || v.Service.SupplementaryGroups != nil) && s.ContractRevision != ContractRevision {
+				if (v.Service.EffectiveGID != nil || v.Service.SupplementaryGroups != nil) && !oneOf(s.ContractRevision, ContractRevision, AccountsContractRevision) {
 					return fmt.Errorf("runtime groups require accounts contract")
 				}
 				if v.Service.SupplementaryGroups != nil {
@@ -318,7 +364,7 @@ func validateSnapshot(s *Snapshot) error {
 				return fmt.Errorf("pid must be positive")
 			}
 		case AccountValues:
-			if e.SourceKind != "local_identity" || s.ContractRevision != ContractRevision {
+			if e.SourceKind != "local_identity" || !oneOf(s.ContractRevision, ContractRevision, AccountsContractRevision) {
 				return fmt.Errorf("account directory requires accounts contract")
 			}
 			names := map[string]bool{}
@@ -470,7 +516,7 @@ func validateAssessments(a *Assessments) error {
 				return fmt.Errorf("invalid reviewed_snapshot basis")
 			}
 		case AdvanceBasis:
-			if x.Selector.Kind == Account {
+			if x.Selector.Kind == Account || x.Selector.Kind == ExternalStorage {
 				return fmt.Errorf("account judgments require observed facts")
 			}
 			if x.Origin != Advance || b.Expectation.NormalizationVersion != FactsVersion {
@@ -507,7 +553,7 @@ func validateReview(r *Review) error {
 		unmatched[id] = true
 	}
 	for c, s := range r.CoverageStatuses {
-		if !oneOf(c, Network, Sudo, Accounts) || !oneOf(s, Complete, Partial, Failed, NotCollected) {
+		if !oneOf(c, Network, Sudo, Accounts, Storage) || !oneOf(s, Complete, Partial, Failed, NotCollected) {
 			return fmt.Errorf("invalid coverage_statuses")
 		}
 	}

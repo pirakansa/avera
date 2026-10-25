@@ -191,6 +191,12 @@ func normalizeAddress(family, address string) (string, error) {
 // NormalizeIdentity preserves namespace and source anchors exactly.
 func NormalizeIdentity(kind Kind, id Identity) (Identity, error) {
 	switch kind {
+	case ExternalStorage:
+		x, ok := id.(StorageIdentity)
+		if !ok || x.Key == "" {
+			return nil, fmt.Errorf("invalid storage identity")
+		}
+		return x, nil
 	case Account:
 		x, ok := id.(AccountIdentity)
 		if !ok || x.Name == "" || strings.ContainsAny(x.Name, "/:\x00\r\n\t ") {
@@ -231,6 +237,35 @@ func stripTerminator(s string) string {
 }
 func normalizeFacts(f Facts) Facts {
 	switch x := f.(type) {
+	case StorageFacts:
+		x.Volumes = append([]StorageVolume{}, x.Volumes...)
+		for n := range x.Volumes {
+			x.Volumes[n].Mounts = sortedSet(x.Volumes[n].Mounts, func(a, b StorageMount) int {
+				if c := strings.Compare(a.Path, b.Path); c != 0 {
+					return c
+				}
+				if c := strings.Compare(a.Filesystem, b.Filesystem); c != 0 {
+					return c
+				}
+				if a.ReadOnly == b.ReadOnly {
+					return 0
+				}
+				if a.ReadOnly {
+					return -1
+				}
+				return 1
+			})
+		}
+		slices.SortFunc(x.Volumes, func(a, b StorageVolume) int {
+			if a.Partition < b.Partition {
+				return -1
+			}
+			if a.Partition > b.Partition {
+				return 1
+			}
+			return 0
+		})
+		return x
 	case AccountFacts:
 		x.Groups = sortedSet(x.Groups, func(a, b AccountGroup) int {
 			if c := strings.Compare(a.Name, b.Name); c != 0 {

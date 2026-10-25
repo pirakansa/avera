@@ -209,6 +209,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 		switch dst.Type() {
 		case reflect.TypeFor[Identity]():
 			switch Kind(kind) {
+			case ExternalStorage:
+				concrete = StorageIdentity{}
 			case Account:
 				concrete = AccountIdentity{}
 			case Endpoint:
@@ -218,6 +220,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			}
 		case reflect.TypeFor[Facts]():
 			switch Kind(kind) {
+			case ExternalStorage:
+				concrete = StorageFacts{}
 			case Account:
 				concrete = AccountFacts{}
 			case Endpoint:

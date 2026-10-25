@@ -42,7 +42,10 @@ function judgment(a) {
             ['exposure', '利用者・公開範囲'],
             ['safeguards', '保護策（人の申告）'],
             ['rationale', '判断理由']
-        ]) box.append(node('p', label + ': ' + (a[key] || '未記入')));
+        ]) {
+        if (a.selector.kind === 'storage.external' && (key === 'exposure' || key === 'safeguards') && !a[key]) continue;
+        box.append(node('p', label + ': ' + (a[key] || '未記入')));
+    }
     for (const ref of a.evidence_refs || []) box.append(node('p', '証拠の参照: ' + ref.reference));
     return box;
 }
@@ -51,6 +54,7 @@ async function load() {
     if (!response.ok) throw new Error('読み込みに失敗しました');
     const state = await response.json();
     revision = state.revision;
+    $('storage-status').textContent = state.StorageStatus;
     $('review-boundary').textContent = state.Boundary;
     $('account-groups').replaceChildren();
     const accountCoverage = state.Coverage.find(coverage => coverage.collector === 'accounts');
@@ -103,7 +107,7 @@ function renderItem(item) {
         r = item.review,
         g = item.guidance;
     const id = f.identity;
-    const title = f.kind === 'account.local' ? 'ローカルアカウント ' + id.name : f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
+    const title = f.kind === 'storage.external' ? '外付けストレージ · ' + (f.facts.model || f.facts.serial || '製品名不明') : f.kind === 'account.local' ? 'ローカルアカウント ' + id.name : f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
     const box = node('details');
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
@@ -159,6 +163,11 @@ function renderItem(item) {
         for (const field of item.account_fields) fields.append(node('dt', field.Label), node('dd', field.Value));
         box.append(fields);
     }
+    if ((item.storage_fields || []).length) {
+        const fields = node('dl');
+        for (const field of item.storage_fields) fields.append(node('dt', field.Label), node('dd', field.Value));
+        box.append(fields);
+    }
     if ((item.related || []).length) box.append(related);
     const qs = node('ul');
     for (const q of g.Questions) qs.append(node('li', q));
@@ -199,7 +208,9 @@ function renderItem(item) {
             ['actor', '判断者'],
             ['references', '証拠の参照（1行に1件・URLを取得しません）']
         ]) {
-        const wrapper = node('label', label);
+        if (f.kind === 'storage.external' && ['exposure', 'safeguards', 'references'].includes(key)) continue;
+        const displayLabel = f.kind === 'storage.external' && key === 'purpose' ? '接続の用途・必要性・管理担当' : f.kind === 'storage.external' && key === 'rationale' ? '接続を継続してよい理由・今回の判断理由' : label;
+        const wrapper = node('label', displayLabel);
         const control = node(key === 'actor' ? 'input' : 'textarea');
         control.name = key;
         control.value = key === 'references' ? (draft ? draft.references : (a.evidence_refs || []).map(x => x.reference).join('\n')) : a[key] || '';
@@ -271,11 +282,11 @@ function renderItem(item) {
             finding_id: f.finding_id,
             decision: select.value
         };
-        for (const key of ['purpose', 'exposure', 'safeguards', 'rationale', 'actor']) edit[key] = controls[key].value;
-        edit.evidence = [...new Set(controls.references.value.split('\n').map(x => x.trim()).filter(Boolean))].map(reference => ({
+        for (const key of ['purpose', 'exposure', 'safeguards', 'rationale', 'actor']) edit[key] = controls[key] ? controls[key].value : a[key] || '';
+        edit.evidence = controls.references ? [...new Set(controls.references.value.split('\n').map(x => x.trim()).filter(Boolean))].map(reference => ({
             reference,
             provenance: 'human_reported'
-        }));
+        })) : a.evidence_refs || [];
         if ((f.kind === 'network.endpoint' || f.kind === 'network.forwarding') && !(item.detected_targets || []).length) {
             edit.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
             edit.route_explanation = controls.route_explanation.value;

@@ -55,8 +55,12 @@ func (w *writer) annotation(a i.Assessment, context string) {
 	w.field("Human decision", string(a.Decision))
 	w.field("Actor / date", a.Actor+" / "+a.AssessedAt)
 	w.field("Human purpose", a.Purpose)
-	w.field("Human exposure", a.Exposure)
-	w.field("Human safeguards (not tool verified)", a.Safeguards)
+	if a.Selector.Kind != i.ExternalStorage || a.Exposure != "" {
+		w.field("Human exposure", a.Exposure)
+	}
+	if a.Selector.Kind != i.ExternalStorage || a.Safeguards != "" {
+		w.field("Human safeguards (not tool verified)", a.Safeguards)
+	}
 	w.field("Human rationale", a.Rationale)
 	for _, ref := range a.EvidenceRefs {
 		w.field("Human evidence reference (inert; not fetched)", ref.Reference+" / "+ref.Provenance)
@@ -102,11 +106,12 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 		w.field("Limitations", strings.Join(c.Limitations, "; "))
 	}
 	w.field("Review boundary", AccountBoundary("en"))
+	w.field("External storage collection", StorageStatus(current, "en"))
 	for _, b := range accountBlocks(current, "en") {
 		fmt.Fprintf(&w.Builder, "\n## %s\n\n", b.Title)
 		w.field("Scope", b.Note)
 		for _, value := range b.Fields {
-			w.field(value.Label, value.Value)
+			w.field(Text(value.Label), value.Value)
 		}
 	}
 	findings := map[string]i.Finding{}
@@ -175,6 +180,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 					return "", err
 				}
 				w.field("Observed values (bounded)", facts)
+				for _, value := range StorageFields(f, "en") {
+					w.field(value.Label, value.Value)
+				}
 				for _, value := range PrivilegeFields(f, "en") {
 					w.field(value.Label, value.Value)
 				}
@@ -216,6 +224,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				return "", err
 			}
 			w.field("Observed values (bounded)", facts)
+			for _, value := range StorageFields(f, "en") {
+				w.field(value.Label, value.Value)
+			}
 			for _, value := range PrivilegeFields(f, "en") {
 				w.field(value.Label, value.Value)
 			}

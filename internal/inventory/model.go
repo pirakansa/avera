@@ -3,7 +3,8 @@ package inventory
 
 const (
 	SchemaVersion              = "0.1"
-	ContractRevision           = "accounts-2026-10-25.1"
+	ContractRevision           = "storage-2026-10-25.1"
+	AccountsContractRevision   = "accounts-2026-10-25.1"
 	ServicesContractRevision   = "services-2026-10-25.1"
 	ForwardingContractRevision = "netfilter-2026-10-25.1"
 	LegacyContractRevision     = "t00-2026-10-24.1"
@@ -17,16 +18,18 @@ const (
 	Network  Collector = "network"
 	Sudo     Collector = "sudo"
 	Accounts Collector = "accounts"
+	Storage  Collector = "storage"
 )
 
 type Kind string
 
 const (
-	Endpoint   Kind = "network.endpoint"
-	Forwarding Kind = "network.forwarding"
-	Rule       Kind = "sudo.rule"
-	Unparsed   Kind = "sudo.unparsed"
-	Account    Kind = "account.local"
+	Endpoint        Kind = "network.endpoint"
+	Forwarding      Kind = "network.forwarding"
+	Rule            Kind = "sudo.rule"
+	Unparsed        Kind = "sudo.unparsed"
+	Account         Kind = "account.local"
+	ExternalStorage Kind = "storage.external"
 )
 
 type Status string
@@ -171,6 +174,34 @@ type AccountValues struct {
 }
 
 func (AccountValues) evidenceValues() {}
+
+type StorageIdentity struct {
+	Key string `json:"key"`
+}
+
+func (StorageIdentity) identity() {}
+
+type StorageMount struct {
+	Path       string `json:"path"`
+	Filesystem string `json:"filesystem"`
+	ReadOnly   bool   `json:"read_only"`
+}
+type StorageVolume struct {
+	Partition int64          `json:"partition"`
+	Mounts    []StorageMount `json:"mounts"`
+}
+type StorageFacts struct {
+	Connection          string          `json:"connection"`
+	Vendor              string          `json:"vendor"`
+	Model               string          `json:"model"`
+	Serial              string          `json:"serial"`
+	SizeBytes           int64           `json:"size_bytes"`
+	ReadOnly            bool            `json:"read_only"`
+	Volumes             []StorageVolume `json:"volumes"`
+	ObservationComplete bool            `json:"observation_complete"`
+}
+
+func (StorageFacts) facts() {}
 
 type SourceIdentity struct {
 	SourcePath string `json:"source_path"`

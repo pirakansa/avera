@@ -47,3 +47,9 @@ HTML and narrow layouts. No host account, sudo, SSH or group configuration is re
 The accounts/sudo regression additionally checks that an unrelated root account
 appears in a separate read-only reference section, stays outside current counts,
 rejects direct judgment API edits and remains reachable from a sudo run-as link.
+
+`python3 test/browser/external_storage.py` imports fictional mounted/unmounted
+storage and checks the simplified purpose/reason form, accepted judgment without
+advanced permission fields, immutable saved observations, escaped offline HTML
+and narrow layouts. All artifacts use a new temporary directory; no real USB
+device, mount or device-control operation is involved.

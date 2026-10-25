@@ -117,6 +117,7 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type relatedFinding struct{ ID, Label string }
 type item struct {
+	StorageFields    []report.ServiceField `json:"storage_fields,omitempty"`
 	AccountReference bool                  `json:"account_reference"`
 	AccountFields    []report.ServiceField `json:"account_fields,omitempty"`
 	Related          []relatedFinding      `json:"related,omitempty"`
@@ -130,6 +131,7 @@ type item struct {
 	Reusable         bool                  `json:"reusable"`
 }
 type state struct {
+	StorageStatus         string
 	Boundary              string
 	LocalGroups           []i.LocalGroup
 	Network               report.NetworkMap
@@ -153,7 +155,7 @@ func (s *Session) state(w http.ResponseWriter) {
 		http.Error(w, "cannot evaluate report", http.StatusInternalServerError)
 		return
 	}
-	out := state{Boundary: report.AccountBoundary(s.language), LocalGroups: report.LocalGroups(s.file.Current), Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
+	out := state{StorageStatus: report.StorageStatus(s.file.Current, s.language), Boundary: report.AccountBoundary(s.language), LocalGroups: report.LocalGroups(s.file.Current), Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.PolicyJudgments().Entries {
@@ -178,6 +180,7 @@ func (s *Session) state(w http.ResponseWriter) {
 			it.Service = &service
 		}
 		it.AccountFields = report.PrivilegeFields(f, s.language)
+		it.StorageFields = report.StorageFields(f, s.language)
 		for _, id := range connections[f.FindingID] {
 			target := byFindingID[id]
 			label := string(target.Kind)

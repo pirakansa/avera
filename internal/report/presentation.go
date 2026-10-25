@@ -102,7 +102,14 @@ func (l localizer) reasons(codes []string) string {
 	return strings.Join(out, "; ")
 }
 func (l localizer) annotation(b *block, a i.Assessment, context string) {
-	b.Fields = append(b.Fields, field{l.text("Assessment context", "判断の位置付け"), context}, field{l.text("Assessment ID", "判断 ID"), a.AssessmentID}, field{l.text("Origin", "判断の由来"), l.state(string(a.Origin))}, field{l.text("Human decision", "人による判断"), l.state(string(a.Decision))}, field{l.text("Actor / date", "判断者・日時"), a.Actor + " / " + a.AssessedAt}, field{l.text("Purpose", "目的"), a.Purpose}, field{l.text("Audience / exposure", "利用者・公開範囲"), a.Exposure}, field{l.text("Safeguards (human statement, not verified)", "保護策（人の申告・ツール未検証）"), a.Safeguards}, field{l.text("Rationale", "判断理由"), a.Rationale})
+	b.Fields = append(b.Fields, field{l.text("Assessment context", "判断の位置付け"), context}, field{l.text("Assessment ID", "判断 ID"), a.AssessmentID}, field{l.text("Origin", "判断の由来"), l.state(string(a.Origin))}, field{l.text("Human decision", "人による判断"), l.state(string(a.Decision))}, field{l.text("Actor / date", "判断者・日時"), a.Actor + " / " + a.AssessedAt}, field{l.text("Purpose", "目的"), a.Purpose})
+	if a.Selector.Kind != i.ExternalStorage || a.Exposure != "" {
+		b.Fields = append(b.Fields, field{l.text("Audience / exposure", "利用者・公開範囲"), a.Exposure})
+	}
+	if a.Selector.Kind != i.ExternalStorage || a.Safeguards != "" {
+		b.Fields = append(b.Fields, field{l.text("Safeguards (human statement, not verified)", "保護策（人の申告・ツール未検証）"), a.Safeguards})
+	}
+	b.Fields = append(b.Fields, field{l.text("Rationale", "判断理由"), a.Rationale})
 	for _, ref := range a.EvidenceRefs {
 		b.Fields = append(b.Fields, field{l.text("Evidence reference (not fetched)", "証拠の参照（取得しません）"), ref.Reference + " / " + ref.Provenance})
 	}
@@ -151,6 +158,15 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			d.Pages.Coverage = append(d.Pages.Coverage, field{l.text("Diagnostics", "診断コード"), strings.Join(c.DiagnosticCodes, ", ")})
 		}
 	}
+	storageCollected := false
+	for _, coverage := range current.Coverage {
+		if coverage.Collector == i.Storage {
+			storageCollected = true
+		}
+	}
+	if !storageCollected {
+		d.Pages.Coverage = append(d.Pages.Coverage, field{l.text("External storage", "外付けストレージ"), StorageStatus(current, language)})
+	}
 	d.Metrics = []metric{
 		{Label: l.text("Current items", "主な確認対象"), Count: s.Current},
 		{Label: l.text("Accepted", "追加対応不要"), Count: s.Accepted},
@@ -185,6 +201,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 	}
 	d.Blocks = append(d.Blocks, scope)
 	d.Blocks = append(d.Blocks, accountBlocks(current, language)...)
+	d.Blocks = append(d.Blocks, block{ID: "storage-status", Title: l.text("External storage collection", "外付けストレージの収集"), Note: StorageStatus(current, language)})
 	sources := []*i.Snapshot{current}
 	if previous != nil {
 		sources = append(sources, previous)
@@ -251,6 +268,13 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			if account, ok := f.Identity.(i.AccountIdentity); ok {
 				title += l.text(" · Local account ", " · ローカルアカウント ") + account.Name
 			}
+			if facts, ok := f.Facts.(i.StorageFacts); ok {
+				model := facts.Model
+				if model == "" {
+					model = l.text("Model unknown", "製品名不明")
+				}
+				title += l.text(" · External storage", " · 外付けストレージ") + " · " + model
+			}
 			if f.Kind == i.Forwarding {
 				title += l.text(" · Forwarding configuration", " · 転送設定")
 			}
@@ -275,6 +299,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				for _, value := range view.Fields {
 					b.Fields = append(b.Fields, field(value))
 				}
+			}
+			for _, value := range StorageFields(f, language) {
+				b.Fields = append(b.Fields, field(value))
 			}
 			for _, value := range PrivilegeFields(f, language) {
 				b.Fields = append(b.Fields, field(value))
@@ -394,18 +421,18 @@ func renderDocument(d document, o Options) (string, error) {
 		fmt.Fprintf(&b, "- %s: %d\n", m.Label, m.Count)
 	}
 	for _, section := range d.Blocks {
-		fmt.Fprintf(&b, "\n<a id=\"%s\"></a>\n\n## %s\n\n", section.ID, section.Title)
+		fmt.Fprintf(&b, "\n<a id=\"%s\"></a>\n\n## %s\n\n", section.ID, Text(section.Title))
 		if section.Note != "" {
 			fmt.Fprintf(&b, "%s\n\n", section.Note)
 		}
 		for _, f := range section.Fields {
-			fmt.Fprintf(&b, "- %s: %s\n", f.Label, Text(f.Value))
+			fmt.Fprintf(&b, "- %s: %s\n", Text(f.Label), Text(f.Value))
 		}
 		for _, q := range section.Questions {
 			fmt.Fprintf(&b, "- %s\n", q)
 		}
 		for _, a := range section.Links {
-			fmt.Fprintf(&b, "- [%s](#%s)\n", a.Label, a.ID)
+			fmt.Fprintf(&b, "- [%s](#%s)\n", Text(a.Label), a.ID)
 		}
 	}
 	return b.String(), nil

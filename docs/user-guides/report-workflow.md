@@ -23,7 +23,7 @@ Run in an explicitly opened root shell on the selected Linux/amd64 target. Choos
 
 For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
 
-The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, and bounded local sudo configuration. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
+The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, bounded local sudo configuration, and connected USB/removable non-root storage metadata. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
 The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, a conflicting logical group label, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
 
@@ -155,7 +155,7 @@ source context do, conservatively. Missing or changed linked services also requi
 re-review. Live namespace incarnation is still not proven across runs, so existing
 conservative namespace re-review rules continue to apply.
 
-New collected artifacts use contract revision `accounts-2026-10-25.1` inside the
+New collected artifacts use contract revision `storage-2026-10-25.1` inside the
 v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.
@@ -242,3 +242,29 @@ becomes a main account item when a main listening service's observed process
 effective UID is 0. Sudo run-as links can open reference accounts without asking
 for another account judgment. Existing stored decisions on reference accounts
 remain in JSON and are not included in report follow-up counts.
+
+## Explain connected external storage
+
+New collections show **外付けストレージ** items for USB/removable storage candidates,
+including unmounted devices. Rootfs backing disks are excluded; another internal
+fixed disk is not treated as external just because it is outside rootfs. Product,
+capacity, serial and mount/read-only observations help identify the candidate.
+These observations are not a file-permission or content-safety evaluation.
+
+In **接続の用途・必要性・管理担当**, explain the application/work and responsible
+team, for example “○○ application save destination.” Record the reason for
+continued connection, select **追加対応不要** when appropriate and save with the
+reviewer's name. You do not need to mount, unplug or disable it, or fill in a
+detailed access-control checklist. Unknown/unnecessary devices can instead be
+left unreviewed or judged to require action with a human explanation.
+
+The storage-status text distinguishes **未収集**, a complete inventory with zero
+candidates, and incomplete reads/rootfs identification. Older JSON stays readable;
+recollect to acquire storage observations. The backend observes USB ancestry or
+removable block-device flags in the current namespace; it does not inventory every
+possible external transport or past connection. See the
+[storage reference](../specifications/prototype/external-storage.md).
+
+For a fictional rehearsal with accounts, existing service judgments and two USB
+examples, open `test/fixtures/prototype/reports/storage-demo.json` with `serve`.
+The backup SSD is already explained; the unmounted transfer USB is ready to judge.

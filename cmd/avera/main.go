@@ -12,6 +12,7 @@ import (
 	"github.com/pirakansa/avera/internal/cli/shared"
 	"github.com/pirakansa/avera/internal/collect/accounts"
 	"github.com/pirakansa/avera/internal/collect/network"
+	"github.com/pirakansa/avera/internal/collect/storage"
 	"github.com/pirakansa/avera/internal/collect/sudo"
 )
 
@@ -23,6 +24,7 @@ func main() {
 		{Name: "network", Collector: network.WithForwarding{Sockets: network.Collector{IncludeServices: true}}},
 		{Name: "accounts", Collector: accounts.Collector{Source: localSource}},
 		{Name: "sudo", Collector: sudo.Collector{Source: localSource}},
+		{Name: "storage", Collector: storage.Collector{}},
 	}
 	cmd := root.New(app.Service{EffectiveUID: os.Geteuid, Collectors: collectors})
 	err := cmd.ExecuteContext(ctx)

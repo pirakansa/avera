@@ -258,3 +258,12 @@ revisions remain readable without rewriting immutable snapshots. Account
 identities use exact local names; changed memberships affect account facts.
 See [accounts and privileges](accounts-privileges.md#contract-compatibility) for
 field types, normalization, scope boundaries and known-revision rules.
+
+## Connected storage extension
+
+`storage-2026-10-25.1` adds `storage/storage.external` findings with typed identity,
+capacity/connection/read-only facts and partition/mount observations. Earlier
+accounts, services, netfilter and T00 contracts remain readable. Account/runtime
+group evidence remains permitted under the accounts and storage revisions.
+Existing network/sudo/account hash behavior is unchanged. See the
+[storage contract](external-storage.md#contract) for exact fields and normalization.

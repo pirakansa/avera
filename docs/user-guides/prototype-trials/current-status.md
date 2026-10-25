@@ -72,7 +72,7 @@ Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
 New saves use portable v3; v1/v2 inputs remain readable. New live artifacts use
-`accounts-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
+`storage-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
 split-artifact comparison tests are diagnostic compatibility cases, not the main
 shared-setting workflow.
 
@@ -203,3 +203,33 @@ confirmed root as the sole account reference, websvc/alex/old-maint as main acco
 items, seven main items, three accepted, one action-required and three unreviewed.
 The source JSON remained byte-for-byte unchanged, including root's stored prior
 judgment. The rebuilt `bin/avera` is retained for the requested same-command demo.
+
+## Connected storage revision
+
+The owner requested connected external-storage inventory, including unmounted
+candidates, resolved by a human purpose/reason such as an application's save
+destination. The live CLI now reads bounded sysfs and mountinfo metadata for
+USB/removable candidates, excludes rootfs backing disks and distinguishes
+uncollected, complete-empty and incomplete observations. A concise storage form
+asks for purpose, continued-connection reason, judgment and actor; it does not
+require detailed permissions, contents scanning or unplugging/disable operations.
+New files use the storage contract; earlier contracts and judgments remain readable.
+See [external storage](../../specifications/prototype/external-storage.md).
+Live hardware/owner acceptance remain separate from synthetic verification.
+
+Storage verification: `vorbere run check`, full race tests, build and
+`git diff --check` passed; the official vulnerability scan reported
+`No vulnerabilities found.` Chromium regressions passed for external storage,
+accounts/sudo, shared services and report pages. The storage check saved an
+unmounted candidate as accepted using purpose, reason and actor only, preserved
+immutable observations, and verified escaped offline HTML and narrow layouts.
+Synthetic sources covered root/USB/stacked mappings and actual collection limits;
+no real storage device was mounted, disabled or inspected.
+
+The owner's `/tmp/avera-review.AlwVXd/shared-services-demo.json` now includes an
+accepted application-save SSD and an unmounted transfer USB ready for judgment.
+Its existing users, service policies and judgments were preserved. The pre-update
+JSON is backed up in `/tmp/avera-storage-demo.djl4fqln/`. A durable entirely
+fictional copy is `test/fixtures/prototype/reports/storage-demo.json`; the original
+T00/v1 fixture remains unchanged. The rebuilt `bin/avera` is retained for the
+same-command demo; restart serve to load both the new JSON and embedded assets.

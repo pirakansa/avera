@@ -7,7 +7,7 @@ The [single-report revision](report-workflow.md) supersedes split files as the p
 ## Primary commands and flags
 
 - `collect --output NEW_JSON [--input REPORT] [--target-id GROUP]`: root-only
-  collection of network sockets/runtime groups, local accounts/groups, bounded sudo settings and local iptables/nftables candidates into one
+  collection of network sockets/runtime groups, local accounts/groups, bounded sudo settings, USB/removable non-root storage and local iptables/nftables candidates into one
   portable report. The input carries common endpoint judgments across equivalent
   PCs; machine ID is not read. Accounts and sudo are reviewed as separate configured observations.
 - `serve --input REPORT --output-dir EXISTING_PRIVATE_DIRECTORY
@@ -58,7 +58,7 @@ All sources failing still publishes diagnostic artifacts with exit 2. Offline re
 
 ## Responsibility and evidence
 
-`internal/cli/commands/root` owns thin Cobra mappings, `internal/app` orchestrates use cases, and `internal/artifact` owns publication. `app.Registration` supports adding another collector without duplicating review/report orchestration. The live CLI registers network, local accounts and bounded sudo collectors. See [accounts and privileges](accounts-privileges.md) for scope, relationships and compatibility.
+`internal/cli/commands/root` owns thin Cobra mappings, `internal/app` orchestrates use cases, and `internal/artifact` owns publication. `app.Registration` supports adding another collector without duplicating review/report orchestration. The live CLI registers network, local accounts, bounded sudo and external-storage collectors. See [accounts and privileges](accounts-privileges.md) for scope, relationships and compatibility.
 
 `internal/app/workflow_test.go` compares fixture-derived review output with T00 expected reviews and checks offline Markdown equality with T05 rendering. It verifies injected root/non-root collection, prior/advance context, partial/failed sources, cancellation, collisions, invalid JSON, target mismatch, and symlink parents. CLI tests pass for dispatch, flags, diagnostics and exit behavior with injected sources. These are simulated evidence, not owner feedback or a live-target validation record.
 
@@ -81,3 +81,8 @@ machine identity, forwarding collection and its limits, current-only presentatio
 with JSON-retained archives, and linked GUI/HTML diagrams. Local root collection
 has succeeded after removal of the machine-ID requirement; final owner acceptance
 and T07 distributed-build verification remain pending. See the [current handoff](../../user-guides/prototype-trials/current-status.md).
+
+The [storage extension](external-storage.md) reads bounded sysfs/mountinfo metadata
+without mounting or modifying devices. It adds ordinary purpose/reason judgments
+for connected candidates, including unmounted ones, under the storage contract.
+Earlier nested contracts remain readable; the CLI flags are unchanged.
