@@ -55,6 +55,7 @@ type metric struct {
 	Tone, Notice string
 }
 type document struct {
+	Network                                              *NetworkMap
 	Language, Title, Warning, Summary, Contents, Details string
 	Metrics                                              []metric
 	Blocks                                               []block
@@ -264,6 +265,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			d.Blocks = append(d.Blocks, b)
 		}
 	}
+	m := NetworkMapFor(&reportfile.File{Current: current, Assessments: annotations}, r, language)
+	attachMapAnchors(&m, d.Blocks)
+	d.Network = &m
 	return d, nil
 }
 

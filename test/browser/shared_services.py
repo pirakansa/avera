@@ -25,6 +25,9 @@ try:
  with sync_playwright() as p:
   browser=p.chromium.launch(headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':1280,'height':960});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('#items > details').first.wait_for()
   assert page.locator('#items > details').count()==4
+  assert page.locator('#network-map .map-row.observed').count()==1
+  assert '未調査' in page.locator('#network-map .map-outside').inner_text()
+  assert page.locator('#network-map .map-reference-grid .map-card').count()==1
   assert page.locator('#reference-items > details').count()==1 and page.locator('#reference-items form').count()==0
   state=page.request.get(url+'/api/state').json();assert state['Summary']['current']==4 and state['Summary']['unreviewed']==4 and state['ReferenceCount']==1
   http=page.locator('#items > details').filter(has=page.locator(':scope > summary',has_text='転送設定 '));http.locator(':scope > summary').click()
@@ -54,13 +57,21 @@ try:
   assert page.locator('#history').count()==0 and '置き換え前の判断履歴' not in page.inner_text('body')
 
   preview.reload();assert '共通設定' in preview.inner_text('body')
+  assert preview.locator('#network-map .map-row.observed').count()==1
+  assert preview.locator('#network-map a[href^="#item-"]').count()>0
   assert 'CurrentStaticWebExplanation' in preview.inner_text('body') and 'Static public web service; upstream load balancer controls apply' not in preview.inner_text('body')
   preview.screenshot(path=str(out/'report.png'),full_page=True)
+  preview.locator('#network-map').screenshot(path=str(out/'network-map-report.png'))
+  page.locator('#network-map').screenshot(path=str(out/'network-map-editor.png'))
   page.screenshot(path=str(out/'editor.png'),full_page=True)
+  map_link=page.locator('#network-map .map-card a').first
+  finding_id=map_link.get_attribute('href')[1:]
+  map_link.click();assert page.locator('[id="'+finding_id+'"]').get_attribute('open') is not None
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+  preview.set_viewport_size({'width':390,'height':844});assert preview.evaluate('document.documentElement.scrollWidth <= innerWidth')
   assert not errors,errors
   browser.close()
- print('PASS: automatic literal destination hint, automatic shared policy save, v3 JSON, shared HTML explanation hidden archives with retained JSON, and mobile layout')
+ print('PASS: automatic literal destination hint, automatic shared policy save, v3 JSON, shared HTML explanation hidden archives with retained JSON, linked network diagram, and mobile layout')
  print('Trial artifacts:',out)
 finally:
  server.send_signal(signal.SIGTERM);server.wait(timeout=10);assert server.returncode==0

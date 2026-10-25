@@ -20,3 +20,7 @@ escaping and mobile layout. It does not execute firewall commands.
 `python3 test/browser/shared_services.py` verifies literal DNAT destination hints
 without mandatory selection and automatically saving a reusable endpoint policy without a checkbox, v3 JSON and
 the shared-judgment explanation in HTML. It starts/stops its own fixture viewer.
+
+The shared-services browser check also covers the network overview in the editor
+and standalone HTML, configured destination arrows, loopback references, card-to-
+item navigation and narrow-screen layout.

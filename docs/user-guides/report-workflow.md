@@ -149,3 +149,18 @@ Older executables cannot read the new nested contract revision.
 Superseded judgment/relationship history is retained only in JSON, not in the
 GUI, report preview or exported HTML/Markdown. Current accepted items and their
 reasons remain visible. History storage itself is a [retirement candidate](../specifications/prototype/retirement-candidates.md#rc01--superseded-human-judgment-and-relationship-history), not removed in this revision.
+
+## Read the network diagram
+
+The editor and exported HTML include **ネットワーク構成の概要**. It shows observed
+listeners/forwarding rules and their related local services within the currently
+observed PC. Solid arrows identify literal configured destination matches; dashed
+arrows identify human-described relationships. An unspecified relationship is not
+proof that no forwarding exists. Upstream routers, load balancers and cloud
+controls are explicitly uninspected.
+
+Cards show current judgment state and available purpose/safeguards, with human
+provenance. Select a card's title to open its full item; the editor expands the
+matching judgment form. After saving, the diagram updates. Use HTML export to
+share the same diagram offline or print it. Markdown remains textual. The diagram
+is an overview with explicit abbreviation/size limits; see the [display contract](../specifications/prototype/network-overview.md).

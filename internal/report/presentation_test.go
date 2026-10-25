@@ -154,7 +154,7 @@ func TestPresentationOptionsAndCompatibility(t *testing.T) {
 func TestHTMLTemplateRequiresEscapingForEveryInterpolation(t *testing.T) {
 	for _, action := range regexp.MustCompile(`\{\{([^}]+)\}\}`).FindAllStringSubmatch(htmlReport, -1) {
 		expression := strings.TrimSpace(action[1])
-		if strings.HasPrefix(expression, "range ") || strings.HasPrefix(expression, "if ") || expression == "else" || expression == "end" {
+		if strings.HasPrefix(expression, `template "`) || strings.HasPrefix(expression, `define "`) || strings.HasPrefix(expression, "range ") || strings.HasPrefix(expression, "if ") || expression == "else" || expression == "end" {
 			continue
 		}
 		if !strings.HasSuffix(expression, "| escape") {

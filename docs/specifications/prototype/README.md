@@ -86,3 +86,5 @@ Implemented baseline: the CLI builds, T01 has package-local model/storage tests,
 Forwarding configuration collection and its compatibility boundaries are defined in the [forwarding collector specification](forwarding-collector.md).
 
 [Shared service judgments](shared-service-judgments.md) record the owner clarification prioritizing reusable explanations over machine identity and strict per-run difference review.
+
+The [network overview](network-overview.md) adds a shared graphical aid to the editor and HTML report without expanding collection scope.

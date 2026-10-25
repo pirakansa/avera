@@ -134,3 +134,12 @@ and collection unchanged. Superseded relationship entries follow the same displa
 boundary. Current accepted judgments remain visible. History storage is recorded
 as [RC01](retirement-candidates.md#rc01--superseded-human-judgment-and-relationship-history),
 not deleted or automatically migrated away.
+
+## Current network configuration diagram
+
+The owner requested a graphical aid for judgment and reporting. The editor and
+HTML report now share a current single-PC diagram of observed endpoints, literal
+configured destination matches and separate human relationships. Uninspected
+upstream controls, undetermined relationships and coverage are explicit. See the
+[network overview contract](network-overview.md); no reachability inference, new
+collection source, portable schema change or archived history display is added.

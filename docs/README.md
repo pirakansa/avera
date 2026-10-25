@@ -33,3 +33,5 @@ These are proposed prototype defaults. They do not turn unresolved product choic
 - [Shared service judgments](specifications/prototype/shared-service-judgments.md): cross-PC reuse, common explanations, v3 policies and configured destination hints
 
 - [Retirement candidates](specifications/prototype/retirement-candidates.md): implemented simplifications and deferred removal of obsolete prototype functionality
+
+- [Network configuration overview](specifications/prototype/network-overview.md): graphical observations, configured versus human relationships, coverage and offline HTML export

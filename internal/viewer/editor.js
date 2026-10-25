@@ -51,6 +51,7 @@ async function load() {
     if (!response.ok) throw new Error('読み込みに失敗しました');
     const state = await response.json();
     revision = state.revision;
+    renderNetworkMap(state.Network);
     currentItems = state.Items;
     routes = state.Routes || [];
     $('target').textContent = '対象: ' + state.Target + ' / 実行: ' + state.Run;
@@ -296,4 +297,52 @@ function renderRoute(route) {
         box.append(anchor, node('span', ' '));
     }
     $('routes').append(box);
+}
+
+function mapCard(card) {
+    const box = node('div', undefined, 'map-card ' + card.Tone);
+    const link = node(card.FindingID ? 'a' : 'strong', card.Title);
+    if (card.FindingID) link.href = '#finding-' + card.FindingID;
+    link.addEventListener('click', () => {
+        const item = document.getElementById('finding-' + card.FindingID);
+        if (item) {
+            item.open = true;
+            item.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+    box.append(link, node('p', card.Decision, 'map-state'));
+    for (const value of [card.Detail, card.Purpose, card.Safeguards])
+        if (value) box.append(node('p', value));
+    return box;
+}
+
+function renderNetworkMap(map) {
+    const box = $('network-map');
+    box.replaceChildren();
+    box.append(node('h2', map.Title), node('p', map.Note), node('div', map.Outside, 'map-outside'));
+    const host = node('div', undefined, 'map-host');
+    host.append(node('h3', map.Host));
+    for (const row of map.Rows) {
+        const line = node('div', undefined, 'map-row ' + row.Mode);
+        const targets = node('div', undefined, 'map-targets');
+        for (const target of row.Targets) targets.append(mapCard(target));
+        if (!row.Targets.length) targets.append(node('div', row.Relation, 'map-unknown'));
+        line.append(mapCard(row.Source), node('div', row.Mode === 'unknown' ? '' : row.Relation, 'map-arrow'), targets);
+        host.append(line);
+    }
+    if (!map.Rows.length) host.append(node('p', map.Empty));
+    if (map.References.length) {
+        host.append(node('h3', map.ReferencesLabel));
+        const refs = node('div', undefined, 'map-reference-grid');
+        for (const card of map.References) refs.append(mapCard(card));
+        host.append(refs);
+    }
+    box.append(host, node('p', map.Legend, 'map-legend'));
+    if (map.LimitNote) box.append(node('p', map.LimitNote, 'notice'));
+    const coverage = node('ul');
+    for (const value of map.Coverage) coverage.append(node('li', value));
+    box.append(coverage);
 }

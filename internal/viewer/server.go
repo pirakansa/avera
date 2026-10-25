@@ -103,6 +103,7 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/editor.css":
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		_, _ = w.Write(styles)
+		_, _ = io.WriteString(w, report.NetworkMapStyles)
 	case "/api/state":
 		s.state(w)
 	case "/download.json":
@@ -124,6 +125,7 @@ type item struct {
 	Reusable        bool             `json:"reusable"`
 }
 type state struct {
+	Network        report.NetworkMap
 	Revision       int `json:"revision"`
 	Target, Run    string
 	Summary        i.Summary
@@ -143,7 +145,7 @@ func (s *Session) state(w http.ResponseWriter) {
 		http.Error(w, "cannot evaluate report", http.StatusInternalServerError)
 		return
 	}
-	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
+	out := state{Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.PolicyJudgments().Entries {

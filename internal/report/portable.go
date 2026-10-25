@@ -15,7 +15,7 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 		return "", err
 	}
 	o = o.normalized()
-	if len(f.Routes) == 0 && len(f.Policies) == 0 && !hasDetectedTargets(f) {
+	if o.Format != "html" && len(f.Routes) == 0 && len(f.Policies) == 0 && !hasDetectedTargets(f) {
 		return RenderWithOptions(f.Current, f.Previous, f.Assessments, o)
 	}
 	result, err := f.Review()
@@ -74,6 +74,9 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 			}
 		}
 	}
+	m := NetworkMapFor(f, result.Review, o.Language)
+	attachMapAnchors(&m, d.Blocks)
+	d.Network = &m
 	text, err := renderDocument(d, o)
 	if err != nil {
 		return "", fmt.Errorf("render portable report: %w", err)
