@@ -31,3 +31,5 @@ These are proposed prototype defaults. They do not turn unresolved product choic
 - [Disposable network collector validation](user-guides/network-collector-validation.md): Ubuntu comparison procedure and interpretation of its results.
 
 - [Shared service judgments](specifications/prototype/shared-service-judgments.md): cross-PC reuse, common explanations, v3 policies and configured destination hints
+
+- [Retirement candidates](specifications/prototype/retirement-candidates.md): implemented simplifications and deferred removal of obsolete prototype functionality

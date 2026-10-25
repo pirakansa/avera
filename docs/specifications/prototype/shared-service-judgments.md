@@ -82,3 +82,10 @@ incomplete coverage, nonmatching service classes, and old-format rejection.
 Literal destination tests cover TCP/UDP separation, missing ports/protocols,
 REDIRECT and quoted text. Browser checks cover automatic destination display,
 shared-policy editing, v3 export, human provenance and HTML presentation.
+
+## Replacement history display
+
+Current judgments, including accepted items, remain visible. Superseded judgments
+and relationships are retained in JSON but omitted from the GUI, its state API and
+rendered reports. Their storage is a [retirement candidate](retirement-candidates.md),
+with no collection or schema removal in this increment.

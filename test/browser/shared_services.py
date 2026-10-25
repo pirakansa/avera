@@ -46,13 +46,21 @@ try:
   web.locator('[name=actor]').fill('fictional-owner');web.locator('[name=rationale]').fill('Static public web service; upstream load balancer controls apply');web.locator('select').select_option('accepted');web.locator('button[type=submit]').click();page.locator('#status').filter(has_text='保存しました').wait_for();page.wait_for_timeout(200)
   body=page.request.get(url+'/download.json').json();assert len(body['policies'])==1 and body['policies'][0]['port']==80
   assert '共通設定の判断を適用しています' in page.inner_text('body')
+  if web.get_attribute('open') is None: web.locator(':scope > summary').click()
+  web.locator('[name=rationale]').fill('CurrentStaticWebExplanation');web.locator('button[type=submit]').click();page.locator('#status').filter(has_text='保存しました').wait_for();page.wait_for_timeout(200)
+  body=page.request.get(url+'/download.json').json();assert len(body['assessment_history']['entries'])==1
+  assert 'Static public web service; upstream load balancer controls apply' in body['assessment_history']['entries'][0]['rationale']
+  state=page.request.get(url+'/api/state').json();assert 'History' not in state and 'RouteHistory' not in state
+  assert page.locator('#history').count()==0 and '置き換え前の判断履歴' not in page.inner_text('body')
+
   preview.reload();assert '共通設定' in preview.inner_text('body')
+  assert 'CurrentStaticWebExplanation' in preview.inner_text('body') and 'Static public web service; upstream load balancer controls apply' not in preview.inner_text('body')
   preview.screenshot(path=str(out/'report.png'),full_page=True)
   page.screenshot(path=str(out/'editor.png'),full_page=True)
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
   assert not errors,errors
   browser.close()
- print('PASS: automatic literal destination hint, automatic shared policy save, v3 JSON, shared HTML explanation and mobile layout')
+ print('PASS: automatic literal destination hint, automatic shared policy save, v3 JSON, shared HTML explanation hidden archives with retained JSON, and mobile layout')
  print('Trial artifacts:',out)
 finally:
  server.send_signal(signal.SIGTERM);server.wait(timeout=10);assert server.returncode==0

@@ -126,3 +126,11 @@ Every endpoint save now updates the common service policy; the editor has no
 reuse checkbox. Matching scope and human provenance remain visible. Older API
 clients may send `reuse`, but it no longer selects a mode. Existing policy-free
 files acquire a policy when their endpoint is saved.
+
+## Superseded history display and possible retirement
+
+The owner requested hiding replaced judgments from GUI/reports while leaving JSON
+and collection unchanged. Superseded relationship entries follow the same display
+boundary. Current accepted judgments remain visible. History storage is recorded
+as [RC01](retirement-candidates.md#rc01--superseded-human-judgment-and-relationship-history),
+not deleted or automatically migrated away.

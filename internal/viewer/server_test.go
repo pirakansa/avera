@@ -208,3 +208,42 @@ func TestReferenceScopeAndHumanLinks(t *testing.T) {
 		t.Fatal("reference-only judgment accepted")
 	}
 }
+
+func TestArchivedJudgmentsHiddenFromUIButRetainedInDownload(t *testing.T) {
+	s := session(t)
+	first := bytes.ReplaceAll(editBody(t, s, 0), []byte("Owner judgment"), []byte("archived-private-marker"))
+	if response := request(s, "POST", "/api/assess", first, s.origin); response.Code != 200 {
+		t.Fatal(response.Body.String())
+	}
+	if response := request(s, "POST", "/api/assess", editBody(t, s, 1), s.origin); response.Code != 200 {
+		t.Fatal(response.Body.String())
+	}
+	if len(s.file.History.Entries) != 1 {
+		t.Fatal("stored history changed")
+	}
+	for _, path := range []string{"/", "/api/state", "/preview", "/export.html"} {
+		response := request(s, "GET", path, nil, "")
+		if response.Code != 200 || strings.Contains(response.Body.String(), "archived-private-marker") || strings.Contains(response.Body.String(), `id="history"`) || strings.Contains(response.Body.String(), "置き換え前の判断履歴") {
+			t.Fatalf("history visible in %s", path)
+		}
+	}
+	stateResponse := request(s, "GET", "/api/state", nil, "")
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(stateResponse.Body.Bytes(), &fields); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := fields["History"]; ok {
+		t.Fatal("UI state contains archived judgments")
+	}
+	if _, ok := fields["RouteHistory"]; ok {
+		t.Fatal("UI state contains archived routes")
+	}
+	download := request(s, "GET", "/download.json", nil, "")
+	file, err := reportfile.Decode(download.Body.Bytes())
+	if err != nil || len(file.History.Entries) != 1 || file.History.Entries[0].Rationale != "archived-private-marker" {
+		t.Fatal("JSON history lost", err)
+	}
+	if !strings.Contains(request(s, "GET", "/preview", nil, "").Body.String(), "Owner judgment") {
+		t.Fatal("current judgment missing")
+	}
+}

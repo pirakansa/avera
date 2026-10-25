@@ -34,3 +34,7 @@ Tests cover loopback/private/wildcard/unknown-address classification, count excl
 [Shared service judgments](shared-service-judgments.md) supersede machine-bound
 collection and the v2 save default. They add v3 policies and configured-destination
 hints; manual relationship statements remain distinct and optional.
+
+Superseded relationship history is now hidden from the GUI and rendered reports,
+while current paths and JSON retention remain unchanged. See the [retirement
+candidate register](retirement-candidates.md).

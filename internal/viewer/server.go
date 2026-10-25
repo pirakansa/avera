@@ -124,16 +124,15 @@ type item struct {
 	Reusable        bool             `json:"reusable"`
 }
 type state struct {
-	Revision             int `json:"revision"`
-	Target, Run          string
-	Summary              i.Summary
-	Coverage             []i.Coverage
-	Items                []item
-	History              *i.Assessments
-	Unmatched            *i.Assessments
-	Language             string
-	ReferenceCount       int
-	Routes, RouteHistory []reportfile.Route
+	Revision       int `json:"revision"`
+	Target, Run    string
+	Summary        i.Summary
+	Coverage       []i.Coverage
+	Items          []item
+	Unmatched      *i.Assessments
+	Language       string
+	ReferenceCount int
+	Routes         []reportfile.Route
 }
 
 func (s *Session) state(w http.ResponseWriter) {
@@ -144,7 +143,7 @@ func (s *Session) state(w http.ResponseWriter) {
 		http.Error(w, "cannot evaluate report", http.StatusInternalServerError)
 		return
 	}
-	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, RouteHistory: s.file.RouteHistory, Coverage: s.file.Current.Coverage, Items: []item{}, History: s.file.History, Unmatched: result.Unmatched, Language: s.language}
+	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.PolicyJudgments().Entries {

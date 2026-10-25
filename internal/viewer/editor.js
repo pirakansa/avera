@@ -76,10 +76,8 @@ async function load() {
     $('reference-count').textContent = state.ReferenceCount;
     $('reference-items').replaceChildren();
     $('routes').replaceChildren();
-    for (const route of [...routes, ...(state.RouteHistory || [])]) renderRoute(route, (state.RouteHistory || []).includes(route));
+    for (const route of routes) renderRoute(route);
     $('coverage').textContent = JSON.stringify(state.Coverage, null, 2);
-    $('history').replaceChildren();
-    for (const a of state.History.entries) $('history').append(judgment(a));
     $('unmatched').replaceChildren();
     for (const a of state.Unmatched.entries) $('unmatched').append(judgment(a));
     expanded = new Set([...document.querySelectorAll('#items > details[open]')].map(item => item.dataset.finding));
@@ -278,9 +276,9 @@ function routeMatches(route) {
     return entrance && internal && !entrance.reference && internal.reference && entrance.finding.fact_fingerprint === route.entrance_fingerprint && internal.finding.fact_fingerprint === route.internal_fingerprint;
 }
 
-function renderRoute(route, archived) {
+function renderRoute(route) {
     const box = node('div', undefined, 'prior');
-    box.append(node('p', archived ? '置き換え前の関連付け（履歴）' : routeMatches(route) ? '保存時の観測内容と一致・転送経路は未検証' : '観測の変化・未観測あり。関連付けの再確認が必要です'), node('p', route.explanation), node('p', route.actor + ' / ' + route.recorded_at));
+    box.append(node('p', routeMatches(route) ? '保存時の観測内容と一致・転送経路は未検証' : '観測の変化・未観測あり。関連付けの再確認が必要です'), node('p', route.explanation), node('p', route.actor + ' / ' + route.recorded_at));
     for (const id of [route.entrance_id, route.internal_id]) {
         const item = currentItems.find(item => item.finding.finding_id === id);
         if (!item) {

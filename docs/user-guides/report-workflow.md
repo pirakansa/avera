@@ -44,9 +44,9 @@ Open the exact `http://127.0.0.1:PORT` URL printed in the terminal. No other mac
 4. Use the report-preview tab to inspect the saved state. Use **HTML output** to download a standalone Japanese report for a recipient. It requires no server or network when opened later.
 5. Use **Take JSON** to download the latest saved report as `avera-report.json`, or carry the newest filename displayed after saving. Downloads exclude unsaved fields and warn when drafts remain. If several tabs edit the same session, stale saves fail; retain your text and reload before retrying.
 
-The Japanese display label for the stored `accepted` decision is now "追加対応不要" (no additional action required according to the human reviewer). This wording is used consistently in summary cards, judgment selectors, saved/history displays and Japanese HTML/Markdown reports. It is a human judgment within the observed scope, not a tool certification of safety. JSON still stores `accepted`; existing saved files and matching rules are unchanged.
+The Japanese display label for the stored `accepted` decision is now "追加対応不要" (no additional action required according to the human reviewer). This wording is used consistently in summary cards, judgment selectors, saved judgment displays and Japanese HTML/Markdown reports. It is a human judgment within the observed scope, not a tool certification of safety. JSON still stores `accepted`; existing saved files and matching rules are unchanged.
 
-Save explicitly reconfirms the judgment against the current facts and records the actor/time. Earlier human entries are archived verbatim; generated empty starters need not be archived. Saving accepted does not override incomplete collection or conflicting interpretation: the derived current decision can remain unreviewed. View the unmatched-judgment/history sections to inspect prior context. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON/editor history rather than becoming extra active judgments.
+Save explicitly reconfirms the judgment against the current facts and records the actor/time. Earlier human entries are archived verbatim; generated empty starters need not be archived. Saving accepted does not override incomplete collection or conflicting interpretation: the derived current decision can remain unreviewed. Use the unmatched-judgment section to inspect explanations without a current observation. Replaced judgment history is not displayed. The exported HTML includes active prior context and current review state; superseded archived entries remain in the portable JSON rather than becoming extra active judgments.
 
 `--lang en` selects English report questions and export content; editor controls remain Japanese in this prototype.
 
@@ -54,7 +54,7 @@ Save explicitly reconfirms the judgment against the current facts and records th
 
 The main review list focuses on non-loopback network entrances and other review domains. Local-only endpoints such as `127.0.0.1:9000` and `::1` appear under **local-only reference information**, outside the main unreviewed count. LAN/private and wildcard listeners remain review items. This is a scope choice, not an automatic additional-action-unnecessary decision. Existing reference judgments remain visible as saved context; new standalone reference judgments are not requested.
 
-To describe forwarding, open the observed network entrance, select the relevant local service(s), and fill the forwarding/protection explanation. Save the entrance judgment. The tool records the association as a human statement, not a verified firewall/proxy route. Follow its related-service link in the report to inspect the observed local endpoint. If the linked service's facts change or it disappears, the entrance requests re-review even if its own listener is unchanged. Reconfirm after checking the path, or clear the selection if it no longer applies; earlier relationships stay in history.
+To describe forwarding, open the observed network entrance, select the relevant local service(s), and fill the forwarding/protection explanation. Save the entrance judgment. The tool records the association as a human statement, not a verified firewall/proxy route. Follow its related-service link in the report to inspect the observed local endpoint. If the linked service's facts change or it disappears, the entrance requests re-review even if its own listener is unchanged. Reconfirm after checking the path, or clear the selection if it no longer applies; earlier relationships stay in JSON history and are not displayed.
 
 Only observed entrances can own these links. The collector reads local forwarding candidates but does not discover ingress on a separate firewall/router. No main listener observed does not mean no external ingress. Reference and coverage sections preserve that distinction.
 
@@ -145,3 +145,7 @@ New collected artifacts use contract revision `netfilter-2026-10-25.1` inside th
 v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.
+
+Superseded judgment/relationship history is retained only in JSON, not in the
+GUI, report preview or exported HTML/Markdown. Current accepted items and their
+reasons remain visible. History storage itself is a [retirement candidate](../specifications/prototype/retirement-candidates.md#rc01--superseded-human-judgment-and-relationship-history), not removed in this revision.

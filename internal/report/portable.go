@@ -2,7 +2,6 @@ package report
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pirakansa/avera/internal/reportfile"
 )
@@ -16,7 +15,7 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 		return "", err
 	}
 	o = o.normalized()
-	if len(f.Routes) == 0 && len(f.RouteHistory) == 0 && len(f.Policies) == 0 && !hasDetectedTargets(f) {
+	if len(f.Routes) == 0 && len(f.Policies) == 0 && !hasDetectedTargets(f) {
 		return RenderWithOptions(f.Current, f.Previous, f.Assessments, o)
 	}
 	result, err := f.Review()
@@ -54,12 +53,10 @@ func RenderFile(f *reportfile.File, o Options) (string, error) {
 			}
 		}
 	}
-	for _, route := range f.RouteHistory {
-		routes.Fields = append(routes.Fields, field{l.text("Superseded path statement (history only)", "置き換え前の経路説明（履歴）"), strings.Join([]string{route.Explanation, route.Actor, route.RecordedAt}, " / ")})
-	}
-	if len(f.Routes) > 0 || len(f.RouteHistory) > 0 {
+	if len(f.Routes) > 0 {
 		d.Blocks = append(d.Blocks, routes)
 	}
+
 	for _, finding := range f.Current.Findings {
 		targets := f.DetectedTargets(finding)
 		if len(targets) == 0 {
