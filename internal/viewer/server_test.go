@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/pirakansa/avera/internal/artifact"
+	"github.com/pirakansa/avera/internal/assessment"
 	i "github.com/pirakansa/avera/internal/inventory"
 	"github.com/pirakansa/avera/internal/reportfile"
 )
@@ -156,5 +157,54 @@ func TestPageAndServerScope(t *testing.T) {
 	}
 	if err := Serve(context.Background(), "unused", t.TempDir(), "0.0.0.0:0", "ja", &bytes.Buffer{}); err == nil {
 		t.Fatal("public listener accepted")
+	}
+}
+
+func TestReferenceScopeAndHumanLinks(t *testing.T) {
+	s := session(t)
+	w := request(s, "GET", "/api/state", nil, "")
+	var initial struct {
+		ReferenceCount int
+		Summary        i.Summary
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &initial); err != nil {
+		t.Fatal(err)
+	}
+	if initial.ReferenceCount != 1 || initial.Summary.Current != 3 || initial.Summary.Unreviewed != 3 {
+		t.Fatal("reference included in main decisions")
+	}
+	var req editRequest
+	if err := json.Unmarshal(editBody(t, s, 0), &req); err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range s.file.Current.Findings {
+		if assessment.IsReference(f) {
+			req.Edit.RelatedIDs = []string{f.FindingID}
+		}
+	}
+	req.Edit.RouteExplanation = `Proxy route <script>mustRemainText()</script>`
+	data, err := json.Marshal(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w = request(s, "POST", "/api/assess", data, "http://"+testHost)
+	if w.Code != 200 {
+		t.Fatal(w.Body.String())
+	}
+	if len(s.file.Routes) != 1 {
+		t.Fatal("relationship not saved")
+	}
+	exported := request(s, "GET", "/export.html", nil, "")
+	if strings.Contains(exported.Body.String(), "<script>") || !strings.Contains(exported.Body.String(), "&lt;script&gt;") || !strings.Contains(exported.Body.String(), "local-reference") {
+		t.Fatal("unsafe or incomplete reference export")
+	}
+	req.Revision = 1
+	req.Edit.FindingID = req.Edit.RelatedIDs[0]
+	data, err = json.Marshal(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if w = request(s, "POST", "/api/assess", data, "http://"+testHost); w.Code != 400 || s.revision != 1 {
+		t.Fatal("reference-only judgment accepted")
 	}
 }

@@ -24,6 +24,7 @@ These are proposed prototype defaults. They do not turn unresolved product choic
 ## Prototype trial guide
 
 - [Single-report workflow](user-guides/report-workflow.md): primary collect/carry/browser-edit/export workflow
+- [Review scope and related services](specifications/prototype/review-scope.md): reference grouping, entrance-owned human path statements, and v2 compatibility
 - [Portable report contract](specifications/prototype/report-workflow.md): container, target binding, save and browser boundaries
 
 - [Trial cycles and feedback](user-guides/prototype-trials.md): how the project owner will try each increment and decide what to change.

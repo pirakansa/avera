@@ -10,6 +10,7 @@ import (
 	"github.com/pirakansa/avera/internal/assessment"
 	"github.com/pirakansa/avera/internal/guidance"
 	i "github.com/pirakansa/avera/internal/inventory"
+	"github.com/pirakansa/avera/internal/reportfile"
 )
 
 const technicalLimit = 2000
@@ -89,8 +90,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 	} else {
 		w.field("Comparison", "Unavailable; no previous snapshot supplied")
 	}
-	s := r.Summary
+	s, referenceCount := assessment.ReviewSummary(current, r)
 	fmt.Fprintf(&w.Builder, "\n[Current items](#current-items): %d; accepted: %d; action required: %d; unreviewed: %d.\n\nNeeds re-review: %d; conflicts: %d (applicability subsets).\n\n[Historical items](#historical-items): %d; [unmatched assessments](#unmatched-assessments): %d.\n\n", s.Current, s.Accepted, s.ActionRequired, s.Unreviewed, s.NeedsReview, s.Conflict, s.Historical, s.UnmatchedAssessments)
+	fmt.Fprintf(&w.Builder, "Local-only references (outside review counts): %d.\n\n", referenceCount)
 	w.WriteString("Counts describe review state, not overall safety. Outstanding decisions are identified in the current item details. Missing observations do not prove absence or remediation.\n\n### Collection scope and limitations\n\n")
 	for _, c := range current.Coverage {
 		w.field("Collector / status / scope", string(c.Collector)+" / "+string(c.Status)+" / "+c.Scope)
@@ -125,8 +127,14 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 			evidenceLinks[fmt.Sprintf("%d/%s", si, e.EvidenceID)] = fmt.Sprintf("evidence-%d-%d", si, ei)
 		}
 	}
-	for _, presence := range []i.Presence{i.Current, i.Historical} {
-		if presence == i.Current {
+	for _, category := range []string{"current", "historical", "reference"} {
+		presence := i.Current
+		if category == "historical" {
+			presence = i.Historical
+		}
+		if category == "reference" {
+			w.WriteString("\n## Local-only reference services\n\nOutside the main review counts, not automatically accepted. Explain forwarding at the network entrance; forwarding is not verified by this tool.\n\n")
+		} else if presence == i.Current {
 			w.WriteString("\n## Current items\n\n")
 		} else {
 			w.WriteString("\n## Historical items\n\nPrior observations only; excluded from current counts.\n\n")
@@ -135,13 +143,40 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 			if item.Presence != presence {
 				continue
 			}
+			f := findings[item.FindingID]
+			if presence == i.Current && assessment.IsReference(f) != (category == "reference") {
+				continue
+			}
+			if assessment.IsReference(f) {
+				fmt.Fprintf(&w.Builder, "### Item %d\n\n", n+1)
+				w.field("Finding ID", f.FindingID)
+				facts, err := technical(struct {
+					Identity i.Identity
+					Facts    i.Facts
+				}{f.Identity, f.Facts})
+				if err != nil {
+					return "", err
+				}
+				w.field("Observed values (bounded)", facts)
+				w.field("Change", string(item.Change))
+				for _, id := range item.AssessmentIDs {
+					w.annotation(annotationsByID[id], "Stored judgment outside the main review scope")
+				}
+				sourceIndex := 0
+				if item.Presence == i.Historical {
+					sourceIndex = 1
+				}
+				for _, id := range f.EvidenceIDs {
+					fmt.Fprintf(&w.Builder, "- [Underlying evidence](#%s)\n", evidenceLinks[fmt.Sprintf("%d/%s", sourceIndex, id)])
+				}
+				continue
+			}
 			fmt.Fprintf(&w.Builder, "### Item %d\n\n", n+1)
 			w.field("Finding ID", item.FindingID)
 			w.field("Change", string(item.Change))
 			w.field("Current decision", string(item.CurrentDecision))
 			w.field("Applicability", string(item.Applicability))
 			w.field("Review reason", reasonText(item.ReasonCodes))
-			f := findings[item.FindingID]
 			g := guidance.For(f.Kind)
 			w.field("Observed fact", g.Observed)
 			facts, err := technical(struct {
@@ -207,11 +242,12 @@ func reasonText(codes []string) string {
 	out := make([]string, 0, len(codes))
 	for _, code := range codes {
 		wording := map[string]string{
-			assessment.FactsChanged:        "Observed facts changed; ask the decision owner to review the earlier explanation",
-			assessment.CoverageIncomplete:  "Collection or attribution is incomplete; clarify the missing context before reusing a decision",
-			assessment.MultipleAssessments: "Multiple assessments conflict; ask their owners to resolve which judgment applies",
-			assessment.ExpectationMismatch: "The advance expectation is incomplete or differs from observations; review it with its author",
-			assessment.NotObserved:         "Not observed in this comparable run; this does not establish remediation",
+			reportfile.RelatedContextChanged: "A linked local service changed or is unavailable; review the entrance judgment and path explanation",
+			assessment.FactsChanged:          "Observed facts changed; ask the decision owner to review the earlier explanation",
+			assessment.CoverageIncomplete:    "Collection or attribution is incomplete; clarify the missing context before reusing a decision",
+			assessment.MultipleAssessments:   "Multiple assessments conflict; ask their owners to resolve which judgment applies",
+			assessment.ExpectationMismatch:   "The advance expectation is incomplete or differs from observations; review it with its author",
+			assessment.NotObserved:           "Not observed in this comparable run; this does not establish remediation",
 		}[code]
 		if wording == "" {
 			wording = "Ask the reviewer to interpret this diagnostic"

@@ -91,6 +91,10 @@ func (svc Service) CollectReport(ctx context.Context, o Options) (int, error) {
 	if err != nil {
 		return 1, fmt.Errorf("cannot construct report; check context and report size limits")
 	}
+	if prior != nil {
+		f.Routes = prior.Routes
+		f.RouteHistory = prior.RouteHistory
+	}
 	if err = f.Write(ctx, o.Output); err != nil {
 		return 1, fmt.Errorf("cannot publish report; input remains unchanged, choose a new output path")
 	}

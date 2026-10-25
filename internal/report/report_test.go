@@ -66,7 +66,7 @@ func TestScenarios(t *testing.T) {
 			if err != nil || string(before) != string(after) {
 				t.Fatal("mutated inputs", err)
 			}
-			expected := load(t, s.Expected).(*i.Review).Summary
+			expected, _ := focusedFixtureSummary(t, s.Name, s.Expected)
 			for _, v := range []string{
 				fmt.Sprintf("[Current items](#current-items): %d; accepted: %d; action required: %d; unreviewed: %d.", expected.Current, expected.Accepted, expected.ActionRequired, expected.Unreviewed),
 				fmt.Sprintf("Needs re-review: %d; conflicts: %d", expected.NeedsReview, expected.Conflict),

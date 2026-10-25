@@ -100,12 +100,16 @@ func TestCarryEditedReportIntoNextCollection(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := ""
+	localID := ""
 	for _, finding := range source.Findings {
+		if assessment.IsReference(finding) {
+			localID = finding.FindingID
+		}
 		if finding.Kind == i.Endpoint && finding.Identity.(i.EndpointIdentity).LocalPort == 80 {
 			id = finding.FindingID
 		}
 	}
-	f, err = f.Apply(reportfile.Edit{FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation"}, time.Now())
+	f, err = f.Apply(reportfile.Edit{FindingID: id, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Explicit owner confirmation", RelatedIDs: []string{localID}, RouteExplanation: "Entrance forwards to the internal service (human statement)"}, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,6 +147,9 @@ func TestCarryEditedReportIntoNextCollection(t *testing.T) {
 	result, err := assessment.Evaluate(next.Current, next.Previous, next.Assessments)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if len(next.Routes) != 1 || !next.RouteCurrent(next.Routes[0]) {
+		t.Fatal("carry-back lost relationship metadata")
 	}
 	if result.Review.Summary.Accepted != 1 || len(next.History.Entries) != 1 || next.Current.TargetID != source.TargetID {
 		t.Fatal("carry-back lost identity, decision or history")

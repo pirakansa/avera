@@ -18,8 +18,11 @@ async def main():
   for j in range(await cards.count()):
    card=cards.nth(j);title=await card.locator(':scope > summary').inner_text()
    if ':80 ' in title:http=card
-   if ':9000 ' in title:other=card
+   if title.startswith('sudo '):other=card
   assert http is not None and other is not None
+  assert await page.locator('#reference-items form').count()==0
+  assert await page.locator('#reference-count').inner_text()=='1'
+  other_id=await other.get_attribute('data-finding')
   await http.locator(':scope > summary').click()
   await other.locator(':scope > summary').click()
   await other.locator('[name=purpose]').fill('未保存の別項目の入力')
@@ -31,7 +34,7 @@ async def main():
   await page.locator('#status').filter(has_text='保存しました').wait_for()
   await page.wait_for_timeout(250)
   # New DOM nodes replace cards, but values must remain.
-  other=page.locator('#items > details').filter(has=page.locator(':scope > summary',has_text=':9000 '))
+  other=page.locator('#items > details[data-finding="'+other_id+'"]')
   assert await other.locator('[name=purpose]').input_value()=='未保存の別項目の入力'
   assert await page.evaluate('window.injected') is None
   state=await (await page.request.get(url+'api/state')).json()
@@ -42,7 +45,7 @@ async def main():
   page.on('dialog',lambda dialog:dialog.accept())
   async with page.expect_download() as info:await page.locator('#json-download').click()
   download=await info.value
-  path=await download.path();report=json.loads(pathlib.Path(path).read_text());assert report['format']=='avera.report.v1'
+  path=await download.path();report=json.loads(pathlib.Path(path).read_text());assert report['format']=='avera.report.v2'
   async with page.expect_download() as info:await page.locator('#html-export').click()
   path=await (await info.value).path();html=pathlib.Path(path).read_text();assert '確認レポート' in html and '&lt;script&gt;' in html
   await page.locator('#preview-tab').click()

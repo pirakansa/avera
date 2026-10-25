@@ -2,6 +2,8 @@
 
 Status: owner-approved workflow revision, 2026-10-25; implemented and validated; owner evaluation of the revised UI remains pending. The owner requested one portable report JSON, target-side collection with optional previous report, and a host-side local browser editor with HTML export. This supersedes manual multi-file editing as the primary trial workflow.
 
+The [review-scope revision](review-scope.md) introduces loopback reference grouping, human-described paths and portable v2 saves with v1 input migration. It supersedes the original v1-only container default below.
+
 ## Contract and boundaries
 
 - `collect --output NEW_JSON [--input PRIOR_REPORT] [--target-id NAME]` creates a versioned report containing current/previous snapshots, active assessments and archived superseded assessments. First collection assigns a target ID if omitted; subsequent collection inherits it. Existing JSON artifact contracts remain nested and unchanged. Derived counts are always recomputed.
@@ -11,7 +13,7 @@ Status: owner-approved workflow revision, 2026-10-25; implemented and validated;
 - `serve --input REPORT --output-dir EXISTING_PRIVATE_DIRECTORY` opens a loopback-only viewer (Japanese by default), prints its URL, and stops on cancellation. It never reads live target sources. The browser edits explanation/decision fields only, with explicit save/reconfirmation. Each save creates a new private JSON file without overwriting input or prior saves. The latest saved file is the next collection input. JSON download and standalone HTML export are available.
 - Browser writes require exact Host and Origin checks, JSON bodies, size limits and revision matching; no CORS, remote assets, arbitrary browser-supplied filesystem paths, or editable observation/selector/basis fields. Rendering uses escaped values or DOM text properties. Server resources/timeouts are bounded. Saved output is committed before in-memory state changes.
 - Archived judgments remain available in the viewer and report JSON. Standalone reports distinguish active prior context from current decisions; archived replaced entries are retained in JSON rather than mixed into active matching.
-- Report JSON has its own `avera.report.v1` format, strict unknown-field/duplicate/depth/size validation and cross-target validation. The aggregate byte limit is 16 MiB; hitting it fails without discarding history. Safe publication uses existing private no-clobber storage.
+- Report JSON has its own `avera.report.v2` format (v1 inputs remain readable), strict unknown-field/duplicate/depth/size validation and cross-target validation. The aggregate byte limit is 16 MiB; hitting it fails without discarding history. Safe publication uses existing private no-clobber storage.
 
 ## Acceptance
 

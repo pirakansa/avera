@@ -50,6 +50,16 @@ Save explicitly reconfirms the judgment against the current facts and records th
 
 `--lang en` selects English report questions and export content; editor controls remain Japanese in this prototype.
 
+## Network entrances and local reference services
+
+The main review list focuses on non-loopback network entrances and other review domains. Local-only endpoints such as `127.0.0.1:9000` and `::1` appear under **local-only reference information**, outside the main unreviewed count. LAN/private and wildcard listeners remain review items. This is a scope choice, not an automatic additional-action-unnecessary decision. Existing reference judgments remain visible as saved context; new standalone reference judgments are not requested.
+
+To describe forwarding, open the observed network entrance, select the relevant local service(s), and fill the forwarding/protection explanation. Save the entrance judgment. The tool records the association as a human statement, not a verified firewall/proxy route. Follow its related-service link in the report to inspect the observed local endpoint. If the linked service's facts change or it disappears, the entrance requests re-review even if its own listener is unchanged. Reconfirm after checking the path, or clear the selection if it no longer applies; earlier relationships stay in history.
+
+Only observed entrances can own these links. The collector does not discover ingress on a separate firewall/router or inspect forwarding rules. No main listener observed does not mean no external ingress. Reference and coverage sections preserve that distinction.
+
+New saves use portable report v2; old v1 reports still open, and the next new saved file is v2. Keep original files; older AVERA binaries cannot read v2. The raw split-artifact review JSON retains its all-observation counts for compatibility, while the browser and rendered reports show the focused counts described here.
+
 ## Repeat on the same target
 
 Bring the latest judgment-containing JSON back to the same target. Run as root and choose a new output filename:

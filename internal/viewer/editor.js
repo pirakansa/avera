@@ -2,6 +2,8 @@
 let revision = 0;
 const drafts = new Map();
 let expanded = new Set();
+let currentItems = [];
+let routes = [];
 const $ = id => document.getElementById(id);
 const names = {
     accepted: '追加対応不要',
@@ -49,10 +51,12 @@ async function load() {
     if (!response.ok) throw new Error('読み込みに失敗しました');
     const state = await response.json();
     revision = state.revision;
+    currentItems = state.Items;
+    routes = state.Routes || [];
     $('target').textContent = '対象: ' + state.Target + ' / 実行: ' + state.Run;
     $('metrics').replaceChildren();
     for (const [key, label] of [
-            ['current', '今回の項目'],
+            ['current', '主な確認対象'],
             ['accepted', '追加対応不要'],
             ['action_required', '対応が必要'],
             ['unreviewed', '未確認'],
@@ -69,6 +73,10 @@ async function load() {
         }
         $('metrics').append(card);
     }
+    $('reference-count').textContent = state.ReferenceCount;
+    $('reference-items').replaceChildren();
+    $('routes').replaceChildren();
+    for (const route of [...routes, ...(state.RouteHistory || [])]) renderRoute(route, (state.RouteHistory || []).includes(route));
     $('coverage').textContent = JSON.stringify(state.Coverage, null, 2);
     $('history').replaceChildren();
     for (const a of state.History.entries) $('history').append(judgment(a));
@@ -88,6 +96,16 @@ function renderItem(item) {
     const box = node('details');
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
+    box.id = 'finding-' + f.finding_id;
+    if (item.reference) {
+        box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'ループバック限定の接続口です。主な確認対象の件数には含めず、自動的な追加対応不要の判断もしません。'), node('pre', JSON.stringify({
+            identity: f.identity,
+            facts: f.facts
+        }, null, 2)));
+        for (const a of item.judgments.filter(a => a.actor || a.purpose || a.rationale || a.exposure || a.safeguards || (a.evidence_refs || []).length || a.decision !== 'unreviewed')) box.append(judgment(a));
+        $('reference-items').append(box);
+        return;
+    }
     box.append(node('summary', title + ' — ' + text(r.current_decision) + ' / ' + text(r.applicability) + ' / ' + text(r.change)));
     box.append(node('p', g.Observed), node('p', g.Why));
     const qs = node('ul');
@@ -131,6 +149,37 @@ function renderItem(item) {
         controls[key] = control;
         form.append(wrapper);
     }
+    const relatedControls = [];
+    if (f.kind === 'network.endpoint') {
+        const section = node('fieldset');
+        section.append(node('legend', '転送先・関連するローカルサービス（人の申告）'));
+        section.append(node('p', '入口から内部サービスまでの経路と保護策をここで説明します。チェックしても転送設定を検証したことにはなりません。'));
+        const savedRoutes = routes.filter(route => route.entrance_id === f.finding_id);
+        const selected = draft ? draft.related_ids : savedRoutes.map(route => route.internal_id);
+        for (const target of currentItems.filter(item => item.reference)) {
+            const endpoint = target.finding.identity;
+            const wrapper = node('label', undefined, 'route-choice');
+            const checkbox = node('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'related_ids';
+            checkbox.value = target.finding.finding_id;
+            checkbox.checked = (selected || []).includes(checkbox.value);
+            wrapper.append(checkbox, node('span', String(endpoint.transport).toUpperCase() + ' ' + endpoint.local_address + ':' + endpoint.local_port));
+            section.append(wrapper);
+            relatedControls.push(checkbox);
+        }
+        if (!relatedControls.length) section.append(node('p', '今回の収集では関連付けできるローカル限定サービスはありません。'));
+        if (savedRoutes.some(route => !routeMatches(route))) section.append(node('p', '保存後に観測が変化したか、関連するサービスが未観測です。以前の関連付けを再確認してください。', 'notice'));
+        const wrapper = node('label', '転送経路と保護策の説明');
+        const description = node('textarea');
+        description.name = 'route_explanation';
+        description.maxLength = 20000;
+        description.value = draft ? draft.route_explanation || '' : [...new Set(savedRoutes.map(route => route.explanation))].join('\n');
+        wrapper.append(description);
+        controls.route_explanation = description;
+        section.append(wrapper);
+        form.append(section);
+    }
     const select = node('select');
     for (const value of ['unreviewed', 'action_required', 'accepted']) {
         const option = node('option', text(value));
@@ -149,6 +198,7 @@ function renderItem(item) {
             decision: select.value
         };
         for (const key of Object.keys(controls)) draft[key] = controls[key].value;
+        draft.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
         drafts.set(f.finding_id, draft);
         window.onbeforeunload = () => true;
     });
@@ -164,6 +214,10 @@ function renderItem(item) {
             reference,
             provenance: 'human_reported'
         }));
+        if (f.kind === 'network.endpoint') {
+            edit.related_ids = relatedControls.filter(control => control.checked).map(control => control.value);
+            edit.route_explanation = controls.route_explanation.value;
+        }
         try {
             const response = await fetch('/api/assess', {
                 method: 'POST',
@@ -176,7 +230,7 @@ function renderItem(item) {
                 })
             });
             if (!response.ok) {
-                const detail = response.status === 409 ? '別の保存が先に行われました。入力内容を控えてからページを再読み込みしてください。' : response.status === 400 ? '保存できません。判断・判断者・判断理由を確認してください。' : '保存に失敗しました。入力は画面に残っています。出力先を確認してください。';
+                const detail = response.status === 409 ? '別の保存が先に行われました。入力内容を控えてからページを再読み込みしてください。' : response.status === 400 ? '保存できません。判断・判断者・判断理由を確認してください。関連付けを選んだ場合は転送経路の説明も必要です。' : '保存に失敗しました。入力は画面に残っています。出力先を確認してください。';
                 throw new Error(detail);
             }
             const result = await response.json();
@@ -207,3 +261,31 @@ load().catch(error => message(error.message, true));
 for (const id of ['json-download', 'html-export']) $(id).addEventListener('click', event => {
     if (drafts.size && !window.confirm('未保存の入力は出力に含まれません。保存済みの内容を出力しますか？')) event.preventDefault();
 });
+
+function routeMatches(route) {
+    const entrance = currentItems.find(item => item.finding.finding_id === route.entrance_id);
+    const internal = currentItems.find(item => item.finding.finding_id === route.internal_id);
+    return entrance && internal && !entrance.reference && internal.reference && entrance.finding.fact_fingerprint === route.entrance_fingerprint && internal.finding.fact_fingerprint === route.internal_fingerprint;
+}
+
+function renderRoute(route, archived) {
+    const box = node('div', undefined, 'prior');
+    box.append(node('p', archived ? '置き換え前の関連付け（履歴）' : routeMatches(route) ? '保存時の観測内容と一致・転送経路は未検証' : '観測の変化・未観測あり。関連付けの再確認が必要です'), node('p', route.explanation), node('p', route.actor + ' / ' + route.recorded_at));
+    for (const id of [route.entrance_id, route.internal_id]) {
+        const item = currentItems.find(item => item.finding.finding_id === id);
+        if (!item) {
+            box.append(node('p', '今回未観測の関連項目: ' + id));
+            continue;
+        }
+        const endpoint = item.finding.identity;
+        const anchor = node('a', String(endpoint.transport).toUpperCase() + ' ' + endpoint.local_address + ':' + endpoint.local_port);
+        anchor.href = '#finding-' + id;
+        anchor.addEventListener('click', () => {
+            if (item.reference) $('local-reference').open = true;
+            const target = $('finding-' + id);
+            if (target) target.open = true;
+        });
+        box.append(anchor, node('span', ' '));
+    }
+    $('routes').append(box);
+}

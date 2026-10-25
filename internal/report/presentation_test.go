@@ -3,6 +3,8 @@ package report
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pirakansa/avera/internal/assessment"
+	"github.com/pirakansa/avera/internal/reportfile"
 	"html"
 	"os"
 	"path/filepath"
@@ -10,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	i "github.com/pirakansa/avera/internal/inventory"
 )
@@ -40,8 +43,8 @@ func TestPresentationScenarios(t *testing.T) {
 				a = load(t, *tc.Assessments).(*i.Assessments)
 			}
 			before, _ := json.Marshal([]any{s, p, a})
-			summary := load(t, tc.Expected).(*i.Review).Summary
-			want := []int{summary.Current, summary.Accepted, summary.ActionRequired, summary.Unreviewed, summary.NeedsReview, summary.Conflict, summary.Historical, summary.UnmatchedAssessments}
+			summary, referenceCount := focusedFixtureSummary(t, tc.Name, tc.Expected)
+			want := []int{summary.Current, summary.Accepted, summary.ActionRequired, summary.Unreviewed, summary.NeedsReview, summary.Conflict, summary.Historical, summary.UnmatchedAssessments, referenceCount}
 			for _, lang := range []string{"ja", "en"} {
 				d, err := makeDocument(s, p, a, lang)
 				if err != nil {
@@ -204,5 +207,57 @@ func TestJapaneseAcceptedLabel(t *testing.T) {
 	}
 	if localizerState := (localizer{ja: true}).state("accepted"); localizerState != "追加対応不要" {
 		t.Fatal("wrong item judgment label")
+	}
+}
+
+// The baseline fixtures have one unjudged loopback endpoint except the listed scopes.
+func focusedFixtureSummary(t *testing.T, name, expected string) (i.Summary, int) {
+	t.Helper()
+	s := load(t, expected).(*i.Review).Summary
+	switch name {
+	case "advance-sudo", "partial", "failed", "empty":
+		return s, 0
+	}
+	s.Current--
+	s.Unreviewed--
+	return s, 1
+}
+
+func TestReferencesAndHumanRouteRendering(t *testing.T) {
+	current := load(t, "snapshot-first.json").(*i.Snapshot)
+	f, err := reportfile.New(current, nil, nil, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var entrance, internal i.Finding
+	for _, finding := range current.Findings {
+		if finding.Kind != i.Endpoint {
+			continue
+		}
+		if assessment.IsReference(finding) {
+			internal = finding
+		} else {
+			entrance = finding
+		}
+	}
+	edit := reportfile.Edit{FindingID: entrance.FindingID, Decision: i.Accepted, Actor: "fictional-owner", Rationale: "Reviewed the entrance and path", RelatedIDs: []string{internal.FindingID}, RouteExplanation: `Proxy forwards locally <script>mustRemainText()</script>`}
+	f, err = f.Apply(edit, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, format := range []string{"html", "markdown"} {
+		out, err := RenderFile(f, Options{Format: format, Language: "ja"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		decoded := html.UnescapeString(out)
+		for _, text := range []string{"ローカル限定の参考情報", "関連するローカル限定サービス", "転送経路は未検証", "Proxy forwards locally"} {
+			if !strings.Contains(decoded, text) {
+				t.Fatal("missing route/reference explanation", text)
+			}
+		}
+		if strings.Contains(out, "<script>") {
+			t.Fatal("route text created active markup")
+		}
 	}
 }

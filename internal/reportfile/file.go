@@ -15,21 +15,25 @@ import (
 	i "github.com/pirakansa/avera/internal/inventory"
 )
 
-const Version = "avera.report.v1"
+const Version = "avera.report.v2"
+const legacyVersion = "avera.report.v1"
 const MaxBytes = i.MaxArtifactBytes
 
 type File struct {
 	Binding              string
 	Current, Previous    *i.Snapshot
 	Assessments, History *i.Assessments
+	Routes, RouteHistory []Route
 }
 type wire struct {
-	Format      string          `json:"format"`
-	Binding     string          `json:"machine_binding"`
-	Current     json.RawMessage `json:"current"`
-	Previous    json.RawMessage `json:"previous"`
-	Assessments json.RawMessage `json:"assessments"`
-	History     json.RawMessage `json:"assessment_history"`
+	Format       string          `json:"format"`
+	Binding      string          `json:"machine_binding"`
+	Current      json.RawMessage `json:"current"`
+	Previous     json.RawMessage `json:"previous"`
+	Assessments  json.RawMessage `json:"assessments"`
+	History      json.RawMessage `json:"assessment_history"`
+	Routes       []Route         `json:"routes,omitempty"`
+	RouteHistory []Route         `json:"route_history,omitempty"`
 }
 
 func empty(s *i.Snapshot) *i.Assessments {
@@ -87,13 +91,27 @@ func (f *File) Validate() error {
 			return fmt.Errorf("active and archived assessment IDs must be distinct")
 		}
 	}
+	pairs := map[string]bool{}
+	for _, r := range f.Routes {
+		key := r.EntranceID + "/" + r.InternalID
+		if pairs[key] {
+			return fmt.Errorf("duplicate active route")
+		}
+		pairs[key] = true
+	}
+	if err := validateRoutes(f.Routes); err != nil {
+		return err
+	}
+	if err := validateRoutes(f.RouteHistory); err != nil {
+		return err
+	}
 	return nil
 }
 func (f *File) Encode() ([]byte, error) {
 	if err := f.Validate(); err != nil {
 		return nil, err
 	}
-	w := wire{Format: Version, Binding: f.Binding}
+	w := wire{Format: Version, Binding: f.Binding, Routes: f.Routes, RouteHistory: f.RouteHistory}
 	var err error
 	if w.Current, err = i.Encode(f.Current); err != nil {
 		return nil, err
@@ -128,10 +146,13 @@ func Decode(data []byte) (*File, error) {
 	var w wire
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&w); err != nil || w.Format != Version {
+	if err := dec.Decode(&w); err != nil || (w.Format != Version && w.Format != legacyVersion) {
 		return nil, fmt.Errorf("unsupported report format or fields; require %s", Version)
 	}
-	f := &File{Binding: w.Binding}
+	if w.Format == legacyVersion && (len(w.Routes) > 0 || len(w.RouteHistory) > 0) {
+		return nil, fmt.Errorf("route metadata requires report v2")
+	}
+	f := &File{Binding: w.Binding, Routes: w.Routes, RouteHistory: w.RouteHistory}
 	decode := func(data []byte, kind string) (i.Artifact, error) {
 		a, err := i.Decode(data)
 		if err != nil || a.Header().Kind != kind {
@@ -183,14 +204,16 @@ func (f *File) Write(ctx context.Context, path string) error {
 
 // Edit contains only human-owned fields. Identity, provenance and timestamp are server-owned.
 type Edit struct {
-	FindingID  string                `json:"finding_id"`
-	Decision   i.Decision            `json:"decision"`
-	Purpose    string                `json:"purpose"`
-	Exposure   string                `json:"exposure"`
-	Safeguards string                `json:"safeguards"`
-	Rationale  string                `json:"rationale"`
-	Actor      string                `json:"actor"`
-	Evidence   []i.EvidenceReference `json:"evidence"`
+	FindingID        string                `json:"finding_id"`
+	Decision         i.Decision            `json:"decision"`
+	Purpose          string                `json:"purpose"`
+	Exposure         string                `json:"exposure"`
+	Safeguards       string                `json:"safeguards"`
+	Rationale        string                `json:"rationale"`
+	Actor            string                `json:"actor"`
+	Evidence         []i.EvidenceReference `json:"evidence"`
+	RelatedIDs       []string              `json:"related_ids"`
+	RouteExplanation string                `json:"route_explanation"`
 }
 
 // Apply explicitly replaces judgments for a current finding and archives them verbatim.
@@ -210,7 +233,7 @@ func (f *File) Apply(edit Edit, now time.Time) (*File, error) {
 			break
 		}
 	}
-	if found == nil {
+	if found == nil || assessment.IsReference(*found) {
 		return nil, fmt.Errorf("only current findings can be edited")
 	}
 	entries := []i.Assessment{}
@@ -231,6 +254,9 @@ func (f *File) Apply(edit Edit, now time.Time) (*File, error) {
 	}
 	entries = append(entries, i.Assessment{AssessmentID: "human-" + rand.Text(), Origin: i.ReviewedSnapshot, Selector: i.Selector{Collector: found.Collector, Kind: found.Kind, Identity: found.Identity}, Basis: i.ReviewedBasis{SnapshotID: out.Current.SnapshotID, FactFingerprint: found.FactFingerprint}, Decision: edit.Decision, Purpose: edit.Purpose, Exposure: edit.Exposure, Safeguards: edit.Safeguards, Rationale: edit.Rationale, Actor: edit.Actor, AssessedAt: now.UTC().Format(time.RFC3339), EvidenceRefs: refs})
 	out.Assessments.Entries = entries
+	if err = out.applyRoutes(edit, *found, now); err != nil {
+		return nil, err
+	}
 	if err = out.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid judgment: check decision, actor, rationale, references and field limits")
 	}

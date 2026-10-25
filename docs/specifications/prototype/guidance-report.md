@@ -95,3 +95,9 @@ Validation note for the presentation revision: the first full check detected rea
 ## Outstanding review-state emphasis
 
 Following owner feedback, nonzero action-required and unreviewed summary cards use red/amber backgrounds, stronger borders, larger counts and explicit localized text cues in both the browser workspace and exported HTML. Zero counts remain neutral. This presentation does not change decision rules, counts, Markdown defaults or claim verified vulnerability severity. Re-review/conflict counts remain applicability subsets rather than additional independent items.
+
+## Main-scope/reference and relationship revision
+
+The [review-scope specification](review-scope.md) supersedes all-observation summary counts in rendered reports. Loopback-only services move to a read-only reference section outside current decision totals; LAN/private and wildcard listeners remain in scope. The browser and both report languages/formats share the same scope projection. Raw T00 review artifacts remain unchanged for compatibility.
+
+Portable-file rendering also displays human-described entrance-to-local-service relationships, their observation-match/re-review status and provenance. Changed or missing linked services invalidate derived entrance acceptance pending explicit reconfirmation. The relationships never prove forwarding or external reachability.

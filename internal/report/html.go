@@ -21,7 +21,7 @@ const htmlReport = `<!doctype html>
 <p class="notice">{{.Warning | escape}}</p>
 <h2>{{.Summary | escape}}</h2>
 <div class="metrics">{{range .Metrics}}<div class="metric{{if .Tone}} {{.Tone | escape}}{{end}}"><strong>{{.Count | escape}}</strong><span>{{.Label | escape}}</span>{{if .Notice}}<span class="metric-notice">{{.Notice | escape}}</span>{{end}}</div>{{end}}</div>
-<nav aria-label="{{.Contents | escape}}">{{range .Blocks}}{{if or (eq .ID "run") (eq .ID "scope") (eq .ID "current") (eq .ID "historical") (eq .ID "unmatched") (eq .ID "evidence")}}<a href="#{{.ID | escape}}">{{.Title | escape}}</a>{{end}}{{end}}</nav>
+<nav aria-label="{{.Contents | escape}}">{{range .Blocks}}{{if or (eq .ID "run") (eq .ID "scope") (eq .ID "current") (eq .ID "historical") (eq .ID "local-reference") (eq .ID "routes") (eq .ID "unmatched") (eq .ID "evidence")}}<a href="#{{.ID | escape}}">{{.Title | escape}}</a>{{end}}{{end}}</nav>
 {{range .Blocks}}
 {{if .Technical}}<details id="{{.ID | escape}}"><summary>{{.Title | escape}} · {{$.Details | escape}}</summary>{{else}}<section id="{{.ID | escape}}"><h2>{{.Title | escape}}</h2>{{end}}
 {{if .Note}}<p>{{.Note | escape}}</p>{{end}}

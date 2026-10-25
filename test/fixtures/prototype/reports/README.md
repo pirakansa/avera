@@ -14,4 +14,4 @@ avera review --single-report \
   --output NEW_FILE.json
 ```
 
-The original contract fixtures remain unchanged for domain regression tests. Portable report version is `avera.report.v1`; nested artifacts retain the original T00 contract revision.
+The original contract fixtures remain unchanged for domain regression tests. This preserved input fixture uses portable v1. Current saves use v2 and accept/migrate v1; nested artifacts retain the original T00 contract revision. Current presentation groups the loopback endpoint as reference information and supports human-described links at its network entrance.

@@ -9,11 +9,13 @@
 - Observed environment and execution scope: &#123;&#34;os&#95;id&#34;&#58;&#34;ubuntu&#34;&#44;&#34;os&#95;version&#34;&#58;&#34;24&#46;04&#34;&#44;&#34;architecture&#34;&#58;&#34;amd64&#34;&#44;&#34;kernel&#95;release&#34;&#58;&#34;fictional&#34;&#44;&#34;execution&#95;scope&#34;&#58;&#34;fictional host&#59; current network namespace only&#34;&#44;&#34;effective&#95;uid&#34;&#58;0&#125;
 - Previous run: fictional&#45;s1
 
-[Current items](#current-items): 4; accepted: 1; action required: 0; unreviewed: 3.
+[Current items](#current-items): 3; accepted: 1; action required: 0; unreviewed: 2.
 
 Needs re-review: 1; conflicts: 0 (applicability subsets).
 
 [Historical items](#historical-items): 0; [unmatched assessments](#unmatched-assessments): 0.
+
+Local-only references (outside review counts): 1.
 
 Counts describe review state, not overall safety. Outstanding decisions are identified in the current item details. Missing observations do not prove absence or remediation.
 
@@ -77,25 +79,6 @@ Counts describe review state, not overall safety. Outstanding decisions are iden
 - [Underlying evidence](#evidence-0-0)
 - [Collection limitations](#collection-scope-and-limitations) apply; evidence below retains source run context.
 
-### Item 3
-
-- Finding ID: sha256&#58;5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524
-- Change: unchanged
-- Current decision: unreviewed
-- Applicability: none
-- Review reason: 
-- Observed fact: A local network endpoint was observed&#46; This does not establish external reachability&#46;
-- Observed values (bounded): &#123;&#34;Identity&#34;&#58;&#123;&#34;transport&#34;&#58;&#34;tcp&#34;&#44;&#34;family&#34;&#58;&#34;ipv4&#34;&#44;&#34;local&#95;address&#34;&#58;&#34;127&#46;0&#46;0&#46;1&#34;&#44;&#34;zone&#34;&#58;&#34;&#34;&#44;&#34;scope&#95;id&#34;&#58;&#34;fictional&#45;boot&#45;a&#47;net&#45;initial&#34;&#44;&#34;local&#95;port&#34;&#58;9000&#44;&#34;socket&#95;category&#34;&#58;&#34;listener&#34;&#125;&#44;&#34;Facts&#34;&#58;&#123;&#34;owners&#34;&#58;&#91;&#123;&#34;executable&#34;&#58;&#34;&#47;opt&#47;fictional&#45;admin&#34;&#44;&#34;uid&#34;&#58;1001&#125;&#93;&#44;&#34;attribution&#95;complete&#34;&#58;true&#125;&#125;
-- Why review: Review who needs this service and how access is protected&#46;
-- Question: What function does the service provide&#63; Is it public static content or does it accept sensitive data&#63;
-- Question: Who is the intended audience&#44; and which networks or users should be allowed access&#63;
-- Question: Which safeguards apply&#63; Authentication may be inapplicable to intentionally public content&#59; explain why and describe other protections&#46;
-- Question: Is access restricted by an external firewall&#63; Record this as a human statement and provide a configuration or design reference&#46;
-- Question: What evidence supports the explanation&#44; what risk remains&#44; and who should decide the next action&#63;
-- Next explanation: provide purpose, audience or privilege users, safeguards, rationale, and supporting evidence.
-- [Underlying evidence](#evidence-0-1)
-- [Collection limitations](#collection-scope-and-limitations) apply; evidence below retains source run context.
-
 ### Item 4
 
 - Finding ID: sha256&#58;681eb4fcb29a93fc9cf0642d4ca042d22891d42c75ee381f42ac5f1e73908e48
@@ -129,6 +112,17 @@ Counts describe review state, not overall safety. Outstanding decisions are iden
 
 Prior observations only; excluded from current counts.
 
+
+## Local-only reference services
+
+Outside the main review counts, not automatically accepted. Explain forwarding at the network entrance; forwarding is not verified by this tool.
+
+### Item 3
+
+- Finding ID: sha256&#58;5953eeda42e339ec972188a6e5bce5dd5b881b4f452ace4f3dd272e72150a524
+- Observed values (bounded): &#123;&#34;Identity&#34;&#58;&#123;&#34;transport&#34;&#58;&#34;tcp&#34;&#44;&#34;family&#34;&#58;&#34;ipv4&#34;&#44;&#34;local&#95;address&#34;&#58;&#34;127&#46;0&#46;0&#46;1&#34;&#44;&#34;zone&#34;&#58;&#34;&#34;&#44;&#34;scope&#95;id&#34;&#58;&#34;fictional&#45;boot&#45;a&#47;net&#45;initial&#34;&#44;&#34;local&#95;port&#34;&#58;9000&#44;&#34;socket&#95;category&#34;&#58;&#34;listener&#34;&#125;&#44;&#34;Facts&#34;&#58;&#123;&#34;owners&#34;&#58;&#91;&#123;&#34;executable&#34;&#58;&#34;&#47;opt&#47;fictional&#45;admin&#34;&#44;&#34;uid&#34;&#58;1001&#125;&#93;&#44;&#34;attribution&#95;complete&#34;&#58;true&#125;&#125;
+- Change: unchanged
+- [Underlying evidence](#evidence-0-1)
 ## Unmatched assessments
 
 Historical context only; excluded from current decisions.

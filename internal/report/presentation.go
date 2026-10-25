@@ -11,6 +11,7 @@ import (
 	"github.com/pirakansa/avera/internal/assessment"
 	"github.com/pirakansa/avera/internal/guidance"
 	i "github.com/pirakansa/avera/internal/inventory"
+	"github.com/pirakansa/avera/internal/reportfile"
 )
 
 // Options selects presentation only; source values and assessment rules are unchanged.
@@ -43,6 +44,7 @@ type link struct{ ID, Label string }
 type block struct {
 	Technical       bool
 	ID, Title, Note string
+	FindingID       string
 	Fields          []field
 	Questions       []string
 	Links           []link
@@ -79,7 +81,7 @@ func (l localizer) reasons(codes []string) string {
 	if !l.ja {
 		return reasonText(codes)
 	}
-	names := map[string]string{assessment.FactsChanged: "観測内容が変わりました。以前の説明を判断者と再確認してください", assessment.CoverageIncomplete: "収集や帰属の特定が不完全です。判断の再利用前に不足する情報を確認してください", assessment.MultipleAssessments: "複数の判断が競合しています。どの判断を適用するか担当者と確認してください", assessment.ExpectationMismatch: "事前の想定が不完全、または観測内容と異なります。作成者と確認してください", assessment.NotObserved: "比較可能な今回の収集では未観測です。対処済みとは限りません"}
+	names := map[string]string{reportfile.RelatedContextChanged: "関連するローカルサービスが変化したか未観測です。入口側の判断と経路の説明を再確認してください", assessment.FactsChanged: "観測内容が変わりました。以前の説明を判断者と再確認してください", assessment.CoverageIncomplete: "収集や帰属の特定が不完全です。判断の再利用前に不足する情報を確認してください", assessment.MultipleAssessments: "複数の判断が競合しています。どの判断を適用するか担当者と確認してください", assessment.ExpectationMismatch: "事前の想定が不完全、または観測内容と異なります。作成者と確認してください", assessment.NotObserved: "比較可能な今回の収集では未観測です。対処済みとは限りません"}
 	out := []string{}
 	for _, c := range codes {
 		v, ok := names[c]
@@ -108,12 +110,15 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 	if err != nil {
 		return document{}, err
 	}
+	return documentFromReview(current, previous, annotations, language, result)
+}
+func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessments, language string, result *assessment.Result) (document, error) {
 	l := localizer{language == "ja"}
 	r := result.Review
-	s := r.Summary
+	s, referenceCount := assessment.ReviewSummary(current, r)
 	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。「追加対応不要」は人による判断です。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
 	d.Metrics = []metric{
-		{Label: l.text("Current items", "今回の項目"), Count: s.Current},
+		{Label: l.text("Current items", "主な確認対象"), Count: s.Current},
 		{Label: l.text("Accepted", "追加対応不要"), Count: s.Accepted},
 		{Label: l.text("Action required", "対応が必要"), Count: s.ActionRequired, Tone: "metric-action", Notice: l.text("Prioritize action", "優先して対応")},
 		{Label: l.text("Unreviewed", "未確認"), Count: s.Unreviewed, Tone: "metric-unreviewed", Notice: l.text("Review needed", "判断が必要")},
@@ -122,6 +127,7 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 		{Label: l.text("Historical items", "過去の項目"), Count: s.Historical},
 		{Label: l.text("Unmatched assessments", "対応する観測がない判断"), Count: s.UnmatchedAssessments},
 	}
+	d.Metrics = append(d.Metrics, metric{Label: l.text("Local-only references (outside review counts)", "ローカル限定の参考情報（集計外）"), Count: referenceCount})
 	for n := range d.Metrics {
 		if d.Metrics[n].Count == 0 {
 			d.Metrics[n].Tone = ""
@@ -160,12 +166,19 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 			byID[a.AssessmentID] = a
 		}
 	}
-	for _, presence := range []i.Presence{i.Current, i.Historical} {
+	for _, category := range []string{"current", "historical", "reference"} {
+		presence := i.Current
+		if category == "historical" {
+			presence = i.Historical
+		}
 		group := block{ID: "current", Title: l.text("Current items", "今回の確認項目")}
 		sourceIndex := 0
 		if presence == i.Historical {
 			group = block{ID: "historical", Title: l.text("Historical items", "過去の項目"), Note: l.text("Prior observations only; excluded from current counts.", "過去の観測です。今回の件数には含めません。")}
 			sourceIndex = 1
+		}
+		if category == "reference" {
+			group = block{ID: "local-reference", Title: l.text("Local-only reference services", "ローカル限定の参考情報"), Note: l.text("Outside the main review scope, not automatically accepted. Forwarding paths must be explained at their network entrance; they are not discovered by this tool.", "通常は個別の判断を求めず、未確認件数にも含めません。安全と自動判定したものではありません。転送先として利用する場合は入口側で経路と保護策を説明してください。ツールは転送設定を検証していません。")}
 		}
 		d.Blocks = append(d.Blocks, group)
 		if presence == i.Historical && previous == nil {
@@ -180,18 +193,28 @@ func makeDocument(current, previous *i.Snapshot, annotations *i.Assessments, lan
 				continue
 			}
 			f := findings[item.FindingID]
+			if presence == i.Current && assessment.IsReference(f) != (category == "reference") {
+				continue
+			}
 			g := guidance.ForLanguage(f.Kind, language)
 			title := fmt.Sprintf(l.text("Item %d", "項目 %d"), n+1)
 			if id, ok := f.Identity.(i.EndpointIdentity); ok {
 				title += " · " + strings.ToUpper(id.Transport) + " " + id.LocalAddress + fmt.Sprintf(":%d", id.LocalPort)
 			}
-			b := block{ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
-			if len(item.AssessmentIDs) == 0 {
+			b := block{FindingID: f.FindingID, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
+			if assessment.IsReference(f) {
+				b.Fields = []field{{l.text("Finding ID", "観測項目 ID"), f.FindingID}, {l.text("Observed fact", "観測した事実"), l.text("Loopback-only endpoint; retained as reference, not a verified vulnerability or safety judgment.", "ループバック限定の接続口です。参考情報として保持し、脆弱性や安全性を判定したものではありません。")}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}}
+				b.Questions = nil
+			}
+			if !assessment.IsReference(f) && len(item.AssessmentIDs) == 0 {
 				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
 			}
 			for _, id := range item.AssessmentIDs {
 				context := l.text("Prior context only; does not establish current acceptance", "過去の説明です。今回「追加対応不要」と判断したことを意味しません")
-				if presence == i.Current && item.Applicability == i.Applicable {
+				if assessment.IsReference(f) {
+					context = l.text("Stored judgment outside the main review scope", "集計外の参考情報に対する保存済みの判断")
+				}
+				if !assessment.IsReference(f) && presence == i.Current && item.Applicability == i.Applicable {
 					context = l.text("Applicable human assessment; not a safety certification", "適用可能な人の判断です。安全性の認証ではありません")
 				}
 				l.annotation(&b, byID[id], context)
@@ -246,6 +269,9 @@ func RenderWithOptions(current, previous *i.Snapshot, annotations *i.Assessments
 	if err != nil {
 		return "", err
 	}
+	return renderDocument(d, o)
+}
+func renderDocument(d document, o Options) (string, error) {
 	var b bytes.Buffer
 	if o.Format == "html" {
 		t, err := template.New("report").Funcs(template.FuncMap{"escape": func(value any) string { return html.EscapeString(visible(fmt.Sprint(value))) }}).Parse(htmlReport)

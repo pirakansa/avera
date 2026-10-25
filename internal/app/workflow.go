@@ -100,7 +100,7 @@ func (svc Service) Offline(ctx context.Context, o Options, renderReport bool) er
 		if err != nil {
 			return err
 		}
-		text, err := report.RenderWithOptions(f.Current, f.Previous, f.Assessments, report.Options{Format: o.Format, Language: o.Language})
+		text, err := report.RenderFile(f, report.Options{Format: o.Format, Language: o.Language})
 		if err != nil {
 			return err
 		}

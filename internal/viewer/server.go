@@ -119,27 +119,31 @@ type item struct {
 	Review    i.ReviewItem     `json:"review"`
 	Guidance  guidance.Content `json:"guidance"`
 	Judgments []i.Assessment   `json:"judgments"`
+	Reference bool             `json:"reference"`
 }
 type state struct {
-	Revision    int `json:"revision"`
-	Target, Run string
-	Summary     i.Summary
-	Coverage    []i.Coverage
-	Items       []item
-	History     *i.Assessments
-	Unmatched   *i.Assessments
-	Language    string
+	Revision             int `json:"revision"`
+	Target, Run          string
+	Summary              i.Summary
+	Coverage             []i.Coverage
+	Items                []item
+	History              *i.Assessments
+	Unmatched            *i.Assessments
+	Language             string
+	ReferenceCount       int
+	Routes, RouteHistory []reportfile.Route
 }
 
 func (s *Session) state(w http.ResponseWriter) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	result, err := assessment.Evaluate(s.file.Current, s.file.Previous, s.file.Assessments)
+	result, err := s.file.Review()
 	if err != nil {
 		http.Error(w, "cannot evaluate report", http.StatusInternalServerError)
 		return
 	}
-	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Coverage: s.file.Current.Coverage, Items: []item{}, History: s.file.History, Unmatched: result.Unmatched, Language: s.language}
+	out := state{Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, RouteHistory: s.file.RouteHistory, Coverage: s.file.Current.Coverage, Items: []item{}, History: s.file.History, Unmatched: result.Unmatched, Language: s.language}
+	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.Assessments.Entries {
 		byID[a.AssessmentID] = a
@@ -150,7 +154,7 @@ func (s *Session) state(w http.ResponseWriter) {
 	}
 	for _, f := range s.file.Current.Findings {
 		v := byFinding[f.FindingID]
-		it := item{Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}}
+		it := item{Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
 		for _, id := range v.AssessmentIDs {
 			it.Judgments = append(it.Judgments, byID[id])
 		}
@@ -198,7 +202,7 @@ func (s *Session) save(w http.ResponseWriter, r *http.Request) {
 	}
 	updated, err := s.file.Apply(req.Edit, s.now())
 	if err != nil {
-		http.Error(w, "invalid judgment: provide decision, actor and rationale; only current items are editable", http.StatusBadRequest)
+		http.Error(w, "invalid judgment: provide decision, actor, rationale and any selected path explanation; only main current items are editable", http.StatusBadRequest)
 		return
 	}
 	name := "report-" + s.now().UTC().Format("20060102T150405Z") + "-" + rand.Text() + ".json"
@@ -225,7 +229,7 @@ func (s *Session) download(w http.ResponseWriter) {
 func (s *Session) html(w http.ResponseWriter, attachment bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	text, err := report.RenderWithOptions(s.file.Current, s.file.Previous, s.file.Assessments, report.Options{Format: "html", Language: s.language})
+	text, err := report.RenderFile(s.file, report.Options{Format: "html", Language: s.language})
 	if err != nil {
 		http.Error(w, "cannot render report", http.StatusInternalServerError)
 		return
