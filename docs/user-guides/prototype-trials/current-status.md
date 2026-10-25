@@ -72,7 +72,7 @@ Transfer the resulting private JSON into an ordinary-user-owned directory before
 starting the host-side viewer. No installation binding/adoption is required.
 
 New saves use portable v3; v1/v2 inputs remain readable. New live artifacts use
-`services-2026-10-25.1`, while T00 fixtures retain their original contract. Raw
+`accounts-2026-10-25.1`, while earlier supported fixtures retain their original contract. Raw
 split-artifact comparison tests are diagnostic compatibility cases, not the main
 shared-setting workflow.
 
@@ -81,7 +81,7 @@ validation and Chromium tests for saving, export, diagram navigation, escaping,
 hidden JSON-retained archives and narrow layouts. Local root collection succeeded
 after removal of the machine-ID prerequisite. This is not a recorded complete
 owner acceptance, T07 delivery verification, or full disposable-Ubuntu validation
-of every forwarding backend. Sudo is still uncollected in the live CLI.
+of every forwarding backend. The live CLI now collects bounded sudo configuration and local accounts/groups; actual effective sudo privileges remain unverified.
 
 ## Recipient report page revision
 
@@ -137,3 +137,42 @@ Owner feedback: PID is unnecessary for an inventory rather than monitoring.
 The service inventory now omits PID in the editor and HTML/Markdown item fields;
 PID/source locations remain in technical evidence and JSON. Service identification
 and matching do not use PID.
+
+## Local account / sudo / runtime-group revision
+
+Owner-approved scope: local accounts/groups, configured sudo and runtime groups
+for already observed listening services. Management sockets and broader daemon
+inventory stay deferred. External identities, actual SSH login access and other
+non-sudo privilege paths are stated as out of scope only: no extra findings,
+unreviewed counts or mandatory follow-up. Actual in-scope collection failures
+remain diagnostics. Account purpose fields capture function, necessity and owner;
+read-only links connect services, local numeric UID matches and configured sudo
+subjects. Runtime groups remain distinct from configured memberships. PID remains
+outside routine display. New artifacts use the accounts revision; earlier known
+contracts and portable files remain readable.
+
+The live sudo integration exposed fractional-second evidence timestamps that did
+not satisfy the inventory contract. Evidence now uses second-precision UTC;
+the collect/edit/repeat integration test exercises the live-source adapters with
+fictional temporary files. See [accounts and privileges](../../specifications/prototype/accounts-privileges.md).
+Owner acceptance and live target trial remain pending.
+
+Validation for the account/runtime-group revision: cached Go 1.26.10 setup,
+full race tests, build, fmt, vet, staticcheck and `git diff --check` passed.
+Chromium checks passed for accounts/sudo, listening services, shared services and
+report pages. The account and listening-service checks were rerun after the final
+legacy-file display changes. The optional `networklive` package compiled without
+executing a live comparison. No host account/sudo configuration or SSH login was
+inspected by these tests. The fresh vulnerability lookup in `vorbere run check`
+could not complete while external access was disabled pending authorization;
+no successful fresh vulnerability scan is claimed. Generated build artifacts
+were cleaned after verification.
+
+## Network-authorized final verification
+
+After the owner authorized network access, `GOTOOLCHAIN=auto GOPROXY=off
+vorbere run check` completed successfully against the official vulnerability
+database and reported `No vulnerabilities found.` This completes the previously
+pending vulnerability check for the accounts/runtime-group revision. Earlier
+notes about disabled access describe those earlier attempts, not an outstanding
+verification requirement. Owner acceptance and live-target trials remain separate.

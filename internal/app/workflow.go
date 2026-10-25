@@ -197,7 +197,7 @@ func (svc Service) observe(ctx context.Context, o Options, p *i.Snapshot, a *i.A
 	}
 	seen := map[i.Collector]bool{}
 	for _, reg := range svc.Collectors {
-		if reg.Collector == nil || (reg.Name != i.Network && reg.Name != i.Sudo) || seen[reg.Name] {
+		if reg.Collector == nil || (reg.Name != i.Network && reg.Name != i.Sudo && reg.Name != i.Accounts) || seen[reg.Name] {
 			return nil, nil, 1, fmt.Errorf("invalid collector registration")
 		}
 		seen[reg.Name] = true

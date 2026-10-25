@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -14,7 +15,8 @@ import (
 const (
 	serviceSourceBytes = 64 << 10
 	serviceNameBytes   = 256
-	serviceVersion     = "services-v1"
+	serviceVersion     = "services-v2"
+	runtimeGroupLimit  = 4096
 )
 
 // readServiceSource never retains command lines, environments, or whole proc files.
@@ -147,6 +149,10 @@ func observeService(ctx context.Context, source Source, base, executable string,
 		fail("service_status_unreadable")
 	} else {
 		observation.ProcessName, observation.EffectiveUID = parseServiceStatus(status)
+		observation.EffectiveGID, observation.SupplementaryGroups = parseRuntimeGroups(status)
+		if observation.EffectiveGID == nil || observation.SupplementaryGroups == nil {
+			fail("service_groups_malformed")
+		}
 		if observation.ProcessName == "" || observation.EffectiveUID == nil {
 			fail("service_status_malformed")
 		}
@@ -168,9 +174,70 @@ func observeService(ctx context.Context, source Source, base, executable string,
 	if beforeErr != nil || startErr != nil || afterErr != nil || endErr != nil || exeErr != nil || start != end || exe != executable || executable == "" {
 		observation.ProcessName = ""
 		observation.EffectiveUID = nil
+		observation.EffectiveGID = nil
+		observation.SupplementaryGroups = nil
 		observation.UnitCandidate = ""
 		observation.CgroupPath = ""
 		fail("service_process_changed")
 	}
 	return observation
+}
+
+func parseRuntimeGroups(status string) (*uint32, *[]uint32) {
+	var gid *uint32
+	var groups *[]uint32
+	gids, lists := 0, 0
+	for _, line := range strings.Split(status, "\n") {
+		if raw, ok := strings.CutPrefix(line, "Gid:"); ok {
+			gids++
+			fields := strings.Fields(raw)
+			if len(fields) != 4 {
+				continue
+			}
+			valid := true
+			for n, field := range fields {
+				v, err := strconv.ParseUint(field, 10, 32)
+				if err != nil {
+					valid = false
+					break
+				}
+				if n == 1 {
+					value := uint32(v)
+					gid = &value
+				}
+			}
+			if !valid {
+				gid = nil
+			}
+		}
+		if raw, ok := strings.CutPrefix(line, "Groups:"); ok {
+			lists++
+			fields := strings.Fields(raw)
+			if len(fields) > runtimeGroupLimit {
+				continue
+			}
+			values := []uint32{}
+			valid := true
+			for _, field := range fields {
+				v, err := strconv.ParseUint(field, 10, 32)
+				if err != nil {
+					valid = false
+					break
+				}
+				values = append(values, uint32(v))
+			}
+			if valid {
+				slices.Sort(values)
+				values = slices.Compact(values)
+				groups = &values
+			}
+		}
+	}
+	if gids != 1 {
+		gid = nil
+	}
+	if lists != 1 {
+		groups = nil
+	}
+	return gid, groups
 }

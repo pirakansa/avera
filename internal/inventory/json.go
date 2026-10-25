@@ -209,6 +209,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 		switch dst.Type() {
 		case reflect.TypeFor[Identity]():
 			switch Kind(kind) {
+			case Account:
+				concrete = AccountIdentity{}
 			case Endpoint:
 				concrete = EndpointIdentity{}
 			case Rule, Unparsed, Forwarding:
@@ -216,6 +218,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			}
 		case reflect.TypeFor[Facts]():
 			switch Kind(kind) {
+			case Account:
+				concrete = AccountFacts{}
 			case Endpoint:
 				concrete = NetworkFacts{}
 			case Forwarding:
@@ -234,6 +238,8 @@ func assign(dst reflect.Value, src any, context map[string]any, path string, nul
 			}
 		case reflect.TypeFor[EvidenceValues]():
 			switch context["source_kind"] {
+			case "local_identity":
+				concrete = AccountValues{}
 			case "proc":
 				concrete = ProcessValues{}
 			case "local_file", "command_output":

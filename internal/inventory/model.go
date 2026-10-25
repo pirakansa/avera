@@ -3,7 +3,8 @@ package inventory
 
 const (
 	SchemaVersion              = "0.1"
-	ContractRevision           = "services-2026-10-25.1"
+	ContractRevision           = "accounts-2026-10-25.1"
+	ServicesContractRevision   = "services-2026-10-25.1"
 	ForwardingContractRevision = "netfilter-2026-10-25.1"
 	LegacyContractRevision     = "t00-2026-10-24.1"
 	IdentityVersion            = "avera.identity.v1"
@@ -13,8 +14,9 @@ const (
 type Collector string
 
 const (
-	Network Collector = "network"
-	Sudo    Collector = "sudo"
+	Network  Collector = "network"
+	Sudo     Collector = "sudo"
+	Accounts Collector = "accounts"
 )
 
 type Kind string
@@ -24,6 +26,7 @@ const (
 	Forwarding Kind = "network.forwarding"
 	Rule       Kind = "sudo.rule"
 	Unparsed   Kind = "sudo.unparsed"
+	Account    Kind = "account.local"
 )
 
 type Status string
@@ -136,6 +139,39 @@ type EndpointIdentity struct {
 
 func (EndpointIdentity) identity() {}
 
+type AccountIdentity struct {
+	Name string `json:"name"`
+}
+
+func (AccountIdentity) identity() {}
+
+type AccountGroup struct {
+	Name       string `json:"name"`
+	GID        uint32 `json:"gid"`
+	Membership string `json:"membership"`
+}
+type AccountFacts struct {
+	UID             uint32         `json:"uid"`
+	PrimaryGID      uint32         `json:"primary_gid"`
+	Home            string         `json:"home"`
+	Shell           string         `json:"shell"`
+	Groups          []AccountGroup `json:"groups"`
+	ContextComplete bool           `json:"context_complete"`
+}
+
+func (AccountFacts) facts() {}
+
+type LocalGroup struct {
+	Name    string   `json:"name"`
+	GID     uint32   `json:"gid"`
+	Members []string `json:"members"`
+}
+type AccountValues struct {
+	Groups []LocalGroup `json:"groups"`
+}
+
+func (AccountValues) evidenceValues() {}
+
 type SourceIdentity struct {
 	SourcePath string `json:"source_path"`
 	Line       int64  `json:"line"`
@@ -204,11 +240,13 @@ type EvidenceValues interface{ evidenceValues() }
 // ServiceObservation describes only a process holding an observed socket.
 // EffectiveUID is distinct from the socket UID in NetworkFacts.
 type ServiceObservation struct {
-	ProcessName   string   `json:"process_name"`
-	EffectiveUID  *uint32  `json:"effective_uid,omitempty"`
-	UnitCandidate string   `json:"unit_candidate"`
-	CgroupPath    string   `json:"cgroup_path"`
-	Diagnostics   []string `json:"diagnostics"`
+	EffectiveGID        *uint32   `json:"effective_gid,omitempty"`
+	SupplementaryGroups *[]uint32 `json:"supplementary_groups,omitempty"`
+	ProcessName         string    `json:"process_name"`
+	EffectiveUID        *uint32   `json:"effective_uid,omitempty"`
+	UnitCandidate       string    `json:"unit_candidate"`
+	CgroupPath          string    `json:"cgroup_path"`
+	Diagnostics         []string  `json:"diagnostics"`
 }
 
 type ProcessValues struct {

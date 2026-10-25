@@ -23,7 +23,7 @@ Run in an explicitly opened root shell on the selected Linux/amd64 target. Choos
 
 For a `/tmp` collection directory, run `mktemp -d /tmp/avera-collect.XXXXXX` in that root shell. A directory created by the ordinary user is rejected as a root collection parent, even with mode `0700`. Output paths must be new and have no symlink components.
 
-The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live network collection reads sockets and existing iptables/nftables configuration; sudo remains explicitly uncollected. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
+The target name is optional on the first collection; omission generates an ID. Subsequent collection inherits the name from the report. AVERA does not invoke sudo, collect remotely or change target configuration. Live collection reads listening sockets and their service users/runtime groups, existing iptables/nftables configuration, local passwd/group settings, and bounded local sudo configuration. AVERA does not install missing firewall tools. Distribution/kernel metadata not inspected by the prototype remains unknown.
 
 The JSON contains observed facts, previous context when available, editable judgments and superseded human judgment history. Exit 0 means successful collection; exit 2 means results were saved with incomplete/failed sources. Exit 1 means invalid input, a conflicting logical group label, missing privilege or a fatal/output failure. Inspect incomplete coverage in the viewer rather than treating missing observations as absence.
 
@@ -155,7 +155,7 @@ source context do, conservatively. Missing or changed linked services also requi
 re-review. Live namespace incarnation is still not proven across runs, so existing
 conservative namespace re-review rules continue to apply.
 
-New collected artifacts use contract revision `netfilter-2026-10-25.1` inside the
+New collected artifacts use contract revision `accounts-2026-10-25.1` inside the
 v3 portable container with reusable service policies. Existing T00 artifacts and v1/v2 reports remain
 readable, including as previous collection input; original files are not modified.
 Older executables cannot read the new nested contract revision.
@@ -205,3 +205,30 @@ exports preserve observations separately from human explanations.
 PID is omitted from the listening-service inventory because it changes across
 process restarts. It remains in technical collection evidence and JSON, not as a
 service identity or a field to review.
+
+## Review local accounts and configured sudo
+
+New collections include local accounts as individual judgment items. Record each
+account's function, continuing necessity and responsible person/team in
+**アカウントの用途・必要性・管理担当**. Check configured memberships and related sudo
+settings against those duties; a shell is displayed as configuration, not proof
+that login is allowed. Groups with no explicit members remain visible; the group
+directory distinguishes primary membership from explicit members.
+
+Open the related account from a service, then follow its configured sudo links.
+Service links use numeric effective UID matches; multiple account aliases remain
+visible. The service's **実行中の実効GID** and **実行中の補助グループGID** describe the
+observed process, independently of configured account memberships. Local group
+names are shown alongside numeric GIDs when available. PID is not displayed as
+an inventory identity.
+
+Sudo fields show the configured subject, run-as users/groups, commands, argument
+restrictions and password tags. These are configured rules, not a complete grant
+calculation. Review accounts and sudo items separately. Unsupported sudo syntax
+and unreadable in-scope sources remain visible as actual collection limitations.
+
+The scope paragraph states that external identities, actual SSH login access,
+management sockets and non-sudo privilege paths are outside this review. These
+exclusions require no extra judgment, create no unreviewed counts and do not
+prevent completing the in-scope report. Existing JSON files remain readable;
+recollect to obtain accounts and runtime groups that were not collected before.

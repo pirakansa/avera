@@ -200,6 +200,8 @@ func reusable(s *i.Snapshot, f i.Finding) bool {
 		return false
 	}
 	switch x := f.Facts.(type) {
+	case i.AccountFacts:
+		return x.ContextComplete
 	case i.ForwardingFacts:
 		return true
 	case i.NetworkFacts:

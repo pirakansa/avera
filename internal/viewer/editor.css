@@ -5,3 +5,5 @@
 fieldset{border:1px solid var(--line);border-radius:8px;margin:1rem 0;padding:1rem}legend{font-weight:650}.route-choice{display:flex;align-items:baseline;gap:.6rem}.route-choice input[type=checkbox]{display:inline-block;width:auto;flex:none}.prior{overflow-wrap:anywhere}
 
 .service-inventory{overflow-wrap:anywhere;border-left:3px solid var(--line);padding-left:1rem}.service-inventory dl{margin:0}.service-inventory dt{font-weight:650;font-size:.85rem;margin-top:.6rem}.service-inventory dd{margin:0;white-space:pre-wrap}
+
+.related-privileges a{display:inline-block;margin:.3rem .5rem .3rem 0;overflow-wrap:anywhere}#items dl{overflow-wrap:anywhere}#items dt{font-weight:650;margin-top:.6rem}#items dd{margin:0;white-space:pre-wrap}

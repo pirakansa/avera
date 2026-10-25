@@ -1,6 +1,6 @@
 # Bounded local sudo collector
 
-T03 implements configured-rule observations through `inventory.CollectorResult`, not effective permissions. T04/T05/T06 can consume its shared findings, evidence and coverage without a separate decision store. The CLI/report are not implemented by this task.
+T03 implements configured-rule observations through `inventory.CollectorResult`, not effective permissions. T04/T05/T06 can consume its shared findings, evidence and coverage without a separate decision store. The original task did not integrate the CLI; the subsequent [accounts/privileges revision](accounts-privileges.md) now registers the collector in live collection and formats its observations in the editor and reports.
 
 ## Reference baseline and supported grammar
 

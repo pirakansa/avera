@@ -53,7 +53,7 @@ func validHash(s string) bool {
 	return true
 }
 func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
-	if !((c == Network && (k == Endpoint || k == Forwarding)) || (c == Sudo && (k == Rule || k == Unparsed))) {
+	if !((c == Network && (k == Endpoint || k == Forwarding)) || (c == Sudo && (k == Rule || k == Unparsed)) || (c == Accounts && k == Account)) {
 		return fmt.Errorf("collector/kind mismatch")
 	}
 	n, e := NormalizeIdentity(k, id)
@@ -70,6 +70,29 @@ func validatePayload(c Collector, k Kind, id Identity, f Facts) error {
 		return nil
 	}
 	switch k {
+	case Account:
+		x, ok := f.(AccountFacts)
+		if !ok {
+			return fmt.Errorf("account facts type mismatch")
+		}
+		primary := false
+		for _, group := range x.Groups {
+			if group.Name == "" || !oneOf(group.Membership, "primary", "supplementary") {
+				return fmt.Errorf("invalid account group")
+			}
+		}
+		for _, group := range x.Groups {
+			if group.Membership == "primary" {
+				if group.GID != x.PrimaryGID {
+					return fmt.Errorf("primary group GID mismatch")
+				}
+				primary = true
+			}
+		}
+		if x.ContextComplete && !primary {
+			return fmt.Errorf("complete account requires resolved primary group")
+		}
+		return unique(x.Groups, "account group")
 	case Endpoint:
 		x, ok := f.(NetworkFacts)
 		if !ok {
@@ -150,7 +173,7 @@ func payloadSets(f Facts) error {
 }
 func validate(a Artifact) error {
 	env := a.envelope()
-	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, ForwardingContractRevision, LegacyContractRevision) {
+	if env.SchemaVersion != SchemaVersion || !oneOf(env.ContractRevision, ContractRevision, ServicesContractRevision, ForwardingContractRevision, LegacyContractRevision) {
 		return fmt.Errorf("unsupported schema_version/contract_revision; require %s / %s", SchemaVersion, ContractRevision)
 	}
 	if env.TargetID == "" {
@@ -174,6 +197,31 @@ func validate(a Artifact) error {
 				if e.Selector.Kind == Forwarding {
 					return fmt.Errorf("forwarding requires netfilter contract revision")
 				}
+			}
+		}
+	}
+	if env.ContractRevision != ContractRevision {
+		switch value := a.(type) {
+		case *Snapshot:
+			for _, f := range value.Findings {
+				if f.Kind == Account {
+					return fmt.Errorf("accounts require accounts contract")
+				}
+			}
+			for _, c := range value.Coverage {
+				if c.Collector == Accounts {
+					return fmt.Errorf("account coverage requires accounts contract")
+				}
+			}
+		case *Assessments:
+			for _, entry := range value.Entries {
+				if entry.Selector.Kind == Account {
+					return fmt.Errorf("account judgments require accounts contract")
+				}
+			}
+		case *Review:
+			if _, ok := value.CoverageStatuses[Accounts]; ok {
+				return fmt.Errorf("account review requires accounts contract")
 			}
 		}
 	}
@@ -211,7 +259,7 @@ func validateSnapshot(s *Snapshot) error {
 	}
 	coverage := map[Collector]bool{}
 	for _, c := range s.Coverage {
-		if !oneOf(c.Collector, Network, Sudo) || coverage[c.Collector] {
+		if !oneOf(c.Collector, Network, Sudo, Accounts) || coverage[c.Collector] {
 			return fmt.Errorf("invalid/duplicate coverage collector %q", c.Collector)
 		}
 		coverage[c.Collector] = true
@@ -245,8 +293,16 @@ func validateSnapshot(s *Snapshot) error {
 				return err
 			}
 			if v.Service != nil {
-				if s.ContractRevision != ContractRevision || v.PID == nil {
+				if !oneOf(s.ContractRevision, ContractRevision, ServicesContractRevision) || v.PID == nil {
 					return fmt.Errorf("service evidence requires services revision and PID")
+				}
+				if (v.Service.EffectiveGID != nil || v.Service.SupplementaryGroups != nil) && s.ContractRevision != ContractRevision {
+					return fmt.Errorf("runtime groups require accounts contract")
+				}
+				if v.Service.SupplementaryGroups != nil {
+					if err := unique(*v.Service.SupplementaryGroups, "runtime group"); err != nil {
+						return err
+					}
 				}
 				if err := ids(v.Service.Diagnostics, "service diagnostic"); err != nil {
 					return err
@@ -260,6 +316,20 @@ func validateSnapshot(s *Snapshot) error {
 			}
 			if v.PID != nil && *v.PID <= 0 {
 				return fmt.Errorf("pid must be positive")
+			}
+		case AccountValues:
+			if e.SourceKind != "local_identity" || s.ContractRevision != ContractRevision {
+				return fmt.Errorf("account directory requires accounts contract")
+			}
+			names := map[string]bool{}
+			for _, g := range v.Groups {
+				if g.Name == "" || names[g.Name] {
+					return fmt.Errorf("invalid/duplicate group")
+				}
+				names[g.Name] = true
+				if err := ids(g.Members, "group member"); err != nil {
+					return err
+				}
 			}
 		case FileValues:
 			if e.SourceKind != "local_file" && e.SourceKind != "command_output" {
@@ -400,6 +470,9 @@ func validateAssessments(a *Assessments) error {
 				return fmt.Errorf("invalid reviewed_snapshot basis")
 			}
 		case AdvanceBasis:
+			if x.Selector.Kind == Account {
+				return fmt.Errorf("account judgments require observed facts")
+			}
 			if x.Origin != Advance || b.Expectation.NormalizationVersion != FactsVersion {
 				return fmt.Errorf("invalid advance origin/normalization_version")
 			}
@@ -434,7 +507,7 @@ func validateReview(r *Review) error {
 		unmatched[id] = true
 	}
 	for c, s := range r.CoverageStatuses {
-		if !oneOf(c, Network, Sudo) || !oneOf(s, Complete, Partial, Failed, NotCollected) {
+		if !oneOf(c, Network, Sudo, Accounts) || !oneOf(s, Complete, Partial, Failed, NotCollected) {
 			return fmt.Errorf("invalid coverage_statuses")
 		}
 	}

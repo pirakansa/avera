@@ -248,3 +248,13 @@ repeat collection, without rewriting old immutable snapshots or assessment bases
 Service metadata is forbidden under those earlier revisions. See the
 [listening-service contract](listening-services.md#storage-and-compatibility)
 for exact fields, unknown values and presentation boundaries.
+
+## Accounts and runtime-group extension
+
+New live artifacts use `accounts-2026-10-25.1`, adding `accounts/account.local`
+findings, sanitized `local_identity` group-directory evidence and optional runtime
+group fields in proc service evidence. Earlier T00, netfilter and services
+revisions remain readable without rewriting immutable snapshots. Account
+identities use exact local names; changed memberships affect account facts.
+See [accounts and privileges](accounts-privileges.md#contract-compatibility) for
+field types, normalization, scope boundaries and known-revision rules.

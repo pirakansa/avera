@@ -78,7 +78,22 @@ func Encode(a Artifact) ([]byte, error) {
 		for i := range x.Evidence {
 			if v, ok := x.Evidence[i].Values.(ProcessValues); ok {
 				v.Observed = normalizeFacts(v.Observed).(NetworkFacts)
+				if v.Service != nil && v.Service.SupplementaryGroups != nil {
+					values := append([]uint32{}, (*v.Service.SupplementaryGroups)...)
+					slices.Sort(values)
+					values = slices.Compact(values)
+					v.Service.SupplementaryGroups = &values
+				}
 				x.Evidence[i].Values = v
+			}
+		}
+		for n, entry := range x.Evidence {
+			if v, ok := entry.Values.(AccountValues); ok {
+				for j := range v.Groups {
+					v.Groups[j].Members = stringsSet(v.Groups[j].Members)
+				}
+				slices.SortFunc(v.Groups, func(a, b LocalGroup) int { return strings.Compare(a.Name, b.Name) })
+				x.Evidence[n].Values = v
 			}
 		}
 		slices.SortFunc(x.Evidence, func(a, b Evidence) int { return strings.Compare(a.EvidenceID, b.EvidenceID) })

@@ -191,6 +191,12 @@ func normalizeAddress(family, address string) (string, error) {
 // NormalizeIdentity preserves namespace and source anchors exactly.
 func NormalizeIdentity(kind Kind, id Identity) (Identity, error) {
 	switch kind {
+	case Account:
+		x, ok := id.(AccountIdentity)
+		if !ok || x.Name == "" || strings.ContainsAny(x.Name, "/:\x00\r\n\t ") {
+			return nil, fmt.Errorf("invalid account identity")
+		}
+		return x, nil
 	case Endpoint:
 		x, ok := id.(EndpointIdentity)
 		if !ok {
@@ -225,6 +231,20 @@ func stripTerminator(s string) string {
 }
 func normalizeFacts(f Facts) Facts {
 	switch x := f.(type) {
+	case AccountFacts:
+		x.Groups = sortedSet(x.Groups, func(a, b AccountGroup) int {
+			if c := strings.Compare(a.Name, b.Name); c != 0 {
+				return c
+			}
+			if a.GID < b.GID {
+				return -1
+			}
+			if a.GID > b.GID {
+				return 1
+			}
+			return strings.Compare(a.Membership, b.Membership)
+		})
+		return x
 	case NetworkFacts:
 		x.Owners = sortedSet(x.Owners, ownerCompare)
 		return x

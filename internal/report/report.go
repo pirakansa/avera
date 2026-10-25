@@ -101,6 +101,14 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 		w.field("Diagnostics", strings.Join(c.DiagnosticCodes, ", "))
 		w.field("Limitations", strings.Join(c.Limitations, "; "))
 	}
+	w.field("Review boundary", AccountBoundary("en"))
+	for _, b := range accountBlocks(current, "en") {
+		fmt.Fprintf(&w.Builder, "\n## %s\n\n", b.Title)
+		w.field("Scope", b.Note)
+		for _, value := range b.Fields {
+			w.field(value.Label, value.Value)
+		}
+	}
 	findings := map[string]i.Finding{}
 	if previous != nil {
 		for _, f := range previous.Findings {
@@ -164,6 +172,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 					return "", err
 				}
 				w.field("Observed values (bounded)", facts)
+				for _, value := range PrivilegeFields(f, "en") {
+					w.field(value.Label, value.Value)
+				}
 				if view, ok := services[f.FindingID]; ok {
 					w.field("Listening service inventory", view.Note)
 					for _, value := range view.Fields {
@@ -199,6 +210,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				return "", err
 			}
 			w.field("Observed values (bounded)", facts)
+			for _, value := range PrivilegeFields(f, "en") {
+				w.field(value.Label, value.Value)
+			}
 			if view, ok := services[f.FindingID]; ok {
 				w.field("Listening service inventory", view.Note)
 				for _, value := range view.Fields {

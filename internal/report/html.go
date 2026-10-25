@@ -24,7 +24,7 @@ const htmlReport = `<!doctype html>
 <div id="report-summary" class="report-page">
 <h2>{{.Pages.Summary | escape}}</h2><p>{{.Pages.ReadingGuide | escape}}</p>
 <section><p class="conclusion">{{.Pages.Conclusion | escape}}</p><dl>{{range .Pages.Context}}<div><dt>{{.Label | escape}}</dt><dd>{{.Value | escape}}</dd></div>{{end}}</dl></section>
-<p class="notice">{{.Warning | escape}}</p>
+<p class="notice">{{.Warning | escape}}</p><p class="review-boundary">{{.Boundary | escape}}</p>
 <h2>{{.Summary | escape}}</h2>
 <div class="metrics">{{range .Metrics}}<div class="metric{{if .Tone}} {{.Tone | escape}}{{end}}"><strong>{{.Count | escape}}</strong><span>{{.Label | escape}}</span>{{if .Notice}}<span class="metric-notice">{{.Notice | escape}}</span>{{end}}</div>{{end}}</div>
 <section><h2>{{if eq .Language "ja"}}確認・対応事項{{else}}Required follow-up{{end}}</h2>{{if not .Pages.FollowUp}}<p>{{if eq .Language "ja"}}現在の判断に基づく確認・対応事項はありません。収集範囲は別途確認してください。{{else}}No follow-up items under current judgments. Check collection coverage separately.{{end}}</p>{{end}}<div class="links">{{range .Pages.FollowUp}}<a href="#{{.ID | escape}}">{{.Label | escape}}</a>{{end}}<a href="#report-details">{{.Pages.Details | escape}}</a></div></section>
@@ -33,7 +33,7 @@ const htmlReport = `<!doctype html>
 <div id="report-configuration" class="report-page"><h2>{{.Pages.Configuration | escape}}</h2>
 {{if .Network}}{{template "networkMap" .Network}}{{end}}</div>
 <div id="report-details" class="report-page"><h2>{{.Pages.Details | escape}}</h2>
-<nav aria-label="{{.Contents | escape}}">{{range .Blocks}}{{if or (eq .ID "run") (eq .ID "scope") (eq .ID "current") (eq .ID "historical") (eq .ID "local-reference") (eq .ID "routes") (eq .ID "unmatched") (eq .ID "evidence")}}<a href="#{{.ID | escape}}">{{.Title | escape}}</a>{{end}}{{end}}</nav>
+<nav aria-label="{{.Contents | escape}}">{{range .Blocks}}{{if or (eq .ID "run") (eq .ID "scope") (eq .ID "account-groups") (eq .ID "current") (eq .ID "historical") (eq .ID "local-reference") (eq .ID "routes") (eq .ID "unmatched") (eq .ID "evidence")}}<a href="#{{.ID | escape}}">{{.Title | escape}}</a>{{end}}{{end}}</nav>
 {{range .Blocks}}
 {{if .Technical}}<details id="{{.ID | escape}}"><summary>{{.Title | escape}} · {{$.Details | escape}}</summary>{{else}}<section id="{{.ID | escape}}"><h2>{{.Title | escape}}</h2>{{end}}
 {{if .Note}}<p>{{.Note | escape}}</p>{{end}}

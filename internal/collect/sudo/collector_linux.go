@@ -78,7 +78,7 @@ func (c Collector) Collect(ctx context.Context, target string) (inventory.Collec
 			*v = defaults[i]
 		}
 	}
-	s := scan{ctx: ctx, source: c.Source, result: r, limits: c.Limits, timestamp: c.Now().UTC().Format(time.RFC3339Nano), policy: []string{}, active: map[string]bool{}, seen: map[string]bool{}}
+	s := scan{ctx: ctx, source: c.Source, result: r, limits: c.Limits, timestamp: c.Now().UTC().Format(time.RFC3339), policy: []string{}, active: map[string]bool{}, seen: map[string]bool{}}
 	s.walk(c.Entry, 0)
 	accounts, groups, identitiesOK := s.identities()
 	if !identitiesOK {

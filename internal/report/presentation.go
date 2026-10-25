@@ -45,6 +45,7 @@ type block struct {
 	Technical       bool
 	ID, Title, Note string
 	FindingID       string
+	SourceIndex     int
 	Fields          []field
 	Questions       []string
 	Links           []link
@@ -60,6 +61,7 @@ type reportPages struct {
 	FollowUp                                                  []link
 }
 type document struct {
+	Boundary                                             string
 	Pages                                                reportPages
 	Network                                              *NetworkMap
 	Language, Title, Warning, Summary, Contents, Details string
@@ -124,6 +126,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 	r := result.Review
 	s, referenceCount := assessment.ReviewSummary(current, r)
 	d := document{Language: language, Title: l.text("AVERA review report", "AVERA 確認レポート"), Summary: l.text("Review overview", "確認状況の概要"), Contents: l.text("Contents", "目次"), Details: l.text("Technical details", "技術情報を開く"), Warning: l.text("Counts describe review state, not overall safety. Missing observations do not prove absence or remediation. Human explanations are not tool-verified safeguards.", "件数は確認状況を表し、全体の安全性を示すものではありません。「追加対応不要」は人による判断です。未観測は不存在や対処済みを意味しません。人による説明や保護策はツールで検証した事実ではありません。")}
+	d.Boundary = AccountBoundary(language)
 	d.Pages = reportPages{
 		Summary: l.text("Report summary", "報告サマリー"), Configuration: l.text("Configuration overview", "構成の概要"), Details: l.text("Judgments and evidence", "判断・根拠の詳細"),
 		ReadingGuide: l.text("Start here for the conclusion and required follow-up. Configuration and individual evidence are available on the other pages when needed.", "報告の結論と必要な対応は、このページで確認できます。構成や個別の判断根拠は、必要に応じて他のページで確認してください。"),
@@ -181,6 +184,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 		scope.Fields = append(scope.Fields, field{l.text("Collector / status / scope", "収集機能・状態・範囲"), string(c.Collector) + " / " + l.state(string(c.Status)) + " / " + c.Scope}, field{l.text("Collector version", "収集機能のバージョン"), c.CollectorVersion}, field{l.text("Attempted sources", "収集を試みた情報源"), strings.Join(c.AttemptedSources, ", ")}, field{l.text("Diagnostics", "診断コード"), strings.Join(c.DiagnosticCodes, ", ")}, field{l.text("Limitations (source text)", "制限事項（情報源の原文）"), strings.Join(c.Limitations, "; ")})
 	}
 	d.Blocks = append(d.Blocks, scope)
+	d.Blocks = append(d.Blocks, accountBlocks(current, language)...)
 	sources := []*i.Snapshot{current}
 	if previous != nil {
 		sources = append(sources, previous)
@@ -236,10 +240,13 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			if id, ok := f.Identity.(i.EndpointIdentity); ok {
 				title += " · " + strings.ToUpper(id.Transport) + " " + id.LocalAddress + fmt.Sprintf(":%d", id.LocalPort)
 			}
+			if account, ok := f.Identity.(i.AccountIdentity); ok {
+				title += l.text(" · Local account ", " · ローカルアカウント ") + account.Name
+			}
 			if f.Kind == i.Forwarding {
 				title += l.text(" · Forwarding configuration", " · 転送設定")
 			}
-			b := block{FindingID: f.FindingID, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
+			b := block{FindingID: f.FindingID, SourceIndex: sourceIndex, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
 			if presence == i.Current && !assessment.IsReference(f) && (item.CurrentDecision != i.Accepted || item.Applicability == i.NeedsReview || item.Applicability == i.Conflict) {
 				d.Pages.FollowUp = append(d.Pages.FollowUp, link{b.ID, title + " · " + l.state(string(item.CurrentDecision)) + " / " + l.state(string(item.Applicability))})
 			}
@@ -255,6 +262,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				for _, value := range view.Fields {
 					b.Fields = append(b.Fields, field(value))
 				}
+			}
+			for _, value := range PrivilegeFields(f, language) {
+				b.Fields = append(b.Fields, field(value))
 			}
 			if !assessment.IsReference(f) && len(item.AssessmentIDs) == 0 {
 				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
@@ -308,6 +318,28 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			d.Blocks = append(d.Blocks, b)
 		}
 	}
+	anchors := map[string]block{}
+	for _, b := range d.Blocks {
+		if b.FindingID != "" {
+			anchors[b.FindingID] = b
+		}
+	}
+	for sourceIndex, source := range sources {
+		connections := PrivilegeConnections(source)
+		for n := range d.Blocks {
+			if d.Blocks[n].SourceIndex != sourceIndex {
+				continue
+			}
+			if len(connections[d.Blocks[n].FindingID]) >= privilegeLinkLimit {
+				d.Blocks[n].Fields = append(d.Blocks[n].Fields, field{l.text("Related navigation limit", "関連項目の表示上限"), l.text("Up to 64 related links per item; consult the full item inventory for other settings.", "関連リンクは各項目最大64件です。その他の設定は項目一覧で確認できます。")})
+			}
+			for _, id := range connections[d.Blocks[n].FindingID] {
+				if target, ok := anchors[id]; ok && target.SourceIndex == sourceIndex {
+					d.Blocks[n].Links = append(d.Blocks[n].Links, link{target.ID, l.text("Related account / service / sudo setting: ", "関連するアカウント・サービス・sudo設定：") + target.Title})
+				}
+			}
+		}
+	}
 	m := NetworkMapFor(&reportfile.File{Current: current, Assessments: annotations}, r, language)
 	attachMapAnchors(&m, d.Blocks)
 	d.Network = &m
@@ -341,7 +373,7 @@ func renderDocument(d document, o Options) (string, error) {
 		}
 		return b.String(), nil
 	}
-	fmt.Fprintf(&b, "# %s\n\n%s\n\n## %s\n\n", d.Title, d.Warning, d.Summary)
+	fmt.Fprintf(&b, "# %s\n\n%s\n\n## %s\n\n", d.Title, d.Warning+"\n\n"+d.Boundary, d.Summary)
 	for _, m := range d.Metrics {
 		fmt.Fprintf(&b, "- %s: %d\n", m.Label, m.Count)
 	}

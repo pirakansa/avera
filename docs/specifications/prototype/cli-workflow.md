@@ -7,9 +7,9 @@ The [single-report revision](report-workflow.md) supersedes split files as the p
 ## Primary commands and flags
 
 - `collect --output NEW_JSON [--input REPORT] [--target-id GROUP]`: root-only
-  collection of network sockets and local iptables/nftables candidates into one
+  collection of network sockets/runtime groups, local accounts/groups, bounded sudo settings and local iptables/nftables candidates into one
   portable report. The input carries common endpoint judgments across equivalent
-  PCs; machine ID is not read. Sudo remains explicitly uncollected.
+  PCs; machine ID is not read. Accounts and sudo are reviewed as separate configured observations.
 - `serve --input REPORT --output-dir EXISTING_PRIVATE_DIRECTORY
   [--listen 127.0.0.1:0] [--lang ja|en]`: local browser editing with private new
   saves, JSON download and HTML export. Editor controls are Japanese; the language
@@ -58,7 +58,7 @@ All sources failing still publishes diagnostic artifacts with exit 2. Offline re
 
 ## Responsibility and evidence
 
-`internal/cli/commands/root` owns thin Cobra mappings, `internal/app` orchestrates use cases, and `internal/artifact` owns publication. `app.Registration` supports adding another collector without duplicating review/report orchestration. P1 deliberately registers only network; enabling sudo later requires explicit integration and tests.
+`internal/cli/commands/root` owns thin Cobra mappings, `internal/app` orchestrates use cases, and `internal/artifact` owns publication. `app.Registration` supports adding another collector without duplicating review/report orchestration. The live CLI registers network, local accounts and bounded sudo collectors. See [accounts and privileges](accounts-privileges.md) for scope, relationships and compatibility.
 
 `internal/app/workflow_test.go` compares fixture-derived review output with T00 expected reviews and checks offline Markdown equality with T05 rendering. It verifies injected root/non-root collection, prior/advance context, partial/failed sources, cancellation, collisions, invalid JSON, target mismatch, and symlink parents. CLI tests pass for dispatch, flags, diagnostics and exit behavior with injected sources. These are simulated evidence, not owner feedback or a live-target validation record.
 

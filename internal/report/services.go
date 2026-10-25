@@ -28,6 +28,18 @@ func EndpointServices(snapshot *i.Snapshot, language string) map[string]ServiceV
 	}
 	out := map[string]ServiceView{}
 	unknown := l.text("Unknown / not collected", "不明・未収集")
+	groupNames := map[uint32][]string{}
+	for _, group := range LocalGroups(snapshot) {
+		groupNames[group.GID] = append(groupNames[group.GID], group.Name)
+	}
+	groupLabel := func(gid uint32) string {
+		label := fmt.Sprint(gid)
+		if len(groupNames[gid]) > 0 {
+			label += " (" + strings.Join(groupNames[gid], ", ") + ")"
+		}
+		return label
+	}
+
 	for _, finding := range snapshot.Findings {
 		if finding.Kind != i.Endpoint {
 			continue
@@ -69,6 +81,23 @@ func EndpointServices(snapshot *i.Snapshot, language string) map[string]ServiceV
 				}
 				sockets = append(sockets, fmt.Sprint(owner.UID))
 			}
+			gid, groups := unknown, unknown
+			if values.Service != nil {
+				if values.Service.EffectiveGID != nil {
+					gid = groupLabel(*values.Service.EffectiveGID)
+				}
+				if values.Service.SupplementaryGroups != nil {
+					names := []string{}
+					for _, id := range *values.Service.SupplementaryGroups {
+						names = append(names, groupLabel(id))
+					}
+					groups = strings.Join(names, ", ")
+					if groups == "" {
+						groups = l.text("None observed", "観測した補助グループなし")
+					}
+				}
+			}
+			view.Fields = append(view.Fields, ServiceField{l.text("Process effective GID", "実行中の実効GID"), gid}, ServiceField{l.text("Process supplementary GIDs (not configured memberships)", "実行中の補助グループGID（設定上の所属とは別）"), groups})
 			view.Fields = append(view.Fields, ServiceField{l.text("Process name", "プロセス名"), name}, ServiceField{l.text("Executable", "実行ファイル"), executable}, ServiceField{l.text("Process effective UID", "実行ユーザ（プロセス実効UID）"), uid}, ServiceField{l.text("Socket UID", "ソケットUID"), strings.Join(sockets, ", ")}, ServiceField{l.text("systemd service candidate (cgroup)", "systemdサービス候補（cgroup）"), unit}, ServiceField{l.text("Observed cgroup path", "観測したcgroupパス"), path})
 			if diagnostics != "" {
 				view.Fields = append(view.Fields, ServiceField{l.text("Service attribution diagnostics", "サービス特定の診断"), diagnostics})

@@ -51,6 +51,16 @@ async function load() {
     if (!response.ok) throw new Error('読み込みに失敗しました');
     const state = await response.json();
     revision = state.revision;
+    $('review-boundary').textContent = state.Boundary;
+    $('account-groups').replaceChildren();
+    const accountCoverage = state.Coverage.find(coverage => coverage.collector === 'accounts');
+    if (!accountCoverage || accountCoverage.status === 'not_collected') $('account-groups').append(node('p', 'このファイルではローカルアカウント・グループは未収集です。再収集で取得できます。'));
+    else if (!(state.LocalGroups || []).length) $('account-groups').append(node('p', '今回のグループ観測は0件です。収集範囲と状態を確認してください。'));
+    for (const group of state.LocalGroups || []) {
+        const primary = state.Items.filter(item => item.finding.kind === 'account.local' && item.finding.facts.primary_gid === group.gid).map(item => item.finding.identity.name);
+        $('account-groups').append(node('p', group.name + ' (GID ' + group.gid + ')：基本グループ ' + (primary.join(', ') || '該当なし') + ' ／ 明示メンバー ' + ((group.members || []).join(', ') || 'なし')));
+    }
+
     renderNetworkMap(state.Network);
     currentItems = state.Items;
     routes = state.Routes || [];
@@ -91,11 +101,26 @@ function renderItem(item) {
         r = item.review,
         g = item.guidance;
     const id = f.identity;
-    const title = f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
+    const title = f.kind === 'account.local' ? 'ローカルアカウント ' + id.name : f.kind === 'network.endpoint' ? String(id.transport).toUpperCase() + ' ' + id.local_address + ':' + id.local_port : (f.kind === 'network.forwarding' ? '転送設定 ' : f.kind === 'sudo.rule' ? 'sudo ' : '解釈できない設定 ') + id.source_path + ':' + id.line;
     const box = node('details');
     box.dataset.finding = f.finding_id;
     box.open = expanded.has(f.finding_id) || drafts.has(f.finding_id);
     box.id = 'finding-' + f.finding_id;
+    const related = node('div', undefined, 'related-privileges');
+    if ((item.related || []).length) {
+        related.append(node('h3', '関連するアカウント・サービス・sudo設定'));
+        related.append(node('p', '実効UIDとローカルUIDの一致、またはsudo設定の対象に基づく関連です。ログイン可否や実効権限の証明ではありません。'));
+        if (item.related.length >= 64) related.append(node('p', '関連リンクは各項目最大64件です。その他の設定は項目一覧で確認できます。'));
+        for (const target of item.related) {
+            const link = node('a', target.Label);
+            link.href = '#' + target.ID;
+            link.addEventListener('click', () => {
+                const destination = $(target.ID);
+                if (destination) { destination.open = true; const reference = destination.closest('#local-reference'); if (reference) reference.open = true; }
+            });
+            related.append(link);
+        }
+    }
     const service = node('div', undefined, 'service-inventory');
     if (item.service) {
         service.append(node('h3', '待受サービスの棚卸し'), node('p', item.service.Note));
@@ -110,12 +135,19 @@ function renderItem(item) {
         }, null, 2)));
         for (const a of item.judgments.filter(a => a.actor || a.purpose || a.rationale || a.exposure || a.safeguards || (a.evidence_refs || []).length || a.decision !== 'unreviewed')) box.append(judgment(a));
         if (item.service) box.append(service);
+        if ((item.related || []).length) box.append(related);
         $('reference-items').append(box);
         return;
     }
     box.append(node('summary', title + ' — ' + text(r.current_decision) + ' / ' + text(r.applicability) + ' / ' + text(r.change)));
     box.append(node('p', g.Observed), node('p', g.Why));
     if (item.service) box.append(service);
+    if ((item.account_fields || []).length) {
+        const fields = node('dl');
+        for (const field of item.account_fields) fields.append(node('dt', field.Label), node('dd', field.Value));
+        box.append(fields);
+    }
+    if ((item.related || []).length) box.append(related);
     const qs = node('ul');
     for (const q of g.Questions) qs.append(node('li', q));
     box.append(qs);
@@ -148,8 +180,8 @@ function renderItem(item) {
     form.append(node('h3', '今回の説明・判断'));
     const controls = {};
     for (const [key, label] of [
-            ['purpose', f.kind === 'network.endpoint' ? 'サービスの用途・必要性・管理担当' : '目的・必要な機能'],
-            ['exposure', '利用者・公開範囲'],
+            ['purpose', f.kind === 'network.endpoint' ? 'サービスの用途・必要性・管理担当' : f.kind === 'account.local' ? 'アカウントの用途・必要性・管理担当' : '目的・必要な機能'],
+            ['exposure', f.kind === 'account.local' ? 'アカウントを利用する人・業務の範囲' : '利用者・公開範囲'],
             ['safeguards', '保護策（ツールで検証した事実とは区別します）'],
             ['rationale', '今回の判断理由'],
             ['actor', '判断者'],

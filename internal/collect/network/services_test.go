@@ -34,7 +34,7 @@ func serviceStat(start string) string {
 func servicesFixture(t *testing.T) *serviceSource {
 	s := &serviceSource{fakeSource: fixture(t)}
 	for _, pid := range []string{"10", "20"} {
-		s.files["/proc/"+pid+"/status"] = "Name:\tfictional-worker\nUid:\t1000\t2000\t1000\t1000\n"
+		s.files["/proc/"+pid+"/status"] = "Name:\tfictional-worker\nUid:\t1000\t2000\t1000\t1000\nGid:\t1000\t2000\t1000\t1000\nGroups:\t2000 3000\n"
 		s.files["/proc/"+pid+"/stat"] = serviceStat("123")
 		s.files["/proc/"+pid+"/cgroup"] = "0::/system.slice/fictional.service\n"
 	}
@@ -197,5 +197,39 @@ func TestServiceCollectionDoesNotEnumerateDaemons(t *testing.T) {
 	empty := collectServices(t, s)
 	if len(empty.Findings) != 0 || len(s.opened) != 4 || empty.Coverage.Status != i.Complete {
 		t.Fatal("empty sockets caused process inventory", s.opened, empty.Coverage)
+	}
+}
+
+func TestRuntimeGroupsAreObservedSeparately(t *testing.T) {
+	for _, tc := range []struct {
+		text   string
+		gid    uint32
+		groups []uint32
+		valid  bool
+	}{
+		{"Gid: 1 2 3 4\nGroups: 8 7 8\n", 2, []uint32{7, 8}, true},
+		{"Gid: 0 0 0 0\nGroups:\n", 0, []uint32{}, true},
+		{"Gid: 1 bad 3 4\nGroups: bad\n", 0, nil, false},
+		{"Gid: 1 2 3 4\nGid: 1 2 3 4\nGroups: 8\n", 0, nil, false},
+	} {
+		gid, groups := parseRuntimeGroups(tc.text)
+		if tc.valid {
+			if gid == nil || *gid != tc.gid || groups == nil || !reflect.DeepEqual(*groups, tc.groups) {
+				t.Fatal(gid, groups)
+			}
+		} else if gid != nil && groups != nil {
+			t.Fatal("malformed runtime groups accepted")
+		}
+	}
+	source := servicesFixture(t)
+	result := collectServices(t, source)
+	for _, entry := range result.Evidence {
+		values := entry.Values.(i.ProcessValues)
+		if values.Service == nil {
+			continue
+		}
+		if values.Service.EffectiveGID == nil || *values.Service.EffectiveGID != 2000 || values.Service.SupplementaryGroups == nil {
+			t.Fatal(values.Service)
+		}
 	}
 }

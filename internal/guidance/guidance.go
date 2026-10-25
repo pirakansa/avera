@@ -16,6 +16,9 @@ type Content struct {
 // For returns fresh content for every implemented finding kind.
 func For(kind i.Kind) Content {
 	switch kind {
+	case i.Account:
+		return Content{"A local account and configured memberships were observed; this is not a login test.", "Review whether the account is still needed and whether its configured groups and sudo settings match its duties.", []string{"What function requires this account, and which person or team manages it? Record purpose, necessity and owner.", "Are its configured groups and related sudo operations necessary for that function?", "Should this account remain, be restricted or be removed? Record a human decision; shell settings alone do not establish login access."}}
+
 	case i.Forwarding:
 		return Content{"A destination translation or redirect rule was observed; effective reachability is not verified.", "Review the entrance and its internal destination. Upstream safeguards do not remove the observed configuration.", []string{"What traffic, interface and source conditions apply, and where does it go?", "Does this lead to a loopback service? Select the observed service and explain the relationship.", "Which upstream router or cloud restrictions protect this entrance? Record references, remaining risk and the reason for your decision."}}
 	case i.Endpoint:

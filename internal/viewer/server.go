@@ -115,17 +115,22 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type relatedFinding struct{ ID, Label string }
 type item struct {
-	Service         *report.ServiceView `json:"service,omitempty"`
-	DetectedTargets []i.Finding         `json:"detected_targets,omitempty"`
-	Finding         i.Finding           `json:"finding"`
-	Review          i.ReviewItem        `json:"review"`
-	Guidance        guidance.Content    `json:"guidance"`
-	Judgments       []i.Assessment      `json:"judgments"`
-	Reference       bool                `json:"reference"`
-	Reusable        bool                `json:"reusable"`
+	AccountFields   []report.ServiceField `json:"account_fields,omitempty"`
+	Related         []relatedFinding      `json:"related,omitempty"`
+	Service         *report.ServiceView   `json:"service,omitempty"`
+	DetectedTargets []i.Finding           `json:"detected_targets,omitempty"`
+	Finding         i.Finding             `json:"finding"`
+	Review          i.ReviewItem          `json:"review"`
+	Guidance        guidance.Content      `json:"guidance"`
+	Judgments       []i.Assessment        `json:"judgments"`
+	Reference       bool                  `json:"reference"`
+	Reusable        bool                  `json:"reusable"`
 }
 type state struct {
+	Boundary       string
+	LocalGroups    []i.LocalGroup
 	Network        report.NetworkMap
 	Revision       int `json:"revision"`
 	Target, Run    string
@@ -146,7 +151,7 @@ func (s *Session) state(w http.ResponseWriter) {
 		http.Error(w, "cannot evaluate report", http.StatusInternalServerError)
 		return
 	}
-	out := state{Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
+	out := state{Boundary: report.AccountBoundary(s.language), LocalGroups: report.LocalGroups(s.file.Current), Network: report.NetworkMapFor(s.file, result.Review, s.language), Revision: s.revision, Target: s.file.Current.TargetID, Run: s.file.Current.SnapshotID, Summary: result.Review.Summary, Routes: s.file.Routes, Coverage: s.file.Current.Coverage, Items: []item{}, Unmatched: result.Unmatched, Language: s.language}
 	out.Summary, out.ReferenceCount = assessment.ReviewSummary(s.file.Current, result.Review)
 	byID := map[string]i.Assessment{}
 	for _, a := range s.file.PolicyJudgments().Entries {
@@ -156,12 +161,31 @@ func (s *Session) state(w http.ResponseWriter) {
 	for _, v := range result.Review.Items {
 		byFinding[v.FindingID] = v
 	}
+	connections := report.PrivilegeConnections(s.file.Current)
+	byFindingID := map[string]i.Finding{}
+	for _, finding := range s.file.Current.Findings {
+		byFindingID[finding.FindingID] = finding
+	}
 	services := report.EndpointServices(s.file.Current, s.language)
 	for _, f := range s.file.Current.Findings {
 		v := byFinding[f.FindingID]
 		it := item{DetectedTargets: s.file.DetectedTargets(f), Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
 		if service, ok := services[f.FindingID]; ok {
 			it.Service = &service
+		}
+		it.AccountFields = report.PrivilegeFields(f, s.language)
+		for _, id := range connections[f.FindingID] {
+			target := byFindingID[id]
+			label := string(target.Kind)
+			switch identity := target.Identity.(type) {
+			case i.AccountIdentity:
+				label = "アカウント " + identity.Name
+			case i.EndpointIdentity:
+				label = fmt.Sprintf("%s %s:%d", identity.Transport, identity.LocalAddress, identity.LocalPort)
+			case i.SourceIdentity:
+				label = fmt.Sprintf("sudo %s:%d", identity.SourcePath, identity.Line)
+			}
+			it.Related = append(it.Related, relatedFinding{ID: "finding-" + id, Label: label})
 		}
 		for _, code := range v.ReasonCodes {
 			if code == reportfile.SharedJudgment {

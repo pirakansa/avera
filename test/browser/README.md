@@ -37,3 +37,9 @@ candidates, reference scope, human explanations, immutable metadata after saving
 escaped offline HTML, diagram/detail navigation and narrow layouts. It inspects
 no real host services. Temporary screenshots and exported HTML remain in the
 printed artifact directory.
+
+`python3 test/browser/accounts_sudo.py` creates a fictional accounts-revision report
+with runtime groups, local UID aliases and sudo settings. It checks service →
+account → sudo navigation, readable group/command settings, account save and JSON
+preservation, scope exclusions without extra review counts, escaped offline
+HTML and narrow layouts. No host account, sudo, SSH or group configuration is read.

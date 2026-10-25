@@ -1,7 +1,7 @@
 # Port-based listening service inventory
 
 The live CLI enriches the existing TCP listener / bound-unconnected UDP inventory
-with information about the processes holding those sockets. It does not enumerate
+with information about the processes holding those sockets. This service-enrichment step does not enumerate
 all daemons, installed packages, systemd units, users or privileges. Existing UDP
 selection and loopback-reference rules remain unchanged.
 
@@ -39,12 +39,12 @@ not persisted. Unrelated fields read from status are discarded.
 Missing, malformed, oversized or unstable sources preserve known endpoints and
 make network coverage partial. Diagnostics are `service_status_unreadable`,
 `service_status_malformed`, `service_cgroup_unreadable`,
-`service_cgroup_malformed` and `service_process_changed`. A valid cgroup without
+`service_cgroup_malformed`, `service_groups_malformed` and `service_process_changed`. A valid cgroup without
 a `.service` candidate is an explicit unknown, not a collection failure.
 
 ## Storage and compatibility
 
-New live artifacts use `services-2026-10-25.1`. Both `netfilter-2026-10-25.1` and
+New live artifacts use `accounts-2026-10-25.1`. The earlier `services-2026-10-25.1`, `netfilter-2026-10-25.1` and
 `t00-2026-10-24.1` remain readable. Portable reports remain v3, with v1/v2 inputs
 still readable. The revision adds optional `service` to proc `ProcessValues`
 evidence associated with a positive PID:
@@ -53,11 +53,14 @@ evidence associated with a positive PID:
 | --- | --- |
 | `process_name` | String; empty when unknown |
 | `effective_uid` | Optional uint32; absent when unknown, zero is valid |
+| `effective_gid` | Optional uint32; accounts revision only |
+| `supplementary_groups` | Optional uint32 array; accounts revision only, empty means observed empty |
 | `unit_candidate` | String; empty or a `.service` component without `/` |
 | `cgroup_path` | String; empty or an absolute observed path |
 | `diagnostics` | Required array of unique nonempty diagnostic codes |
 
-Service evidence is rejected under older revisions. Missing optional `service`
+Service evidence requires the services or accounts revision. Runtime-group fields
+require the accounts revision; netfilter/T00 inputs cannot contain service evidence. Missing optional `service`
 means metadata was not collected; explicit JSON nulls remain forbidden.
 Evidence remains linked through endpoint `evidence_ids`. Service metadata does
 not enter endpoint identities/fact fingerprints or shared judgment matching.
@@ -92,3 +95,8 @@ legacy unknowns, escaping, save/download preservation and HTML/Markdown output.
 `test/browser/listening_services.py` checks the editor, human explanation save,
 immutable observations, configuration diagram, offline script-disabled export
 and narrow layouts. These checks do not establish live systemd or owner acceptance.
+
+The [accounts/privileges extension](accounts-privileges.md) adds optional process
+effective GID and supplementary GIDs, with matching local group names and separate
+configured account memberships. Existing services-revision files without runtime
+groups remain readable. Runtime-group fields require the accounts revision.

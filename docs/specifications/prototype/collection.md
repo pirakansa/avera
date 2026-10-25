@@ -74,3 +74,11 @@ Before implementing a broad parser, show the owner a report for one understood r
 Both collectors must let the user answer: what was observed, where it came from, what scope was inspected, what could not be read or understood, and what needs human explanation. Coverage diagnostics must reach the summary, not remain buried in raw evidence.
 
 Removing an item from a later observation is not proof that it was remediated. Scope changes, stopped processes, inaccessible sources, and intermittent operation require the comparison rules in [data contracts](data-contracts.md).
+
+## Local accounts and service runtime groups
+
+The implemented [accounts/privileges extension](accounts-privileges.md) scopes
+account judgments to local passwd/group settings, separately from configured sudo
+rules. It adds process effective GID/supplementary groups only for observed socket
+holders. External identities, actual SSH login access and other privilege paths
+remain a textual exclusion, not additional findings or required follow-up.
