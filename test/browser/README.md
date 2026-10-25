@@ -43,3 +43,7 @@ with runtime groups, local UID aliases and sudo settings. It checks service →
 account → sudo navigation, readable group/command settings, account save and JSON
 preservation, scope exclusions without extra review counts, escaped offline
 HTML and narrow layouts. No host account, sudo, SSH or group configuration is read.
+
+The accounts/sudo regression additionally checks that an unrelated root account
+appears in a separate read-only reference section, stays outside current counts,
+rejects direct judgment API edits and remains reachable from a sudo run-as link.

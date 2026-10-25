@@ -208,8 +208,12 @@ service identity or a field to review.
 
 ## Review local accounts and configured sudo
 
-New collections include local accounts as individual judgment items. Record each
-account's function, continuing necessity and responsible person/team in
+New collections retain local accounts, but individual judgments cover observed
+main listening-service users and UID 1000+ user-account candidates. Other low-UID
+system accounts appear under **システムアカウントの参考情報** without a judgment
+form or contribution to current/unreviewed counts. UID 1000 is a selection
+heuristic, not proof of SSH login access. Record each in-scope account's
+function, continuing necessity and responsible person/team in
 **アカウントの用途・必要性・管理担当**. Check configured memberships and related sudo
 settings against those duties; a shell is displayed as configuration, not proof
 that login is allowed. Groups with no explicit members remain visible; the group
@@ -232,3 +236,9 @@ management sockets and non-sudo privilege paths are outside this review. These
 exclusions require no extra judgment, create no unreviewed counts and do not
 prevent completing the in-scope report. Existing JSON files remain readable;
 recollect to obtain accounts and runtime groups that were not collected before.
+
+A root account listed as a reference does not mean a service runs as root. It
+becomes a main account item when a main listening service's observed process
+effective UID is 0. Sudo run-as links can open reference accounts without asking
+for another account judgment. Existing stored decisions on reference accounts
+remain in JSON and are not included in report follow-up counts.

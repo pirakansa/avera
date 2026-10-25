@@ -176,3 +176,30 @@ database and reported `No vulnerabilities found.` This completes the previously
 pending vulnerability check for the accounts/runtime-group revision. Earlier
 notes about disabled access describe those earlier attempts, not an outstanding
 verification requirement. Owner acceptance and live-target trials remain separate.
+
+## Narrowed account judgment scope
+
+The owner clarified that individual account judgments should cover users of
+main-scope listening services and UID 1000+ user-account candidates, not every
+system account. Other low-UID accounts now remain separate read-only references,
+excluded from current judgments/counts and explanation prompts. Observed socket
+UID/GID or a sudo run-as name alone does not promote an account. UID 1000 is only
+a candidate heuristic, not verified login access. Root is main-scope when a main
+listening process actually has effective UID 0; otherwise a sudo run-as link can
+open its reference. Source observations and existing judgments stay in JSON.
+
+The owner's `/tmp/avera-review.AlwVXd/shared-services-demo.json` already has
+appropriate fictional data: HTTP uses `websvc` UID 33, internal admin uses `alex`
+UID 1001, and no observed service runs as root. The refreshed viewer therefore
+moves root to references without altering that JSON; websvc, alex and old-maint
+remain main account items. Restart serve after rebuilding; refresh alone does
+not replace embedded assets.
+
+Validation for the narrowed account scope: `vorbere run check`, full race tests,
+build and `git diff --check` passed; the authorized vulnerability scan reported
+`No vulnerabilities found.` Browser regressions for accounts/sudo, shared services
+and report pages passed. A separate read-only check of the owner's exact demo
+confirmed root as the sole account reference, websvc/alex/old-maint as main account
+items, seven main items, three accepted, one action-required and three unreviewed.
+The source JSON remained byte-for-byte unchanged, including root's stored prior
+judgment. The rebuilt `bin/avera` is retained for the requested same-command demo.

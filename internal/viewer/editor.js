@@ -84,6 +84,8 @@ async function load() {
         }
         $('metrics').append(card);
     }
+    $('account-reference-count').textContent = state.AccountReferenceCount;
+    $('account-reference-items').replaceChildren();
     $('reference-count').textContent = state.ReferenceCount;
     $('reference-items').replaceChildren();
     $('routes').replaceChildren();
@@ -109,14 +111,14 @@ function renderItem(item) {
     const related = node('div', undefined, 'related-privileges');
     if ((item.related || []).length) {
         related.append(node('h3', '関連するアカウント・サービス・sudo設定'));
-        related.append(node('p', '実効UIDとローカルUIDの一致、またはsudo設定の対象に基づく関連です。ログイン可否や実効権限の証明ではありません。'));
+        related.append(node('p', '実効UIDとローカルUIDの一致、またはsudo設定の対象・実行先に基づく関連です。ログイン可否や実効権限の証明ではありません。'));
         if (item.related.length >= 64) related.append(node('p', '関連リンクは各項目最大64件です。その他の設定は項目一覧で確認できます。'));
         for (const target of item.related) {
             const link = node('a', target.Label);
             link.href = '#' + target.ID;
             link.addEventListener('click', () => {
                 const destination = $(target.ID);
-                if (destination) { destination.open = true; const reference = destination.closest('#local-reference'); if (reference) reference.open = true; }
+                if (destination) { destination.open = true; const reference = destination.closest('#local-reference'); if (reference) reference.open = true; const accountReference = destination.closest('#account-reference'); if (accountReference) accountReference.open = true; }
             });
             related.append(link);
         }
@@ -127,6 +129,16 @@ function renderItem(item) {
         const fields = node('dl');
         for (const field of item.service.Fields) fields.append(node('dt', field.Label), node('dd', field.Value));
         service.append(fields);
+    }
+    if (item.account_reference) {
+        box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。今回の判断件数には含めません。'));
+        const fields = node('dl');
+        for (const field of item.account_fields || []) fields.append(node('dt', field.Label), node('dd', field.Value));
+        box.append(fields);
+        if (item.judgments.some(a => a.actor || a.rationale)) box.append(node('p', '以前の説明・判断はJSONに保持しています。この参考情報について今回の判断は求めません。'));
+        if ((item.related || []).length) box.append(related);
+        $('account-reference-items').append(box);
+        return;
     }
     if (item.reference) {
         box.append(node('summary', title + ' — 参考情報（個別判断不要）'), node('p', 'ループバック限定の接続口です。主な確認対象の件数には含めず、自動的な追加対応不要の判断もしません。'), node('pre', JSON.stringify({

@@ -205,7 +205,8 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			byID[a.AssessmentID] = a
 		}
 	}
-	for _, category := range []string{"current", "historical", "reference"} {
+	accountReferences := assessment.AccountReferences(current)
+	for _, category := range []string{"current", "historical", "reference", "account-reference"} {
 		presence := i.Current
 		if category == "historical" {
 			presence = i.Historical
@@ -218,6 +219,9 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 		}
 		if category == "reference" {
 			group = block{ID: "local-reference", Title: l.text("Local-only reference services", "ローカル限定の参考情報"), Note: l.text("Outside the main review scope, not automatically accepted. Explain paths and safeguards at the entrance; collected translation candidates do not verify effective paths.", "通常は個別の判断を求めず、未確認件数にも含めません。安全と自動判定したものではありません。転送先として利用する場合は入口側で経路と保護策を説明してください。ツールは転送設定を検証していません。")}
+		}
+		if category == "account-reference" {
+			group = block{ID: "account-reference", Title: l.text("System accounts (reference)", "システムアカウント（参考情報）"), Note: l.text("UID below 1000 and not identified as the process user of an in-scope listening service. No individual judgment is requested; excluded from current counts. UID 1000+ is only a user-account candidate heuristic, not proof of SSH login access.", "UID 1000未満で、主な待受サービスの実行ユーザとして対応付いていないアカウントです。個別判断を求めず、今回の集計に含めません。UID 1000以上もユーザ候補を選ぶ目安で、SSHログイン可否の判定ではありません。")}
 		}
 		d.Blocks = append(d.Blocks, group)
 		if presence == i.Historical && previous == nil {
@@ -232,9 +236,13 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				continue
 			}
 			f := findings[item.FindingID]
-			if presence == i.Current && assessment.IsReference(f) != (category == "reference") {
-				continue
+			if presence == i.Current {
+				if assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference") {
+					continue
+				}
 			}
+			isAccountReference := presence == i.Current && accountReferences[f.FindingID]
+			isReference := assessment.IsReference(f) || isAccountReference
 			g := guidance.ForLanguage(f.Kind, language)
 			title := fmt.Sprintf(l.text("Item %d", "項目 %d"), n+1)
 			if id, ok := f.Identity.(i.EndpointIdentity); ok {
@@ -247,7 +255,7 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 				title += l.text(" · Forwarding configuration", " · 転送設定")
 			}
 			b := block{FindingID: f.FindingID, SourceIndex: sourceIndex, ID: fmt.Sprintf("item-%d", n), Title: title, Fields: []field{{l.text("Finding ID", "観測項目 ID"), item.FindingID}, {l.text("Current decision", "今回の判断"), l.state(string(item.CurrentDecision))}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}, {l.text("Applicability", "判断の適用状態"), l.state(string(item.Applicability))}, {l.text("Review reason", "再確認の理由"), l.reasons(item.ReasonCodes)}, {l.text("Observed fact", "観測した事実"), g.Observed}, {l.text("Why review", "確認する理由"), g.Why}}, Questions: g.Questions}
-			if presence == i.Current && !assessment.IsReference(f) && (item.CurrentDecision != i.Accepted || item.Applicability == i.NeedsReview || item.Applicability == i.Conflict) {
+			if presence == i.Current && !isReference && (item.CurrentDecision != i.Accepted || item.Applicability == i.NeedsReview || item.Applicability == i.Conflict) {
 				d.Pages.FollowUp = append(d.Pages.FollowUp, link{b.ID, title + " · " + l.state(string(item.CurrentDecision)) + " / " + l.state(string(item.Applicability))})
 			}
 			if facts, ok := f.Facts.(i.ForwardingFacts); ok {
@@ -255,6 +263,11 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			}
 			if assessment.IsReference(f) {
 				b.Fields = []field{{l.text("Finding ID", "観測項目 ID"), f.FindingID}, {l.text("Observed fact", "観測した事実"), l.text("Loopback-only endpoint; retained as reference, not a verified vulnerability or safety judgment.", "ループバック限定の接続口です。参考情報として保持し、脆弱性や安全性を判定したものではありません。")}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}}
+				b.Questions = nil
+			}
+			if isAccountReference {
+				b.Note = l.text("Reference only; not an individual judgment task.", "参考情報です。個別の判断・対応は求めません。")
+				b.Fields = []field{{l.text("Finding ID", "観測項目 ID"), f.FindingID}, {l.text("Change", "前回からの変化"), l.state(string(item.Change))}}
 				b.Questions = nil
 			}
 			if view, ok := services[sources[sourceIndex]][f.FindingID]; ok {
@@ -266,15 +279,18 @@ func documentFromReview(current, previous *i.Snapshot, annotations *i.Assessment
 			for _, value := range PrivilegeFields(f, language) {
 				b.Fields = append(b.Fields, field(value))
 			}
-			if !assessment.IsReference(f) && len(item.AssessmentIDs) == 0 {
+			if !isReference && len(item.AssessmentIDs) == 0 {
 				b.Note = l.text("Next: explain purpose, audience or privilege users, safeguards, rationale and supporting evidence.", "次に、目的、利用者・公開範囲、保護策、判断理由、裏付ける証拠を記入してください。")
 			}
 			for _, id := range item.AssessmentIDs {
+				if isAccountReference {
+					continue
+				}
 				context := l.text("Prior context only; does not establish current acceptance", "過去の説明です。今回「追加対応不要」と判断したことを意味しません")
-				if assessment.IsReference(f) {
+				if isReference {
 					context = l.text("Stored judgment outside the main review scope", "集計外の参考情報に対する保存済みの判断")
 				}
-				if !assessment.IsReference(f) && presence == i.Current && item.Applicability == i.Applicable {
+				if !isReference && presence == i.Current && item.Applicability == i.Applicable {
 					context = l.text("Applicable human assessment; not a safety certification", "適用可能な人の判断です。安全性の認証ではありません")
 				}
 				for _, code := range item.ReasonCodes {

@@ -117,30 +117,32 @@ func (s *Session) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type relatedFinding struct{ ID, Label string }
 type item struct {
-	AccountFields   []report.ServiceField `json:"account_fields,omitempty"`
-	Related         []relatedFinding      `json:"related,omitempty"`
-	Service         *report.ServiceView   `json:"service,omitempty"`
-	DetectedTargets []i.Finding           `json:"detected_targets,omitempty"`
-	Finding         i.Finding             `json:"finding"`
-	Review          i.ReviewItem          `json:"review"`
-	Guidance        guidance.Content      `json:"guidance"`
-	Judgments       []i.Assessment        `json:"judgments"`
-	Reference       bool                  `json:"reference"`
-	Reusable        bool                  `json:"reusable"`
+	AccountReference bool                  `json:"account_reference"`
+	AccountFields    []report.ServiceField `json:"account_fields,omitempty"`
+	Related          []relatedFinding      `json:"related,omitempty"`
+	Service          *report.ServiceView   `json:"service,omitempty"`
+	DetectedTargets  []i.Finding           `json:"detected_targets,omitempty"`
+	Finding          i.Finding             `json:"finding"`
+	Review           i.ReviewItem          `json:"review"`
+	Guidance         guidance.Content      `json:"guidance"`
+	Judgments        []i.Assessment        `json:"judgments"`
+	Reference        bool                  `json:"reference"`
+	Reusable         bool                  `json:"reusable"`
 }
 type state struct {
-	Boundary       string
-	LocalGroups    []i.LocalGroup
-	Network        report.NetworkMap
-	Revision       int `json:"revision"`
-	Target, Run    string
-	Summary        i.Summary
-	Coverage       []i.Coverage
-	Items          []item
-	Unmatched      *i.Assessments
-	Language       string
-	ReferenceCount int
-	Routes         []reportfile.Route
+	Boundary              string
+	LocalGroups           []i.LocalGroup
+	Network               report.NetworkMap
+	Revision              int `json:"revision"`
+	Target, Run           string
+	Summary               i.Summary
+	Coverage              []i.Coverage
+	Items                 []item
+	Unmatched             *i.Assessments
+	Language              string
+	AccountReferenceCount int
+	ReferenceCount        int
+	Routes                []reportfile.Route
 }
 
 func (s *Session) state(w http.ResponseWriter) {
@@ -161,6 +163,8 @@ func (s *Session) state(w http.ResponseWriter) {
 	for _, v := range result.Review.Items {
 		byFinding[v.FindingID] = v
 	}
+	accountReferences := assessment.AccountReferences(s.file.Current)
+	out.AccountReferenceCount = len(accountReferences)
 	connections := report.PrivilegeConnections(s.file.Current)
 	byFindingID := map[string]i.Finding{}
 	for _, finding := range s.file.Current.Findings {
@@ -169,7 +173,7 @@ func (s *Session) state(w http.ResponseWriter) {
 	services := report.EndpointServices(s.file.Current, s.language)
 	for _, f := range s.file.Current.Findings {
 		v := byFinding[f.FindingID]
-		it := item{DetectedTargets: s.file.DetectedTargets(f), Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
+		it := item{AccountReference: accountReferences[f.FindingID], DetectedTargets: s.file.DetectedTargets(f), Finding: f, Review: v, Guidance: guidance.ForLanguage(f.Kind, s.language), Judgments: []i.Assessment{}, Reference: assessment.IsReference(f)}
 		if service, ok := services[f.FindingID]; ok {
 			it.Service = &service
 		}

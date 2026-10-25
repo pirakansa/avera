@@ -10,7 +10,7 @@ import (
 
 // AccountBoundary is a scope statement, never an outstanding review task.
 func AccountBoundary(language string) string {
-	return (localizer{language == "ja"}).text("This report covers observed listening services and their runtime groups, local accounts/groups and configured sudo rules. External identities, actual SSH login access, management sockets and other non-sudo privilege paths are outside this review; no additional judgment is requested for those exclusions.", "今回の対象は、観測した待受サービスと実行中グループ、ローカルアカウント・グループ、sudo設定です。外部管理のアカウント、SSHでの実際のログイン可否、管理用ソケットなどsudo以外の権限経路は対象外です。これらの対象外事項について追加の調査・判断は求めません。")
+	return (localizer{language == "ja"}).text("Individual account judgments cover observed in-scope service users and UID 1000+ user-account candidates; lower-UID accounts without such a service match remain references. UID thresholds do not establish login access. This report also covers runtime groups, local memberships and configured sudo rules. External identities, actual SSH login access, management sockets and other non-sudo privilege paths are outside this review; no additional judgment is requested for those exclusions.", "アカウントの個別判断対象は、主な待受サービスの実行ユーザとUID 1000以上のユーザ候補です。それ以外の低UIDアカウントは参考情報とし、個別判断を求めません。UIDはログイン可否の判定ではありません。実行中グループ、設定上の所属グループ、sudo設定も確認対象です。外部管理のアカウント、SSHでの実際のログイン可否、管理用ソケットなどsudo以外の権限経路は対象外です。これらの対象外事項について追加の調査・判断は求めません。")
 }
 
 // LocalGroups returns the sanitized observed directory, including groups with no members.
@@ -123,6 +123,11 @@ func PrivilegeConnections(snapshot *i.Snapshot) map[string][]string {
 				matches = nil
 				if id, ok := accountsByName[rule.Principal.Name]; ok {
 					matches = []string{id}
+				}
+			}
+			for _, name := range rule.RunAsUsers {
+				if id, ok := accountsByName[name]; ok {
+					connect(finding.FindingID, id)
 				}
 			}
 			for _, accountID := range matches[:min(len(matches), privilegeLinkLimit)] {

@@ -141,12 +141,15 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 			evidenceLinks[fmt.Sprintf("%d/%s", si, e.EvidenceID)] = fmt.Sprintf("evidence-%d-%d", si, ei)
 		}
 	}
-	for _, category := range []string{"current", "historical", "reference"} {
+	accountReferences := assessment.AccountReferences(current)
+	for _, category := range []string{"current", "historical", "reference", "account-reference"} {
 		presence := i.Current
 		if category == "historical" {
 			presence = i.Historical
 		}
-		if category == "reference" {
+		if category == "account-reference" {
+			w.WriteString("\n## System accounts (reference)\n\nUID below 1000, not identified as the process user of an in-scope listening service. No individual judgment requested; excluded from current counts.\n\n")
+		} else if category == "reference" {
 			w.WriteString("\n## Local-only reference services\n\nOutside the main review counts, not automatically accepted. Explain forwarding at the network entrance; forwarding is not verified by this tool.\n\n")
 		} else if presence == i.Current {
 			w.WriteString("\n## Current items\n\n")
@@ -158,10 +161,10 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				continue
 			}
 			f := findings[item.FindingID]
-			if presence == i.Current && assessment.IsReference(f) != (category == "reference") {
+			if presence == i.Current && (assessment.IsReference(f) != (category == "reference") || accountReferences[f.FindingID] != (category == "account-reference")) {
 				continue
 			}
-			if assessment.IsReference(f) {
+			if assessment.IsReference(f) || (presence == i.Current && accountReferences[f.FindingID]) {
 				fmt.Fprintf(&w.Builder, "### Item %d\n\n", n+1)
 				w.field("Finding ID", f.FindingID)
 				facts, err := technical(struct {
@@ -183,6 +186,9 @@ func Render(current, previous *i.Snapshot, annotations *i.Assessments) (string, 
 				}
 				w.field("Change", string(item.Change))
 				for _, id := range item.AssessmentIDs {
+					if presence == i.Current && accountReferences[f.FindingID] {
+						continue
+					}
 					w.annotation(annotationsByID[id], "Stored judgment outside the main review scope")
 				}
 				sourceIndex := 0

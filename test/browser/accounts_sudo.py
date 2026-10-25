@@ -7,14 +7,16 @@ snapshot = json.loads(pathlib.Path('test/fixtures/prototype/contracts/snapshot-f
 snapshot['contract_revision'] = 'accounts-2026-10-25.1'
 def digest(value):
     return 'sha256:' + hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-groups = [{'name': 'fictional-users', 'gid': 1000, 'members': []}, {'name': 'fictional-maint', 'gid': 3000, 'members': ['operator']}, {'name': 'empty', 'gid': 4000, 'members': []}]
+groups = [{'name': 'root', 'gid': 0, 'members': []}, {'name': 'fictional-users', 'gid': 1000, 'members': []}, {'name': 'fictional-maint', 'gid': 3000, 'members': ['operator']}, {'name': 'empty', 'gid': 4000, 'members': []}]
 snapshot['coverage'].append({'collector': 'accounts', 'collector_version': 'fictional', 'status': 'complete', 'scope': 'local passwd/group files', 'attempted_sources': ['/etc/passwd', '/etc/group'], 'diagnostic_codes': [], 'limitations': []})
 snapshot['evidence'].append({'evidence_id': 'fictional-group-directory', 'source_kind': 'local_identity', 'location': '/etc/group', 'collected_at': snapshot['collected_at'], 'method': 'Fictional sanitized group directory', 'values': {'groups': groups}})
-for name in ['operator', 'alias']:
+for name in ['operator', 'alias', 'root']:
     identity = {'name': name}
     memberships = [{'name': 'fictional-users', 'gid': 1000, 'membership': 'primary'}]
     if name == 'operator': memberships.insert(0, {'name': 'fictional-maint', 'gid': 3000, 'membership': 'supplementary'})
-    facts = {'uid': 1000, 'primary_gid': 1000, 'home': '/home/' + name, 'shell': '/bin/sh', 'groups': memberships, 'context_complete': True}
+    uid = 0 if name == 'root' else 1000
+    if name == 'root': memberships = [{'name': 'root', 'gid': 0, 'membership': 'primary'}]
+    facts = {'uid': uid, 'primary_gid': uid, 'home': '/home/' + name, 'shell': '/bin/sh', 'groups': memberships, 'context_complete': True}
     finding = {'collector': 'accounts', 'kind': 'account.local', 'identity': identity, 'facts': facts, 'evidence_ids': ['fictional-group-directory']}
     finding['finding_id'] = digest(['avera.identity.v1', snapshot['target_id'], 'accounts', 'account.local', identity])
     finding['fact_fingerprint'] = digest(['avera.facts.v1', 'account.local', identity, facts])
@@ -39,7 +41,12 @@ try:
         page.goto(url); page.locator('#items > details').first.wait_for()
         state = page.request.get(url + '/api/state').json()
         assert state['Summary']['current'] == 5 and state['Summary']['unreviewed'] == 5
-        assert len([item for item in state['Items'] if item['finding']['kind'] == 'account.local']) == 2
+        assert len([item for item in state['Items'] if item['finding']['kind'] == 'account.local']) == 3
+        assert state['AccountReferenceCount'] == 1
+        assert page.locator('#account-reference-items form').count() == 0
+        root_id = next(item['finding']['finding_id'] for item in state['Items'] if item['finding']['kind'] == 'account.local' and item['finding']['identity']['name'] == 'root')
+        denied = page.request.post(url + '/api/assess', headers={'Origin': url, 'Content-Type': 'application/json'}, data=json.dumps({'revision': 0, 'edit': {'finding_id': root_id, 'decision': 'accepted', 'actor': 'fictional', 'rationale': 'Reference must not be editable'}}))
+        assert denied.status == 400
         assert '追加の調査・判断は求めません' in page.locator('#review-boundary').inner_text()
         web = page.locator('#items > details').filter(has=page.locator(':scope > summary', has_text=':80 '))
         web.locator(':scope > summary').click()
@@ -62,6 +69,10 @@ try:
         sudo = page.locator('#items > details').filter(has=page.locator(':scope > summary', has_text=re.compile(r'^sudo ')))
         assert sudo.get_attribute('open') is not None
         assert 'sudo設定の対象' in sudo.inner_text() and '%fictional-maint' in sudo.inner_text()
+        sudo.locator('.related-privileges a', has_text='アカウント root').click()
+        assert page.locator('#account-reference').get_attribute('open') is not None
+        assert page.locator('#account-reference-items details').first.is_visible()
+        assert '個別判断不要' in page.locator('#account-reference-items details > summary').first.inner_text()
         data = page.request.get(url + '/download.json').json()
         assert any(a['decision'] == 'accepted' and a['selector']['kind'] == 'account.local' for a in data['assessments']['entries'])
         metadata = next(e['values']['service'] for e in data['current']['evidence'] if e['evidence_id'] == 'e1')

@@ -3,12 +3,14 @@ package report
 import (
 	"context"
 	"fmt"
+	"github.com/pirakansa/avera/internal/reportfile"
 	"html"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pirakansa/avera/internal/collect/accounts"
 	"github.com/pirakansa/avera/internal/collect/sudo"
@@ -155,5 +157,86 @@ func TestPrivilegeNavigationIsBounded(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("navigation limit was silent")
+	}
+}
+
+func TestSystemAccountReferencePresentationAndEditing(t *testing.T) {
+	snapshot := accountSnapshot(t)
+	// Add root as a configured sudo run-as target, with an existing accepted judgment.
+	template := snapshot.Findings[len(snapshot.Findings)-1]
+	for _, f := range snapshot.Findings {
+		if _, ok := f.Facts.(i.AccountFacts); ok {
+			template = f
+			break
+		}
+	}
+	template.Identity = i.AccountIdentity{Name: "root"}
+	template.Facts = i.AccountFacts{UID: 0, PrimaryGID: 0, Home: "/root", Shell: "/bin/sh", Groups: []i.AccountGroup{{Name: "root", GID: 0, Membership: "primary"}}, ContextComplete: true}
+	root, err := i.NormalizeFinding(snapshot.TargetID, template)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Findings = append(snapshot.Findings, root)
+	file, err := reportfile.New(snapshot, nil, nil, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = file.Apply(reportfile.Edit{FindingID: root.FindingID, Decision: i.Accepted, Actor: "fictional", Rationale: "not editable"}, time.Now()); err == nil {
+		t.Fatal("reference account accepted an edit")
+	}
+	for n := range file.Assessments.Entries {
+		entry := &file.Assessments.Entries[n]
+		if identity, ok := entry.Selector.Identity.(i.AccountIdentity); ok && identity.Name == "root" {
+			entry.Decision = i.Accepted
+			entry.Actor = "fictional-root-reviewer"
+			entry.Rationale = "Previously recorded context"
+			entry.AssessedAt = "2026-10-25T00:00:00Z"
+		}
+	}
+	for _, language := range []string{"ja", "en"} {
+		document, err := makeDocument(snapshot, nil, file.Assessments, language)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if document.Metrics[0].Count != 5 {
+			t.Fatal("reference account entered counts", document.Metrics)
+		}
+		var rootBlock block
+		for _, b := range document.Blocks {
+			if b.FindingID == root.FindingID {
+				rootBlock = b
+			}
+		}
+		for _, field := range rootBlock.Fields {
+			if strings.Contains(field.Label, "Missing") || strings.Contains(field.Label, "不足する説明") {
+				t.Fatal("reference account prompts for an explanation")
+			}
+		}
+		if len(rootBlock.Questions) != 0 {
+			t.Fatal("reference account has judgment questions")
+		}
+		for _, followup := range document.Pages.FollowUp {
+			if followup.ID == rootBlock.ID {
+				t.Fatal("reference account requires follow-up")
+			}
+		}
+		for _, format := range []string{"html", "markdown"} {
+			output, err := RenderWithOptions(snapshot, nil, file.Assessments, Options{Format: format, Language: language})
+			if err != nil {
+				t.Fatal(err)
+			}
+			visible := html.UnescapeString(output)
+			label := "System accounts (reference)"
+			if language == "ja" {
+				label = "システムアカウント（参考情報）"
+			}
+			if !strings.Contains(visible, label) || !strings.Contains(visible, "root") {
+				t.Fatal("reference account lost from report")
+			}
+		}
+	}
+	// Retain root as a reference link from an explicitly named sudo run-as target.
+	if len(PrivilegeConnections(snapshot)[root.FindingID]) == 0 {
+		t.Fatal("sudo run-as context lost")
 	}
 }

@@ -249,7 +249,7 @@ func (f *File) Apply(edit Edit, now time.Time) (*File, error) {
 			break
 		}
 	}
-	if found == nil || assessment.IsReference(*found) {
+	if found == nil || assessment.IsReference(*found) || assessment.AccountReferences(out.Current)[found.FindingID] {
 		return nil, fmt.Errorf("only current findings can be edited")
 	}
 	entries := []i.Assessment{}

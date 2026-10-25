@@ -15,6 +15,19 @@ editor and report summary. It creates no findings, counters, required judgments
 or follow-up tasks. An unavailable or malformed **in-scope source**, by contrast,
 remains an actual collection diagnostic with partial/failed coverage.
 
+Individual account review is restricted to UID 1000+ user-account candidates and
+accounts whose UID matches an observed process effective UID of a main-scope
+(non-loopback) listening endpoint. UID 1000 is a presentation heuristic, not a
+login permission test, universal account classification or inferred SSH access.
+A socket UID, runtime GID or sudo run-as target alone does not promote an account.
+Other low-UID system accounts remain read-only references, outside current,
+accepted, action-required, unreviewed, re-review and conflict counts. Their source
+observations and existing human judgments remain in JSON. Routine references do
+not display explanation-completeness prompts or offer a judgment form. Root is
+in scope if a main-scope service actually has observed effective UID 0; otherwise
+it can still be consulted from a sudo run-as link. Loopback-service observations
+retain the existing reference-scope policy.
+
 No shell value, group name, UID, candidate service or configured sudo line is an
 automatic safety/privilege judgment. Humans explain required duties and decide
 whether observed settings are appropriate. Group membership alone is not a sudo
@@ -75,13 +88,14 @@ Service/account links use observed effective UID and matching local UID. All
 matching aliases remain visible; the link is a local numeric match, not verified
 login identity or proof of an external path. Account/sudo links use explicit
 configured user names or locally observed membership in the configured subject
-group. Relationships are derived read-only navigation, not new grants, matching
+group; explicit run-as account names are also linked as context. Relationships are derived read-only navigation, not new grants, matching
 rules or judgments. HTML links stay within the corresponding current or historical
 source; changed old relationships do not become current ones. Related navigation
 is bounded to 64 links per item with a visible limit note when reached. The full
 item inventory and judgment counts remain unchanged.
 
-The editor and HTML/Markdown show readable account and sudo fields, including
+The editor and HTML/Markdown separate main-scope accounts from system-account
+references and show readable account and sudo fields, including
 run-as users/groups, commands, command-entry argument restrictions, password tags,
 locally resolved subjects and interpretation completeness. Missing password tags
 remain unspecified, never inferred as PASSWD/NOPASSWD. Human purpose fields invite
